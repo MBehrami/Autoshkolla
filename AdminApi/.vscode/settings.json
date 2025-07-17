@@ -1,0 +1,7 @@
+{
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#b33939",
+    "titleBar.activeForeground": "#ffffff",
+  },
+  "window.title": "${folderName} - Backend"
+}
