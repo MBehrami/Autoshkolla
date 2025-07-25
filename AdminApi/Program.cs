@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 var AllowSpecificOrigins = "_allowSpecificOrigins";
 
 //Sql Server Connection String
-//builder.Services.AddDbContextPool<AppDbContext>(opt=>opt.UseSqlServer(builder.Configuration["ConnectionStrings:ApiConnStringMssql"]));
+builder.Services.AddDbContextPool<AppDbContext>(opt=>opt.UseSqlServer(builder.Configuration["ConnectionStrings:ApiConnStringMssql"]));
 
 //Mysql Server Connection String
 /* builder.Services.AddDbContextPool<AppDbContext>(opt=>opt.UseMySql
@@ -24,7 +24,7 @@ var AllowSpecificOrigins = "_allowSpecificOrigins";
 ServerVersion.AutoDetect(builder.Configuration["ConnectionStrings:ApiConnStringMysql"]))); */
 
 //Sqlite Connection String
-builder.Services.AddDbContextPool<AppDbContext>(opt=>opt.UseSqlite(builder.Configuration["ConnectionStrings:ApiConnStringSqlite"]));
+//builder.Services.AddDbContextPool<AppDbContext>(opt=>opt.UseSqlite(builder.Configuration["ConnectionStrings:ApiConnStringSqlite"]));
 
 //PostgreSql Connection String
 //builder.Services.AddDbContextPool<AppDbContext>(opt=>opt.UseNpgsql(builder.Configuration["ConnectionStrings:ApiConnStringPostgreSql"]));
@@ -38,7 +38,7 @@ builder.Services.AddCors(options=>
 {
     options.AddPolicy(name:AllowSpecificOrigins,builder=>
         {
-            builder.WithOrigins("http://localhost:3000","https://vueadmin.sangibproject.com")
+            builder.WithOrigins("http://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod();
         });
@@ -73,7 +73,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v2", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "AdminVUE API v2",
+        Title = "Admin API v2",
         Version = "v2",
         Description = "API to communicate with Client Project"
     });               
@@ -115,7 +115,6 @@ builder.Services.Configure<FormOptions>(o => {
 });
 
 builder.WebHost.UseUrls("http://localhost:5002");
-
 
 
 var app = builder.Build();

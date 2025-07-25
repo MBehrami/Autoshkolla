@@ -3,6 +3,7 @@ using System;
 using AdminApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -15,53 +16,59 @@ namespace AdminApi.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.6");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("AdminApi.Models.Menu.AppMenu", b =>
                 {
                     b.Property<int>("MenuID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'11', '1', '', '', 'False', '1'");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MenuID"));
+
                     b.Property<int>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("IconClass")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMigrationData")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<int>("IsSubMenu")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("LastUpdatedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("MenuTitle")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("ParentID")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("SortOrder")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("URL")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("MenuID");
 
@@ -72,7 +79,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7581),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8032),
                             IconClass = "mdi-menu",
                             IsActive = false,
                             IsMigrationData = true,
@@ -86,7 +93,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7589),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8036),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -100,7 +107,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 3,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7592),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8039),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -114,7 +121,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 4,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7595),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8042),
                             IconClass = "mdi-account",
                             IsActive = false,
                             IsMigrationData = true,
@@ -128,7 +135,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 5,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7597),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8044),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -142,7 +149,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 6,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7599),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8046),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -156,7 +163,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 7,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7602),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8049),
                             IconClass = "mdi-history",
                             IsActive = false,
                             IsMigrationData = true,
@@ -170,7 +177,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 8,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7604),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8051),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -184,7 +191,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 9,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7607),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8055),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -198,7 +205,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 10,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7609),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8083),
                             IconClass = "mdi-home",
                             IsActive = true,
                             IsMigrationData = true,
@@ -212,7 +219,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 11,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7612),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8085),
                             IconClass = "mdi-frequently-asked-questions",
                             IsActive = false,
                             IsMigrationData = true,
@@ -226,7 +233,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 12,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7614),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8088),
                             IconClass = "mdi-contacts",
                             IsActive = false,
                             IsMigrationData = true,
@@ -240,7 +247,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 13,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(7616),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8090),
                             IconClass = "mdi-cog",
                             IsActive = false,
                             IsMigrationData = true,
@@ -256,31 +263,33 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("MenuGroupID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'3', '1', '', '', 'False', '1'");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MenuGroupID"));
+
                     b.Property<int>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMigrationData")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<int?>("LastUpdatedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("MenuGroupName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("MenuGroupID");
 
@@ -291,7 +300,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupID = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(3490),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(6753),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupName = "Super Admin Group"
@@ -300,7 +309,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupID = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(3507),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(6805),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupName = "User Group"
@@ -311,26 +320,28 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("MenuGroupWiseMenuMappingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'9', '1', '', '', 'False', '1'");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MenuGroupWiseMenuMappingId"));
+
                     b.Property<int>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMigrationData")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<int>("MenuGroupId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("MenuId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("MenuGroupWiseMenuMappingId");
 
@@ -341,7 +352,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8656),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8413),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -351,7 +362,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8663),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8421),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -361,7 +372,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 3,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8667),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8424),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -371,7 +382,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 4,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8669),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8426),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -381,7 +392,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 5,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8671),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8428),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -391,7 +402,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 6,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8673),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8430),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -401,7 +412,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 7,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8675),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8432),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -411,7 +422,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 8,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8676),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8434),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -421,7 +432,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 9,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8678),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8436),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -431,7 +442,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 10,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8681),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8438),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -441,7 +452,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 11,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(8682),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8439),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 2,
@@ -453,24 +464,26 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("ContactId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactId"));
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("ContactId");
 
@@ -481,30 +494,32 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("ErrorLogId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ErrorLogId"));
 
                     b.Property<int?>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Message")
                         .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<int?>("Status")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("StatusText")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("ErrorLogId");
 
@@ -515,35 +530,37 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("FaqId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'3', '1', '', '', 'False', '1'");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FaqId"));
+
                     b.Property<int>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMigrationData")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<int?>("LastUpdatedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("FaqId");
 
@@ -554,7 +571,7 @@ namespace AdminApi.Migrations
                         {
                             FaqId = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 697, DateTimeKind.Local).AddTicks(192),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8942),
                             Description = "Vue Admin is a single page admin template developed by Vue with .Net core 8 API. It’s covered most common features that you need to start a project.",
                             IsActive = true,
                             IsMigrationData = true,
@@ -564,7 +581,7 @@ namespace AdminApi.Migrations
                         {
                             FaqId = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 697, DateTimeKind.Local).AddTicks(198),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8945),
                             Description = "The most amazing part of this template is, you have five popular Relational database connectivity options here. You have flexibility to choose Sql server, Mysql, Sqlite, PostgreSql and Oracle 12c+.",
                             IsActive = true,
                             IsMigrationData = true,
@@ -576,222 +593,224 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("SiteSettingsId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'2', '1', '', '', 'False', '1'");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SiteSettingsId"));
+
                     b.Property<int>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<bool>("AllowFaq")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("AllowRightClick")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("AllowWelcomeEmail")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("AppBarColor")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("BodyColor")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ClientUrl")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ContactUsEmail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContactUsTelephone")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContactUsText")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CopyRightText")
                         .HasMaxLength(350)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(350)");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DefaultEmail")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FaviconPath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Feature1Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature1Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature1Picture")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Feature2Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature2Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature2Picture")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Feature3Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature3Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature3Picture")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Feature4Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature4Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Feature4Picture")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("FooterColor")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FooterFacebook")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FooterInstagram")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FooterLinkedin")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FooterText")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FooterTwitter")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ForgetPasswordEmailBody")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ForgetPasswordEmailHeader")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ForgetPasswordEmailSubject")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HeaderColor")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("HomeBox1Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeBox1Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeBox2Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeBox2Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeBox3Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeBox3Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeBox4Detail")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeBox4Header")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeDetail1")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeDetail2")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeHeader1")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomeHeader2")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("HomePicture")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Host")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMigrationData")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<int?>("LastUpdatedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("LogoPath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Password")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("Port")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("RegistrationText")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SiteTitle")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("Version")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("WelComeMessage")
                         .HasMaxLength(250)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("WelcomeEmailBody")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("WelcomeEmailHeader")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("WelcomeEmailSubject")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("SiteSettingsId");
 
@@ -811,7 +830,7 @@ namespace AdminApi.Migrations
                             ContactUsTelephone = "+xx (xx) xxxxx-xxxx",
                             ContactUsText = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iste explicabo commodi quisquam asperiores dolore ad enim provident veniam perferendis voluptate, perspiciatis. ",
                             CopyRightText = "© 2024 Copyright Vue Admin",
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(9477),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8725),
                             DefaultEmail = "",
                             FaviconPath = "",
                             Feature1Detail = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
@@ -869,34 +888,36 @@ namespace AdminApi.Migrations
                 {
                     b.Property<long>("LogId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("LogId"));
 
                     b.Property<string>("Browser")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BrowserVersion")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Ip")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LogCode")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("LogDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("LogInTime")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("LogOutTime")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Platform")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("LogId");
 
@@ -907,38 +928,40 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("UserRoleId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'3', '1', '', '', 'False', '1'");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserRoleId"));
+
                     b.Property<int>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMigrationData")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<int?>("LastUpdatedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("MenuGroupId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("RoleDesc")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("RoleName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("UserRoleId");
 
@@ -949,7 +972,7 @@ namespace AdminApi.Migrations
                         {
                             UserRoleId = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(4424),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7121),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -959,7 +982,7 @@ namespace AdminApi.Migrations
                         {
                             UserRoleId = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(4429),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7125),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 2,
@@ -971,71 +994,73 @@ namespace AdminApi.Migrations
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'3', '1', '', '', 'False', '1'");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
                     b.Property<int>("AddedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DateOfBirth")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ForgetPasswordRef")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ImagePath")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMigrationData")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsPasswordChange")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastPasswordChangeDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("LastUpdatedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Mobile")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("PasswordChangedBy")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("PasswordSalt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserRoleId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 
@@ -1046,7 +1071,7 @@ namespace AdminApi.Migrations
                         {
                             UserId = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(6083),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7701),
                             Email = "admin@vueadmin.com",
                             FullName = "John Doe",
                             IsActive = true,
@@ -1060,7 +1085,7 @@ namespace AdminApi.Migrations
                         {
                             UserId = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 1, 3, 0, 15, 8, 696, DateTimeKind.Local).AddTicks(6091),
+                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7707),
                             Email = "user@vueadmin.com",
                             FullName = "Helen Smith",
                             IsActive = true,
