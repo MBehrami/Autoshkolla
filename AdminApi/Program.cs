@@ -399,10 +399,21 @@ using (var scope = app.Services.CreateScope())
                     [PaymentDate] NVARCHAR(20) NULL,
                     [AddedBy] INT NOT NULL,
                     [DateAdded] DATETIME2 NOT NULL,
+                    [Status] NVARCHAR(20) NULL,
+                    [Examiner] NVARCHAR(100) NULL,
                     CONSTRAINT [PK_DrivingSessions] PRIMARY KEY ([DrivingSessionId]),
                     CONSTRAINT [FK_DrivingSessions_Candidates] FOREIGN KEY ([CandidateId]) REFERENCES [dbo].[Candidates]([CandidateId]),
                     CONSTRAINT [FK_DrivingSessions_Vehicles] FOREIGN KEY ([VehicleId]) REFERENCES [dbo].[Vehicles]([VehicleId])
                 );
+            END
+            -- Add Status and Examiner columns if missing (for existing DBs)
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DrivingSessions' AND COLUMN_NAME = 'Status')
+            BEGIN
+                ALTER TABLE [dbo].[DrivingSessions] ADD [Status] NVARCHAR(20) NULL;
+            END
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DrivingSessions' AND COLUMN_NAME = 'Examiner')
+            BEGIN
+                ALTER TABLE [dbo].[DrivingSessions] ADD [Examiner] NVARCHAR(100) NULL;
             END
         ").GetAwaiter().GetResult();
     }

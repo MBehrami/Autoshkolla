@@ -91,16 +91,67 @@
                                 </div>
                             </template>
                             <template v-slot:append>
-                                <div class="d-flex align-center ga-4">
-                                    <v-chip color="primary" variant="tonal" size="small" class="font-weight-medium">
-                                        {{ selectedDateDisplay }}
-                                    </v-chip>
+                                <div class="d-flex flex-wrap align-center ga-3">
+                                    <!-- Status filter -->
+                                    <v-select
+                                        v-model="filterStatus"
+                                        :items="statusFilterOptions"
+                                        item-title="label"
+                                        item-value="value"
+                                        label="Status"
+                                        variant="outlined"
+                                        density="compact"
+                                        hide-details
+                                        class="ds-filter-status"
+                                        @update:model-value="loadSessions"
+                                    ></v-select>
+
+                                    <!-- Date range: From -->
+                                    <v-menu v-model="fromDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                        <template v-slot:activator="{ props: menuProps }">
+                                            <v-text-field
+                                                :model-value="fromDateDisplay"
+                                                label="From date"
+                                                variant="outlined"
+                                                density="compact"
+                                                prepend-inner-icon="mdi-calendar"
+                                                readonly
+                                                hide-details
+                                                clearable
+                                                class="ds-filter-date"
+                                                v-bind="menuProps"
+                                                @click:clear="clearFromDate"
+                                            ></v-text-field>
+                                        </template>
+                                        <v-date-picker v-model="fromDateModel" color="primary" @update:model-value="handleFromDate"></v-date-picker>
+                                    </v-menu>
+
+                                    <!-- Date range: To -->
+                                    <v-menu v-model="toDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                        <template v-slot:activator="{ props: menuProps }">
+                                            <v-text-field
+                                                :model-value="toDateDisplay"
+                                                label="To date"
+                                                variant="outlined"
+                                                density="compact"
+                                                prepend-inner-icon="mdi-calendar"
+                                                readonly
+                                                hide-details
+                                                clearable
+                                                class="ds-filter-date"
+                                                v-bind="menuProps"
+                                                @click:clear="clearToDate"
+                                            ></v-text-field>
+                                        </template>
+                                        <v-date-picker v-model="toDateModel" color="primary" @update:model-value="handleToDate"></v-date-picker>
+                                    </v-menu>
+
                                     <v-btn
                                         color="primary"
                                         variant="elevated"
                                         class="text-capitalize"
                                         prepend-icon="mdi-plus"
-                                        @click="dialog = true"
+                                        @click="openCreateDialog"
                                     >
                                         Add Session
                                     </v-btn>
@@ -130,19 +181,45 @@
                         </v-chip>
                     </template>
 
+                    <!-- Status chip -->
+                    <template v-slot:[`item.status`]="{ item }">
+                        <v-chip v-if="item.status" size="small" :color="statusColor(item.status)" variant="tonal">
+                            {{ item.status }}
+                        </v-chip>
+                        <span v-else class="text-medium-emphasis text-body-2">—</span>
+                    </template>
+
+                    <!-- Examiner -->
+                    <template v-slot:[`item.examiner`]="{ item }">
+                        <span v-if="item.examiner">{{ item.examiner }}</span>
+                        <span v-else class="text-medium-emphasis text-body-2">—</span>
+                    </template>
+
                     <!-- Actions -->
                     <template v-slot:[`item.actions`]="{ item }">
-                        <v-btn
-                            v-if="isAdmin"
-                            icon
-                            variant="text"
-                            size="small"
-                            color="error"
-                            @click="confirmDelete(item)"
-                        >
-                            <v-icon icon="mdi-delete-outline" size="18"></v-icon>
-                            <v-tooltip activator="parent" location="top">Delete</v-tooltip>
-                        </v-btn>
+                        <div class="d-flex align-center ga-1">
+                            <v-btn
+                                icon
+                                variant="text"
+                                size="small"
+                                color="primary"
+                                @click="openEditDialog(item)"
+                            >
+                                <v-icon icon="mdi-pencil-outline" size="18"></v-icon>
+                                <v-tooltip activator="parent" location="top">Edit</v-tooltip>
+                            </v-btn>
+                            <v-btn
+                                v-if="isAdmin"
+                                icon
+                                variant="text"
+                                size="small"
+                                color="error"
+                                @click="confirmDelete(item)"
+                            >
+                                <v-icon icon="mdi-delete-outline" size="18"></v-icon>
+                                <v-tooltip activator="parent" location="top">Delete</v-tooltip>
+                            </v-btn>
+                        </div>
                     </template>
                 </v-data-table>
             </v-col>
@@ -159,7 +236,6 @@
                 <v-card-text class="pa-6">
                     <v-form ref="formRef" @submit.prevent="saveSession">
                         <v-row>
-                            <!-- Candidate -->
                             <v-col cols="12" md="6">
                                 <v-autocomplete
                                     v-model="form.candidateId"
@@ -173,8 +249,6 @@
                                     prepend-inner-icon="mdi-account"
                                 ></v-autocomplete>
                             </v-col>
-
-                            <!-- Vehicle -->
                             <v-col cols="12" md="6">
                                 <v-select
                                     v-model="form.vehicleId"
@@ -188,8 +262,6 @@
                                     prepend-inner-icon="mdi-car"
                                 ></v-select>
                             </v-col>
-
-                            <!-- Driving Date -->
                             <v-col cols="12" md="6">
                                 <v-menu v-model="drivingDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
                                     <template v-slot:activator="{ props: menuProps }">
@@ -207,8 +279,6 @@
                                     <v-date-picker v-model="drivingDateModel" color="primary" @update:model-value="handleDrivingDate"></v-date-picker>
                                 </v-menu>
                             </v-col>
-
-                            <!-- Driving Time -->
                             <v-col cols="12" md="6">
                                 <v-select
                                     v-model="form.drivingTime"
@@ -220,8 +290,6 @@
                                     prepend-inner-icon="mdi-clock-outline"
                                 ></v-select>
                             </v-col>
-
-                            <!-- Payment Amount -->
                             <v-col cols="12" md="6">
                                 <v-text-field
                                     v-model.number="form.paymentAmount"
@@ -233,8 +301,6 @@
                                     prepend-inner-icon="mdi-cash"
                                 ></v-text-field>
                             </v-col>
-
-                            <!-- Payment Date -->
                             <v-col cols="12" md="6">
                                 <v-menu v-model="paymentDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
                                     <template v-slot:activator="{ props: menuProps }">
@@ -254,7 +320,6 @@
                                 </v-menu>
                             </v-col>
                         </v-row>
-
                         <v-alert v-if="formError" type="error" density="compact" class="mt-2 mb-0" closable @click:close="formError = ''">
                             {{ formError }}
                         </v-alert>
@@ -266,6 +331,76 @@
                     <v-btn variant="text" @click="dialog = false">Cancel</v-btn>
                     <v-btn color="primary" variant="elevated" :loading="saving" @click="saveSession">
                         Save
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- ─── Edit Driving Session Dialog ─── -->
+        <v-dialog v-model="editDialog" max-width="500" scrollable>
+            <v-card rounded="lg">
+                <v-card-title class="d-flex align-center ga-2 pa-4">
+                    <v-icon icon="mdi-pencil" color="primary"></v-icon>
+                    <span>Edit Driving Session</span>
+                </v-card-title>
+                <v-divider></v-divider>
+                <v-card-text class="pa-6">
+                    <!-- Read-only info -->
+                    <v-row class="mb-2">
+                        <v-col cols="6">
+                            <div class="text-body-2 text-medium-emphasis">Candidate</div>
+                            <div class="font-weight-medium">{{ editTarget?.candidateName }}</div>
+                        </v-col>
+                        <v-col cols="6">
+                            <div class="text-body-2 text-medium-emphasis">Date / Time</div>
+                            <div class="font-weight-medium">{{ editTarget?.drivingDate }} {{ editTarget?.drivingTime }}</div>
+                        </v-col>
+                        <v-col cols="6">
+                            <div class="text-body-2 text-medium-emphasis">Vehicle</div>
+                            <div class="font-weight-medium">{{ editTarget?.vehicleDisplay }}</div>
+                        </v-col>
+                        <v-col cols="6">
+                            <div class="text-body-2 text-medium-emphasis">Payment</div>
+                            <div class="font-weight-medium">{{ formatCurrency(editTarget?.paymentAmount) }}</div>
+                        </v-col>
+                    </v-row>
+                    <v-divider class="mb-4"></v-divider>
+                    <v-form ref="editFormRef" @submit.prevent="saveEdit">
+                        <v-row>
+                            <v-col cols="12">
+                                <v-select
+                                    v-model="editForm.status"
+                                    :items="statusOptions"
+                                    item-title="label"
+                                    item-value="value"
+                                    label="Status"
+                                    variant="outlined"
+                                    density="compact"
+                                    clearable
+                                    prepend-inner-icon="mdi-flag-outline"
+                                ></v-select>
+                            </v-col>
+                            <v-col cols="12">
+                                <v-text-field
+                                    v-model="editForm.examiner"
+                                    label="Examiner (Egzamineri)"
+                                    variant="outlined"
+                                    density="compact"
+                                    prepend-inner-icon="mdi-account-tie"
+                                ></v-text-field>
+                            </v-col>
+                        </v-row>
+                        <v-alert v-if="editError" type="error" density="compact" class="mt-2 mb-0" closable @click:close="editError = ''">
+                            {{ editError }}
+                        </v-alert>
+                    </v-form>
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions class="pa-4">
+                    <v-spacer></v-spacer>
+                    <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
+                    <v-btn color="primary" variant="elevated" :loading="editSaving" @click="saveEdit">
+                        Update
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -310,7 +445,6 @@ const isAdmin = computed(() => {
 // ─── Calendar ───
 const calendarDate = ref(new Date());
 const selectedDateStr = ref(formatDate(new Date()));
-
 const selectedDateDisplay = computed(() => selectedDateStr.value);
 
 function formatDate(value) {
@@ -329,6 +463,12 @@ function formatDate(value) {
 
 function handleDateChange(v) {
     selectedDateStr.value = formatDate(v);
+    // When clicking a calendar date, clear date-range filters and use calendar mode
+    fromDateDisplay.value = '';
+    fromDateModel.value = null;
+    toDateDisplay.value = '';
+    toDateModel.value = null;
+    useRangeMode.value = false;
     loadSessions();
     loadStats();
 }
@@ -353,24 +493,91 @@ function formatCurrency(v) {
     return Number(v).toFixed(2);
 }
 
+// ─── Status helpers ───
+const statusOptions = [
+    { label: 'Kaloi', value: 'Kaloi' },
+    { label: 'Deshtoi', value: 'Deshtoi' },
+    { label: 'Anuloi', value: 'Anuloi' },
+];
+
+const statusFilterOptions = [
+    { label: 'All', value: '' },
+    { label: 'Kaloi', value: 'Kaloi' },
+    { label: 'Deshtoi', value: 'Deshtoi' },
+    { label: 'Anuloi', value: 'Anuloi' },
+];
+
+function statusColor(s) {
+    if (!s) return 'grey';
+    switch (s) {
+        case 'Kaloi': return 'success';
+        case 'Deshtoi': return 'error';
+        case 'Anuloi': return 'warning';
+        default: return 'grey';
+    }
+}
+
+// ─── Filters ───
+const filterStatus = ref('');
+
+// Date range filters
+const fromDateMenu = ref(false);
+const fromDateModel = ref(null);
+const fromDateDisplay = ref('');
+const toDateMenu = ref(false);
+const toDateModel = ref(null);
+const toDateDisplay = ref('');
+// Track whether we are in range mode (from/to) vs calendar single-date mode
+const useRangeMode = ref(false);
+
+function handleFromDate(v) {
+    fromDateDisplay.value = formatDate(v);
+    nextTick(() => { fromDateMenu.value = false; });
+    useRangeMode.value = true;
+    loadSessions();
+}
+function clearFromDate() {
+    fromDateDisplay.value = '';
+    fromDateModel.value = null;
+    if (!toDateDisplay.value) useRangeMode.value = false;
+    loadSessions();
+}
+function handleToDate(v) {
+    toDateDisplay.value = formatDate(v);
+    nextTick(() => { toDateMenu.value = false; });
+    useRangeMode.value = true;
+    loadSessions();
+}
+function clearToDate() {
+    toDateDisplay.value = '';
+    toDateModel.value = null;
+    if (!fromDateDisplay.value) useRangeMode.value = false;
+    loadSessions();
+}
+
 // ─── Sessions table ───
 const headers = [
     { title: '#', key: 'index', width: '50px', sortable: false },
-    { title: 'Time', key: 'drivingTime', width: '110px' },
+    { title: 'Date', key: 'drivingDate', width: '110px' },
+    { title: 'Time', key: 'drivingTime', width: '100px' },
     { title: 'Candidate', key: 'candidateName' },
     { title: 'Vehicle', key: 'vehicleDisplay' },
-    { title: 'Payment', key: 'paymentAmount', width: '110px' },
-    { title: 'Payment Date', key: 'paymentDate', width: '130px' },
-    { title: 'Actions', key: 'actions', sortable: false, width: '80px' },
+    { title: 'Payment', key: 'paymentAmount', width: '100px' },
+    { title: 'Status', key: 'status', width: '110px' },
+    { title: 'Examiner', key: 'examiner', width: '130px' },
+    { title: 'Actions', key: 'actions', sortable: false, width: '100px' },
 ];
 
 const headersExcel = {
     '#': 'index',
+    'Date': 'drivingDate',
     'Time': 'drivingTime',
     'Candidate': 'candidateName',
     'Vehicle': 'vehicleDisplay',
     'Payment': 'paymentAmount',
     'Payment Date': 'paymentDate',
+    'Status': 'status',
+    'Examiner': 'examiner',
 };
 
 const sessions = ref([]);
@@ -390,20 +597,49 @@ function normalizeSession(row, idx) {
         drivingTime: row.drivingTime ?? row.DrivingTime ?? '',
         paymentAmount: row.paymentAmount ?? row.PaymentAmount ?? 0,
         paymentDate: row.paymentDate ?? row.PaymentDate ?? '',
+        status: row.status ?? row.Status ?? '',
+        examiner: row.examiner ?? row.Examiner ?? '',
     };
 }
 
 function loadSessions() {
-    store.getSessionsByDate(selectedDateStr.value)
-        .then((res) => {
-            const body = res?.data;
-            const rawData = body?.data ?? body?.Data ?? [];
-            sessions.value = rawData.map(normalizeSession).filter(Boolean);
-        })
-        .catch(() => {
-            sessions.value = [];
-            settingStore.toggleSnackbar({ status: true, msg: 'Error loading sessions' });
-        });
+    const statusVal = filterStatus.value || null;
+
+    if (useRangeMode.value) {
+        // Use date range endpoint
+        store.getSessionsByDateRange(
+            fromDateDisplay.value || null,
+            toDateDisplay.value || null,
+            statusVal
+        )
+            .then((res) => {
+                const body = res?.data;
+                const rawData = body?.data ?? body?.Data ?? [];
+                sessions.value = rawData.map(normalizeSession).filter(Boolean);
+                // Update stats from loaded data
+                stats.value = {
+                    totalSessions: sessions.value.length,
+                    totalPayments: sessions.value.reduce((sum, s) => sum + (s.paymentAmount || 0), 0),
+                };
+            })
+            .catch(() => {
+                sessions.value = [];
+                settingStore.toggleSnackbar({ status: true, msg: 'Error loading sessions' });
+            });
+    } else {
+        // Use single date endpoint (calendar mode)
+        store.getSessionsByDate(selectedDateStr.value, statusVal)
+            .then((res) => {
+                const body = res?.data;
+                const rawData = body?.data ?? body?.Data ?? [];
+                sessions.value = rawData.map(normalizeSession).filter(Boolean);
+            })
+            .catch(() => {
+                sessions.value = [];
+                settingStore.toggleSnackbar({ status: true, msg: 'Error loading sessions' });
+            });
+        loadStats();
+    }
 }
 
 // ─── Create dialog ───
@@ -426,6 +662,14 @@ const drivingDateModel = ref(null);
 const paymentDateMenu = ref(false);
 const paymentDateModel = ref(null);
 
+function openCreateDialog() {
+    form.value = { candidateId: null, vehicleId: null, drivingDate: '', drivingTime: null, paymentAmount: 0, paymentDate: '' };
+    drivingDateModel.value = null;
+    paymentDateModel.value = null;
+    formError.value = '';
+    dialog.value = true;
+}
+
 function handleDrivingDate(v) {
     form.value.drivingDate = formatDate(v);
     nextTick(() => { drivingDateMenu.value = false; });
@@ -435,7 +679,6 @@ function handlePaymentDate(v) {
     nextTick(() => { paymentDateMenu.value = false; });
 }
 
-// Time slots: 08:00 – 15:00 every 15 min
 const timeSlots = (() => {
     const slots = [];
     for (let h = 8; h <= 15; h++) {
@@ -494,10 +737,6 @@ async function saveSession() {
         }
         settingStore.toggleSnackbar({ status: true, msg: 'Driving session created successfully!' });
         dialog.value = false;
-        // Reset form
-        form.value = { candidateId: null, vehicleId: null, drivingDate: '', drivingTime: null, paymentAmount: 0, paymentDate: '' };
-        drivingDateModel.value = null;
-        paymentDateModel.value = null;
         loadSessions();
         loadStats();
     } catch (err) {
@@ -505,6 +744,54 @@ async function saveSession() {
         formError.value = msg;
     } finally {
         saving.value = false;
+    }
+}
+
+// ─── Edit dialog ───
+const editDialog = ref(false);
+const editSaving = ref(false);
+const editFormRef = ref(null);
+const editError = ref('');
+const editTarget = ref(null);
+
+const editForm = ref({
+    status: null,
+    examiner: '',
+});
+
+function openEditDialog(item) {
+    editTarget.value = item;
+    editForm.value = {
+        status: item.status || null,
+        examiner: item.examiner || '',
+    };
+    editError.value = '';
+    editDialog.value = true;
+}
+
+async function saveEdit() {
+    editError.value = '';
+    editSaving.value = true;
+    try {
+        const res = await store.updateDrivingSession(editTarget.value.drivingSessionId, {
+            status: editForm.value.status || null,
+            examiner: editForm.value.examiner || null,
+        });
+        const body = res?.data;
+        if (body?.status === 'error') {
+            editError.value = body.responseMsg || 'An error occurred';
+            editSaving.value = false;
+            return;
+        }
+        settingStore.toggleSnackbar({ status: true, msg: 'Session updated successfully!' });
+        editDialog.value = false;
+        loadSessions();
+        loadStats();
+    } catch (err) {
+        const msg = err?.response?.data?.responseMsg || err?.response?.data?.ResponseMsg || 'Failed to update session';
+        editError.value = msg;
+    } finally {
+        editSaving.value = false;
     }
 }
 
@@ -537,9 +824,12 @@ async function doDelete() {
 // ─── PDF Export ───
 function exportPdf() {
     const doc = new jsPDF({ orientation: 'landscape' });
-    doc.text(`Driving Sessions – ${selectedDateStr.value}`, 14, 10);
-    const head = ['#', 'Time', 'Candidate', 'Vehicle', 'Payment', 'Payment Date'];
-    const body = sessions.value.map(r => [r.index, r.drivingTime, r.candidateName, r.vehicleDisplay, formatCurrency(r.paymentAmount), r.paymentDate]);
+    const title = useRangeMode.value
+        ? `Driving Sessions – ${fromDateDisplay.value || '...'} to ${toDateDisplay.value || '...'}`
+        : `Driving Sessions – ${selectedDateStr.value}`;
+    doc.text(title, 14, 10);
+    const head = ['#', 'Date', 'Time', 'Candidate', 'Vehicle', 'Payment', 'Status', 'Examiner'];
+    const body = sessions.value.map(r => [r.index, r.drivingDate, r.drivingTime, r.candidateName, r.vehicleDisplay, formatCurrency(r.paymentAmount), r.status || '', r.examiner || '']);
     autoTable(doc, { head: [head], body });
     doc.save('driving-sessions.pdf');
 }
@@ -591,6 +881,16 @@ onMounted(() => {
     gap: 12px;
     background: rgba(255, 255, 255, 0.95);
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.ds-filter-status {
+    min-width: 140px;
+    max-width: 160px;
+}
+
+.ds-filter-date {
+    min-width: 140px;
+    max-width: 160px;
 }
 
 .vehicles-table :deep(.v-data-table__wrapper) {

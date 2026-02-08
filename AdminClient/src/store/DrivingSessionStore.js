@@ -8,23 +8,25 @@ export const useDrivingSessionStore = defineStore("drivingSessionStore", {
   }),
   getters: {},
   actions: {
-    getSessionsByDate(date) {
+    getSessionsByDate(date, status) {
       return new Promise((resolve, reject) => {
         this.loading = true;
-        let url = import.meta.env.VITE_API_URL + `/api/DrivingSessions/GetSessionsByDate`;
-        if (date) url += `?date=${encodeURIComponent(date)}`;
+        let url = import.meta.env.VITE_API_URL + `/api/DrivingSessions/GetSessionsByDate?`;
+        if (date) url += `date=${encodeURIComponent(date)}&`;
+        if (status) url += `status=${encodeURIComponent(status)}&`;
         API.get(url)
           .then((response) => { this.loading = false; resolve(response); })
           .catch((error) => { this.loading = false; reject(error); });
       });
     },
 
-    getSessionsByDateRange(from, to) {
+    getSessionsByDateRange(from, to, status) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         let url = import.meta.env.VITE_API_URL + `/api/DrivingSessions/GetSessionsByDateRange?`;
         if (from) url += `from=${encodeURIComponent(from)}&`;
         if (to) url += `to=${encodeURIComponent(to)}&`;
+        if (status) url += `status=${encodeURIComponent(status)}&`;
         API.get(url)
           .then((response) => { this.loading = false; resolve(response); })
           .catch((error) => { this.loading = false; reject(error); });
@@ -62,6 +64,18 @@ export const useDrivingSessionStore = defineStore("drivingSessionStore", {
         this.loading = true;
         API.post(
           import.meta.env.VITE_API_URL + "/api/DrivingSessions/CreateDrivingSession",
+          camelToPascal(payload)
+        )
+          .then((response) => { this.loading = false; resolve(response); })
+          .catch((error) => { this.loading = false; reject(error); });
+      });
+    },
+
+    updateDrivingSession(id, payload) {
+      return new Promise((resolve, reject) => {
+        this.loading = true;
+        API.put(
+          import.meta.env.VITE_API_URL + `/api/DrivingSessions/UpdateDrivingSession/${id}`,
           camelToPascal(payload)
         )
           .then((response) => { this.loading = false; resolve(response); })

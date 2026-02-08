@@ -37,6 +37,14 @@ namespace AdminApi.Models.Candidate
         [StringLength(20)]
         public string? PaymentDate { get; set; }
 
+        /// <summary>Session status: null (not set), Kaloi, Deshtoi, Anuloi.</summary>
+        [StringLength(20)]
+        public string? Status { get; set; }
+
+        /// <summary>Examiner name (Egzamineri) – free text, set during edit.</summary>
+        [StringLength(100)]
+        public string? Examiner { get; set; }
+
         [Required]
         public int AddedBy { get; set; }
 
