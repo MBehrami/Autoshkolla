@@ -22,6 +22,7 @@ import Vehicles from "@/pages/vehicle/Vehicles.vue";
 import VehicleFuel from "@/pages/vehicle/VehicleFuel.vue";
 import VehicleServices from "@/pages/vehicle/VehicleServices.vue";
 import DrivingSessions from "@/pages/candidate/DrivingSessions.vue";
+import Schedules from "@/pages/schedule/Schedules.vue";
 
 const routes = [
   { path: "/", name: "Landing", component: Landing },
@@ -53,7 +54,13 @@ const routes = [
   { path: "/vehicles", name: "Vehicles", component: Vehicles },
   { path: "/vehicle-fuel", name: "VehicleFuel", component: VehicleFuel },
   { path: "/vehicle-services", name: "VehicleServices", component: VehicleServices },
-  { path: "/driving-sessions", name: "DrivingSessions", component: DrivingSessions },
+  {
+    path: "/driving-sessions",
+    name: "DrivingSessions",
+    component: DrivingSessions,
+    meta: { adminOnly: true },
+  },
+  { path: "/schedules", name: "Schedules", component: Schedules },
   {
     path: "/password-reset/:ref",
     name: "ResetPassword",
@@ -70,6 +77,13 @@ const router = createRouter({
 const appInitialData = JSON.parse(localStorage.getItem("allSettings"));
 
 router.beforeEach((to, from, next) => {
+  // Block Instructor from admin-only routes
+  if (to.meta?.adminOnly) {
+    const roleId = localStorage.getItem('userRoleId');
+    if (roleId !== '1') {
+      return next({ name: 'Dashboard' });
+    }
+  }
   next();
 });
 

@@ -418,6 +418,32 @@ using (var scope = app.Services.CreateScope())
         ").GetAwaiter().GetResult();
     }
     catch { /* Table may already exist */ }
+
+    // ── Schedule Events table ──
+    try
+    {
+        _ = db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.ScheduleEvents', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[ScheduleEvents] (
+                    [ScheduleEventId] INT IDENTITY(1,1) NOT NULL,
+                    [EventDate] NVARCHAR(20) NOT NULL,
+                    [StartTime] NVARCHAR(10) NOT NULL,
+                    [EndTime] NVARCHAR(10) NOT NULL,
+                    [InstructorUserId] INT NOT NULL,
+                    [CandidateId] INT NOT NULL,
+                    [VehicleId] INT NOT NULL,
+                    [Notes] NVARCHAR(500) NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    CONSTRAINT [PK_ScheduleEvents] PRIMARY KEY ([ScheduleEventId]),
+                    CONSTRAINT [FK_ScheduleEvents_Candidates] FOREIGN KEY ([CandidateId]) REFERENCES [dbo].[Candidates]([CandidateId]),
+                    CONSTRAINT [FK_ScheduleEvents_Vehicles] FOREIGN KEY ([VehicleId]) REFERENCES [dbo].[Vehicles]([VehicleId])
+                );
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* Table may already exist */ }
 }
 
 // Configure the HTTP request pipeline.

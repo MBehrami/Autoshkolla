@@ -42,7 +42,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetSessionsByDate?date=26.01.2026&status=Kaloi
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> GetSessionsByDate(string? date = null, string? status = null)
         {
             try
@@ -98,7 +98,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetSessionsByDateRange?from=...&to=...&status=...
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> GetSessionsByDateRange(string? from = null, string? to = null, string? status = null)
         {
             try
@@ -171,7 +171,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetSessionStats?date=26.01.2026
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> GetSessionStats(string? date = null)
         {
             try
@@ -205,7 +205,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetCandidatesDropdown
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> GetCandidatesDropdown()
         {
             try
@@ -235,7 +235,7 @@ namespace AdminApi.Controllers
         //  POST api/DrivingSessions/CreateDrivingSession
         // ─────────────────────────────────────────────────────────────
         [HttpPost]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> CreateDrivingSession([FromBody] AddDrivingSessionRequest request)
         {
             try
@@ -327,7 +327,7 @@ namespace AdminApi.Controllers
         //  Updates Status and Examiner only (post-creation edit)
         // ─────────────────────────────────────────────────────────────
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UpdateDrivingSession(int id, [FromBody] UpdateDrivingSessionRequest request)
         {
             try

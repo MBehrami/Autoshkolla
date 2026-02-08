@@ -4,6 +4,7 @@ using AdminApi.Models.Others;
 using AdminApi.Models.User;
 using CandidateModel = AdminApi.Models.Candidate;
 using VehicleModel = AdminApi.Models.Vehicle;
+using ScheduleModel = AdminApi.Models.Schedule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -38,6 +39,7 @@ namespace AdminApi.Models
         public virtual DbSet<VehicleModel.Vehicle> Vehicles { get; set; }
         public virtual DbSet<VehicleModel.VehicleFuel> VehicleFuels { get; set; }
         public virtual DbSet<VehicleModel.VehicleService> VehicleServices { get; set; }
+        public virtual DbSet<ScheduleModel.ScheduleEvent> ScheduleEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {   
