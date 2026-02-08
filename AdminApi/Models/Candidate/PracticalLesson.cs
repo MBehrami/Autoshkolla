@@ -17,10 +17,13 @@ namespace AdminApi.Models.Candidate
         [Required]
         [StringLength(20)]
         public string LessonDate { get; set; } = string.Empty;
-        /// <summary>Time slot e.g. 08:00, 09:00</summary>
+        /// <summary>Start time e.g. 08:00, 08:15</summary>
         [Required]
         [StringLength(10)]
         public string Time { get; set; } = string.Empty;
+        /// <summary>End time = Start + 45 minutes, e.g. 08:45, 09:00</summary>
+        [StringLength(10)]
+        public string? EndTime { get; set; }
         [StringLength(100)]
         public string? Vehicle { get; set; }
         [Required]

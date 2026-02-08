@@ -202,24 +202,63 @@ menuStore.getSidebar(localStorage.getItem('userRoleId'))
         const roleName = (typeof profileInfo?.obj?.roleName === 'string') ? profileInfo.obj.roleName : (typeof profileInfo?.obj?.RoleName === 'string') ? profileInfo.obj.RoleName : ''
         const isInstructor = roleId === '3' || roleName === 'Instructor'
         if (roleId === '1') {
-            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates')
+            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/candidates')))
             const hasInstructors = items.some((m) => (m.route || '').toLowerCase() === '/instructors')
-            if (!hasCandidates) {
-                items = [...items, { id: 14, title: 'Candidates', icon: 'mdi-account-group', route: '/candidates', order: 8, childItems: [] }]
+            const hasVehicles = items.some((m) => m.title === 'Vehicles' || m.title === 'Automjetet')
+            const hasDrivingSessions = items.some((m) => (m.route || '').toLowerCase() === '/driving-sessions' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/driving-sessions')))
+            if (!hasCandidates || !hasDrivingSessions) {
+                // Remove standalone Candidates item if exists (we'll add it as a group)
+                items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates')
+                items = [...items, {
+                    id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8,
+                    childItems: [
+                        { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                        { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+                    ]
+                }]
             }
             if (!hasInstructors) {
                 items = [...items, { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] }]
             }
+            if (!hasVehicles) {
+                items = [...items, {
+                    id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10,
+                    childItems: [
+                        { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
+                        { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
+                        { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
+                    ]
+                }]
+            }
             items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
         } else if (isInstructor) {
-            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates')
-            if (!hasCandidates) {
-                items = [...items, { id: 14, title: 'My Candidates', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] }]
+            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/candidates')))
+            const hasDrivingSessions = items.some((m) => (m.route || '').toLowerCase() === '/driving-sessions' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/driving-sessions')))
+            if (!hasCandidates || !hasDrivingSessions) {
+                items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates')
+                items = [...items, {
+                    id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 1,
+                    childItems: [
+                        { id: 141, title: 'Kandidatet e Mi', icon: 'mdi-account-multiple', route: '/candidates' },
+                        { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+                    ]
+                }]
+            }
+            // Instructor gets Vehicle Fuel only (no Vehicle List)
+            const hasFuel = items.some((m) => (m.route || '').toLowerCase() === '/vehicle-fuel' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/vehicle-fuel')))
+            if (!hasFuel) {
+                items = [...items, { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel', order: 10, childItems: [] }]
             }
             items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
         } else if (items.length === 0 && roleId !== '1') {
-            // Fallback: non-Admin with no menu (e.g. Instructor with wrong roleId) still gets My Candidates
-            items = [{ id: 14, title: 'My Candidates', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] }]
+            // Fallback: non-Admin with no menu (e.g. Instructor with wrong roleId) still gets candidates + sessions
+            items = [{
+                id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 1,
+                childItems: [
+                    { id: 141, title: 'Kandidatet e Mi', icon: 'mdi-account-multiple', route: '/candidates' },
+                    { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+                ]
+            }]
         }
         menus.value = items
     })
@@ -229,12 +268,24 @@ menuStore.getSidebar(localStorage.getItem('userRoleId'))
         const roleName = profileInfo?.obj?.roleName || profileInfo?.obj?.RoleName || ''
         if (roleId === '1') {
             menus.value = [
-                { id: 14, title: 'Candidates', icon: 'mdi-account-group', route: '/candidates', order: 8, childItems: [] },
-                { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] }
+                { id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8, childItems: [
+                    { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                    { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+                ]},
+                { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
+                { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
+                    { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
+                    { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
+                    { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
+                ]}
             ]
         } else if (roleId === '3' || roleName === 'Instructor') {
             menus.value = [
-                { id: 14, title: 'My Candidates', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] }
+                { id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 1, childItems: [
+                    { id: 141, title: 'Kandidatet e Mi', icon: 'mdi-account-multiple', route: '/candidates' },
+                    { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+                ]},
+                { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel', order: 10, childItems: [] }
             ]
         }
     })

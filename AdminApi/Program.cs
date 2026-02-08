@@ -52,6 +52,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options=>{
     options.RequireHttpsMetadata=false;
     options.SaveToken=true;
+    // Disable default claim-type mapping so "sub" and "role" stay as-is in ClaimsPrincipal
+    options.MapInboundClaims=false;
 #pragma warning disable CS8604 // Possible null reference argument.
     options.TokenValidationParameters=new TokenValidationParameters
         {
@@ -62,7 +64,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer=builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"])),
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            // Tell ASP.NET to look for "role" claim for [Authorize(Roles=...)]
+            RoleClaimType = "role",
+            NameClaimType = "sub"
         };
 #pragma warning restore CS8604 // Possible null reference argument.
 });
@@ -294,11 +299,109 @@ using (var scope = app.Services.CreateScope())
                     [InstructorUserId] INT NOT NULL,
                     [LessonDate] NVARCHAR(20) NOT NULL,
                     [Time] NVARCHAR(10) NOT NULL,
+                    [EndTime] NVARCHAR(10) NULL,
                     [Vehicle] NVARCHAR(100) NULL,
                     [DateAdded] DATETIME2 NOT NULL,
                     CONSTRAINT [PK_PracticalLessons] PRIMARY KEY ([PracticalLessonId]),
                     CONSTRAINT [FK_PracticalLessons_Candidates] FOREIGN KEY ([CandidateId]) REFERENCES [dbo].[Candidates]([CandidateId]),
                     CONSTRAINT [FK_PracticalLessons_Users] FOREIGN KEY ([InstructorUserId]) REFERENCES [dbo].[Users]([UserId])
+                );
+            END
+            -- Add EndTime column if it doesn't exist (for DBs created before this change)
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PracticalLessons' AND COLUMN_NAME = 'EndTime')
+            BEGIN
+                ALTER TABLE [dbo].[PracticalLessons] ADD [EndTime] NVARCHAR(10) NULL;
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* Table may already exist */ }
+
+    // ── Vehicle tables ──
+    try
+    {
+        _ = db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.Vehicles', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[Vehicles] (
+                    [VehicleId] INT IDENTITY(1,1) NOT NULL,
+                    [PlateNumber] NVARCHAR(20) NOT NULL,
+                    [ChassisNumber] NVARCHAR(50) NULL,
+                    [Color] NVARCHAR(30) NULL,
+                    [Type] NVARCHAR(50) NULL,
+                    [Brand] NVARCHAR(50) NULL,
+                    [RegistrationDate] NVARCHAR(20) NULL,
+                    [ExpiryDate] NVARCHAR(20) NULL,
+                    [CertificateNumber] NVARCHAR(50) NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_Vehicles] PRIMARY KEY ([VehicleId])
+                );
+            END
+            -- Add IsActive column if missing (for existing DBs)
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Vehicles' AND COLUMN_NAME = 'IsActive')
+            BEGIN
+                ALTER TABLE [dbo].[Vehicles] ADD [IsActive] BIT NOT NULL DEFAULT 1;
+            END
+
+            IF OBJECT_ID(N'dbo.VehicleFuels', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[VehicleFuels] (
+                    [VehicleFuelId] INT IDENTITY(1,1) NOT NULL,
+                    [FillDate] NVARCHAR(20) NOT NULL,
+                    [VehicleId] INT NOT NULL,
+                    [FuelAmount] DECIMAL(18,2) NOT NULL,
+                    [FuelType] NVARCHAR(20) NOT NULL,
+                    [StaffUserId] INT NOT NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    CONSTRAINT [PK_VehicleFuels] PRIMARY KEY ([VehicleFuelId]),
+                    CONSTRAINT [FK_VehicleFuels_Vehicles] FOREIGN KEY ([VehicleId]) REFERENCES [dbo].[Vehicles]([VehicleId]),
+                    CONSTRAINT [FK_VehicleFuels_Users] FOREIGN KEY ([StaffUserId]) REFERENCES [dbo].[Users]([UserId])
+                );
+            END
+
+            IF OBJECT_ID(N'dbo.VehicleServices', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[VehicleServices] (
+                    [VehicleServiceId] INT IDENTITY(1,1) NOT NULL,
+                    [VehicleId] INT NOT NULL,
+                    [ServiceDate] NVARCHAR(20) NULL,
+                    [Description] NVARCHAR(500) NULL,
+                    [Cost] DECIMAL(18,2) NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    CONSTRAINT [PK_VehicleServices] PRIMARY KEY ([VehicleServiceId]),
+                    CONSTRAINT [FK_VehicleServices_Vehicles] FOREIGN KEY ([VehicleId]) REFERENCES [dbo].[Vehicles]([VehicleId])
+                );
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* Tables may already exist */ }
+
+    // ── Driving Sessions table ──
+    try
+    {
+        _ = db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.DrivingSessions', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[DrivingSessions] (
+                    [DrivingSessionId] INT IDENTITY(1,1) NOT NULL,
+                    [CandidateId] INT NOT NULL,
+                    [VehicleId] INT NOT NULL,
+                    [InstructorUserId] INT NULL,
+                    [DrivingDate] NVARCHAR(20) NOT NULL,
+                    [DrivingTime] NVARCHAR(10) NOT NULL,
+                    [PaymentAmount] DECIMAL(18,2) NOT NULL DEFAULT 0,
+                    [PaymentDate] NVARCHAR(20) NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    CONSTRAINT [PK_DrivingSessions] PRIMARY KEY ([DrivingSessionId]),
+                    CONSTRAINT [FK_DrivingSessions_Candidates] FOREIGN KEY ([CandidateId]) REFERENCES [dbo].[Candidates]([CandidateId]),
+                    CONSTRAINT [FK_DrivingSessions_Vehicles] FOREIGN KEY ([VehicleId]) REFERENCES [dbo].[Vehicles]([VehicleId])
                 );
             END
         ").GetAwaiter().GetResult();

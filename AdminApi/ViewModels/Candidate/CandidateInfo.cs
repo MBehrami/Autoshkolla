@@ -24,5 +24,10 @@ namespace AdminApi.ViewModels.Candidate
         public int TotalServiceAmount { get; set; }
         public DateTime DateAdded { get; set; }
         public int? Year { get; set; } // For filtering by year
+
+        // Practical-lesson counts (populated after the main query)
+        public int PracticalLessonCount { get; set; }
+        public int CompletedHours { get; set; }
+        public int RemainingHours { get; set; }
     }
 }

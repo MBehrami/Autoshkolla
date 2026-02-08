@@ -18,6 +18,10 @@ import MenuGroup from "@/pages/menu/MenuGroup.vue";
 import ResetPassword from "@/pages/user/ResetPassword.vue";
 import Candidates from "@/pages/candidate/Candidates.vue";
 import Instructors from "@/pages/instructor/Instructors.vue";
+import Vehicles from "@/pages/vehicle/Vehicles.vue";
+import VehicleFuel from "@/pages/vehicle/VehicleFuel.vue";
+import VehicleServices from "@/pages/vehicle/VehicleServices.vue";
+import DrivingSessions from "@/pages/candidate/DrivingSessions.vue";
 
 const routes = [
   { path: "/", name: "Landing", component: Landing },
@@ -46,6 +50,10 @@ const routes = [
   { path: "/user-role", name: "UserRole", component: UserRole },
   { path: "/candidates", name: "Candidates", component: Candidates },
   { path: "/instructors", name: "Instructors", component: Instructors },
+  { path: "/vehicles", name: "Vehicles", component: Vehicles },
+  { path: "/vehicle-fuel", name: "VehicleFuel", component: VehicleFuel },
+  { path: "/vehicle-services", name: "VehicleServices", component: VehicleServices },
+  { path: "/driving-sessions", name: "DrivingSessions", component: DrivingSessions },
   {
     path: "/password-reset/:ref",
     name: "ResetPassword",

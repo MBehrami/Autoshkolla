@@ -72,20 +72,26 @@ onErrorCaptured((err) => {
   console.log('onErrorCaptured', err)
 })
 
-//http errors
+//http errors – log and redirect only for unexpected server errors (5xx / network),
+//but re-throw 4xx so callers (.catch) can handle validation / auth errors gracefully
 API.interceptors.response.use(
   (response) => response,
   (err) => {
-    localStorage.setItem('http_error', err.request?.status)
+    const status = err?.response?.status || err?.request?.status || 0
+    localStorage.setItem('http_error', status)
     const objErrorLog = {
-      status: err.request?.status,
-      statusText: err.request?.statusText,
-      url: err.request?.responseURL,
+      status: status,
+      statusText: err?.response?.statusText || err?.request?.statusText,
+      url: err?.response?.config?.url || err?.request?.responseURL,
       message: err.message,
       addedBy: localStorage.getItem('userId') || 0
     }
-    settingStore.createErrorLog(objErrorLog)
-    router.push({ name: 'OtherError' })
+    // Only redirect for 5xx / network errors; let 400/401/403/404 be handled by callers
+    if (status >= 500 || status === 0) {
+      settingStore.createErrorLog(objErrorLog)
+      router.push({ name: 'OtherError' })
+    }
+    return Promise.reject(err)
   }
 )
 </script>

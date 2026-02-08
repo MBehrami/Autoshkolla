@@ -151,5 +151,16 @@ export const useCandidateStore = defineStore("candidateStore", {
           });
       });
     },
+    getLessonVehicles() {
+      return new Promise((resolve, reject) => {
+        API.get(import.meta.env.VITE_API_URL + "/api/Candidates/GetLessonVehicles")
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
   },
 });

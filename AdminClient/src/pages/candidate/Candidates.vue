@@ -82,7 +82,7 @@
                         prepend-icon="mdi-eye" @click.stop="viewItem(item)">
                         View
                     </v-btn>
-                    <v-btn v-if="!isInstructor" size="small" variant="tonal" color="secondary" class="text-capitalize" density="comfortable"
+                    <v-btn size="small" variant="tonal" color="secondary" class="text-capitalize" density="comfortable"
                         prepend-icon="mdi-pencil" @click.stop="editItem(item)">
                         Edit
                     </v-btn>
@@ -91,6 +91,14 @@
         </v-data-table>
         <v-dialog v-model="viewDialog" max-width="1000" scrollable>
             <CandidateDetails v-if="viewDialog" :candidate-id="viewingCandidateId" @close="viewDialog = false" />
+        </v-dialog>
+        <v-dialog v-model="instructorEditDialog" max-width="900" scrollable persistent>
+            <CandidateInstructorEdit
+                v-if="instructorEditDialog && instructorEditCandidateId"
+                :candidate-id="instructorEditCandidateId"
+                @close="closeInstructorEdit"
+                @saved="loadCandidates"
+            />
         </v-dialog>
     </div>
 </template>
@@ -105,6 +113,7 @@ import autoTable from 'jspdf-autotable';
 import DownloadExcel from 'vue-json-excel3';
 import CandidateForm from '@/components/candidate/CandidateForm.vue';
 import CandidateDetails from '@/components/candidate/CandidateDetails.vue';
+import CandidateInstructorEdit from '@/components/candidate/CandidateInstructorEdit.vue';
 
 const candidateStore = useCandidateStore()
 const settingStore = useSettingStore()
@@ -118,8 +127,8 @@ const isInstructor = computed(() => {
     } catch { return false }
 })
 
-// Headers: key must match normalized item properties (camelCase)
-const headers = ref([
+// Admin headers
+const headersAdmin = [
     { title: 'Serial Number', key: 'serialNumber' },
     { title: 'First Name', key: 'firstName' },
     { title: 'Last Name', key: 'lastName' },
@@ -130,9 +139,25 @@ const headers = ref([
     { title: 'Practical Hours', key: 'practicalHours' },
     { title: 'Total Amount', key: 'totalServiceAmount' },
     { title: 'Actions', key: 'actions', sortable: false }
-])
+]
 
-const headersExcel = ref({
+// Instructor headers (no address, amount, schedule, practicalHours; add counts)
+const headersInstructor = [
+    { title: 'Serial Number', key: 'serialNumber' },
+    { title: 'First Name', key: 'firstName' },
+    { title: 'Last Name', key: 'lastName' },
+    { title: 'Phone', key: 'phoneNumber' },
+    { title: 'Category', key: 'categoryName' },
+    { title: 'Vehicle Type', key: 'vehicleType' },
+    { title: 'Practical Lessons', key: 'practicalLessonCount' },
+    { title: 'Completed Hours', key: 'completedHours' },
+    { title: 'Remaining Hours', key: 'remainingHours' },
+    { title: 'Actions', key: 'actions', sortable: false }
+]
+
+const headers = computed(() => isInstructor.value ? headersInstructor : headersAdmin)
+
+const headersExcelAdmin = {
     'Serial Number': 'serialNumber',
     'First Name': 'firstName',
     'Last Name': 'lastName',
@@ -142,9 +167,24 @@ const headersExcel = ref({
     'Vehicle Type': 'vehicleType',
     'Practical Hours': 'practicalHours',
     'Total Amount': 'totalServiceAmount',
-})
+}
 
-const headersPdf = ['Serial Number', 'First Name', 'Last Name', 'Phone', 'Category', 'Instructor', 'Vehicle Type', 'Practical Hours', 'Total Amount']
+const headersExcelInstructor = {
+    'Serial Number': 'serialNumber',
+    'First Name': 'firstName',
+    'Last Name': 'lastName',
+    'Phone': 'phoneNumber',
+    'Category': 'categoryName',
+    'Vehicle Type': 'vehicleType',
+    'Practical Lessons': 'practicalLessonCount',
+    'Completed Hours': 'completedHours',
+    'Remaining Hours': 'remainingHours',
+}
+
+const headersExcel = computed(() => isInstructor.value ? headersExcelInstructor : headersExcelAdmin)
+
+const headersPdfAdmin = ['Serial Number', 'First Name', 'Last Name', 'Phone', 'Category', 'Instructor', 'Vehicle Type', 'Practical Hours', 'Total Amount']
+const headersPdfInstructor = ['Serial Number', 'First Name', 'Last Name', 'Phone', 'Category', 'Vehicle Type', 'Practical Lessons', 'Completed Hours', 'Remaining Hours']
 
 const items = ref([])
 const categories = ref([])
@@ -155,6 +195,8 @@ const selectedYear = ref(null)
 const dialog = ref(false)
 const viewDialog = ref(false)
 const viewingCandidateId = ref(null)
+const instructorEditDialog = ref(false)
+const instructorEditCandidateId = ref(null)
 const editedIndex = ref(-1)
 const editedCandidate = ref(null)
 const editedCandidateId = ref(null)
@@ -175,24 +217,16 @@ const handleFilter = () => {
 // Export functions
 
 const exportPdf = () => {
-    const doc = new jsPDF({
-        orientation: 'landscape'
-    })
+    const doc = new jsPDF({ orientation: 'landscape' })
     doc.text('Candidates', 14, 10)
-    autoTable(doc, {
-        head: [headersPdf],
-        body: items.value.map((row) => [
-            row.serialNumber || '',
-            row.firstName || '',
-            row.lastName || '',
-            row.phoneNumber || '',
-            row.categoryName || '',
-            row.instructorName || '',
-            row.vehicleType || '',
-            row.practicalHours || '',
-            row.totalServiceAmount || ''
-        ])
+    const pdfHeaders = isInstructor.value ? headersPdfInstructor : headersPdfAdmin
+    const bodyRows = items.value.map((row) => {
+        if (isInstructor.value) {
+            return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.vehicleType, row.practicalLessonCount, row.completedHours, row.remainingHours]
+        }
+        return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHours, row.totalServiceAmount]
     })
+    autoTable(doc, { head: [pdfHeaders], body: bodyRows })
     doc.save('candidates.pdf')
 }
 
@@ -209,8 +243,11 @@ function normalizeCandidate(row) {
         categoryName: row.categoryName ?? row.CategoryName ?? '',
         instructorName: row.instructorName ?? row.InstructorName ?? '',
         vehicleType: row.vehicleType ?? row.VehicleType ?? '',
-        practicalHours: row.practicalHours ?? row.PracticalHours ?? null,
-        totalServiceAmount: row.totalServiceAmount ?? row.TotalServiceAmount ?? 0
+        practicalHours: row.practicalHours ?? row.PracticalHours ?? 0,
+        totalServiceAmount: row.totalServiceAmount ?? row.TotalServiceAmount ?? 0,
+        practicalLessonCount: row.practicalLessonCount ?? row.PracticalLessonCount ?? 0,
+        completedHours: row.completedHours ?? row.CompletedHours ?? 0,
+        remainingHours: row.remainingHours ?? row.RemainingHours ?? 0
     }
 }
 
@@ -288,6 +325,11 @@ const viewItem = (item) => {
 }
 
 const editItem = (item) => {
+    if (isInstructor.value) {
+        instructorEditCandidateId.value = item.candidateId
+        instructorEditDialog.value = true
+        return
+    }
     editedCandidateId.value = item.candidateId
     candidateStore.getCandidateDetails(item.candidateId)
         .then((response) => {
@@ -302,10 +344,15 @@ const handleSaved = () => {
     editedIndex.value = -1
     editedCandidate.value = null
     editedCandidateId.value = null
-    // Clear filters so the new/updated candidate appears in the refetched list
     searchText.value = ''
     selectedCategory.value = null
     selectedYear.value = null
+    loadCandidates()
+}
+
+const closeInstructorEdit = () => {
+    instructorEditDialog.value = false
+    instructorEditCandidateId.value = null
     loadCandidates()
 }
 

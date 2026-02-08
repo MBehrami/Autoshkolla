@@ -3,6 +3,7 @@ using AdminApi.Models.Menu;
 using AdminApi.Models.Others;
 using AdminApi.Models.User;
 using CandidateModel = AdminApi.Models.Candidate;
+using VehicleModel = AdminApi.Models.Vehicle;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -32,7 +33,11 @@ namespace AdminApi.Models
         public virtual DbSet<CandidateModel.Candidate> Candidates { get; set; }
         public virtual DbSet<CandidateModel.CandidateInstallment> CandidateInstallments { get; set; }
         public virtual DbSet<CandidateModel.PracticalLesson> PracticalLessons { get; set; }
+        public virtual DbSet<CandidateModel.DrivingSession> DrivingSessions { get; set; }
         public virtual DbSet<InstructorProfile> InstructorProfiles { get; set; }
+        public virtual DbSet<VehicleModel.Vehicle> Vehicles { get; set; }
+        public virtual DbSet<VehicleModel.VehicleFuel> VehicleFuels { get; set; }
+        public virtual DbSet<VehicleModel.VehicleService> VehicleServices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {   

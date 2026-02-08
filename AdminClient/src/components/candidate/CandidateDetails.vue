@@ -173,77 +173,34 @@
                 </v-col>
             </v-row>
 
-            <!-- Practical Lessons Section -->
+            <!-- Practical Lessons Section (Admin: view-only; Instructor uses the edit modal instead) -->
             <v-divider class="my-4"></v-divider>
             <v-row>
                 <v-col cols="12">
-                    <h3 class="mb-4">Practical Lessons</h3>
+                    <h3 class="mb-4">Practical Lessons <span class="text-caption text-medium-emphasis">({{ sortedLessons.length }} recorded)</span></h3>
                 </v-col>
             </v-row>
-            <v-row v-if="canAddLesson">
-                <v-col cols="12" md="3">
-                    <v-menu v-model="lessonDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
-                        <template v-slot:activator="{ props: menuProps }">
-                            <v-text-field
-                                :model-value="lessonDateDisplay"
-                                label="Date (dd.MM.yyyy)"
-                                variant="outlined"
-                                density="compact"
-                                prepend-inner-icon="mdi-calendar"
-                                readonly
-                                hide-details
-                                v-bind="menuProps"
-                                @click:clear="clearLessonDate"
-                            ></v-text-field>
-                        </template>
-                        <v-date-picker v-model="lessonDateModel" color="primary" @update:model-value="handleLessonDateChange"></v-date-picker>
-                    </v-menu>
-                </v-col>
-                <v-col cols="12" md="3">
-                    <v-select
-                        v-model="newLessonTime"
-                        :items="timeSlots"
-                        label="Time"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        clearable
-                    ></v-select>
-                </v-col>
-                <v-col cols="12" md="3">
-                    <v-select
-                        v-model="newLessonVehicle"
-                        :items="vehicleOptions"
-                        label="Vehicle"
-                        variant="outlined"
-                        density="compact"
-                        hide-details
-                        clearable
-                    ></v-select>
-                </v-col>
-                <v-col cols="12" md="3" class="d-flex align-center">
-                    <v-btn color="primary" variant="elevated" size="small" :loading="addingLesson" @click="addLesson">
-                        Add lesson
-                    </v-btn>
-                </v-col>
-            </v-row>
-            <v-row v-if="practicalLessons && practicalLessons.length > 0">
+            <v-row v-if="sortedLessons && sortedLessons.length > 0">
                 <v-col cols="12">
-                    <v-table>
+                    <v-table density="comfortable" class="elevation-1 rounded">
                         <thead>
                             <tr>
+                                <th>Nr. Rendor</th>
                                 <th>Date</th>
-                                <th>Time</th>
+                                <th>Start</th>
+                                <th>End</th>
                                 <th>Instructor</th>
                                 <th>Vehicle</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="lesson in practicalLessons" :key="lesson.practicalLessonId || lesson.lessonId">
+                            <tr v-for="(lesson, index) in sortedLessons" :key="lesson.practicalLessonId || lesson.lessonId || index">
+                                <td>{{ index + 1 }}</td>
                                 <td>{{ lesson.lessonDate || lesson.date }}</td>
                                 <td>{{ lesson.time }}</td>
+                                <td>{{ lesson.endTime || calcEndTime(lesson.time) }}</td>
                                 <td>{{ lesson.instructorName }}</td>
-                                <td>{{ lesson.vehicle }}</td>
+                                <td>{{ lesson.vehicle || '–' }}</td>
                             </tr>
                         </tbody>
                     </v-table>
@@ -267,7 +224,7 @@
 import { useCandidateStore } from '@/store/CandidateStore';
 import { useSettingStore } from '@/store/SettingStore';
 import { storeToRefs } from 'pinia';
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 
 const props = defineProps({
     candidateId: {
@@ -285,75 +242,24 @@ const { loading } = storeToRefs(candidateStore)
 const candidate = ref(null)
 const installments = ref([])
 const practicalLessons = ref([])
-const lessonDateMenu = ref(false)
-const lessonDateModel = ref(null)
-const lessonDateDisplay = ref('')
-const newLessonTime = ref('')
-const newLessonVehicle = ref('')
-const addingLesson = ref(false)
 
-const timeSlots = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
-const vehicleOptions = ['Vehicle 1', 'Vehicle 2', 'Vehicle 3']
-
-const canAddLesson = computed(() => {
-    try {
-        const profile = JSON.parse(localStorage.getItem('profile') || '{}')
-        const role = profile?.obj?.roleName || profile?.obj?.RoleName || ''
-        return role === 'Admin' || role === 'Instructor'
-    } catch {
-        return false
-    }
+// Sort lessons by date asc then time asc for Nr. Rendor (1..N)
+const sortedLessons = computed(() => {
+    const list = practicalLessons.value || []
+    return [...list].sort((a, b) => {
+        const dA = (a.lessonDate || '').split('.').reverse().join('')
+        const dB = (b.lessonDate || '').split('.').reverse().join('')
+        if (dA !== dB) return dA.localeCompare(dB)
+        return (a.time || '').localeCompare(b.time || '')
+    })
 })
 
-function formatDate(value) {
-    if (!value) return ''
-    const str = String(value).split('T')[0]
-    const parts = str.split('-')
-    if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`
-    return str
-}
-
-const handleLessonDateChange = (value) => {
-    if (value) {
-        lessonDateDisplay.value = formatDate(value)
-        lessonDateModel.value = typeof value === 'string' ? value : value
-    } else {
-        lessonDateDisplay.value = ''
-        lessonDateModel.value = null
-    }
-    nextTick(() => { lessonDateMenu.value = false })
-}
-
-const clearLessonDate = () => {
-    lessonDateDisplay.value = ''
-    lessonDateModel.value = null
-}
-
-const addLesson = async () => {
-    const dateStr = lessonDateDisplay.value
-    if (!dateStr || !newLessonTime.value) {
-        settingStore.toggleSnackbar({ status: true, msg: 'Date and Time are required' })
-        return
-    }
-    addingLesson.value = true
-    try {
-        await candidateStore.addPracticalLesson({
-            candidateId: props.candidateId,
-            lessonDate: dateStr,
-            time: newLessonTime.value,
-            vehicle: newLessonVehicle.value || null
-        })
-        settingStore.toggleSnackbar({ status: true, msg: 'Lesson added' })
-        lessonDateDisplay.value = ''
-        lessonDateModel.value = null
-        newLessonTime.value = ''
-        newLessonVehicle.value = ''
-        loadCandidateDetails()
-    } catch (err) {
-        settingStore.toggleSnackbar({ status: true, msg: err?.response?.data?.responseMsg || 'Error adding lesson' })
-    } finally {
-        addingLesson.value = false
-    }
+function calcEndTime(startTime) {
+    if (!startTime) return ''
+    const parts = String(startTime).split(':')
+    if (parts.length !== 2) return ''
+    const totalMin = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10) + 45
+    return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`
 }
 
 const loadCandidateDetails = () => {

@@ -10,6 +10,7 @@ using AdminApi.ViewModels.Candidate;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace AdminApi.Controllers
 {
@@ -22,19 +23,22 @@ namespace AdminApi.Controllers
         private readonly ISqlRepository<Category> _categoryRepo;
         private readonly ISqlRepository<CandidateInstallment> _installmentRepo;
         private readonly ILogger<CandidatesController> _logger;
+        private readonly IConfiguration _config;
 
         public CandidatesController(
             AppDbContext context,
             ISqlRepository<Candidate> candidateRepo,
             ISqlRepository<Category> categoryRepo,
             ISqlRepository<CandidateInstallment> installmentRepo,
-            ILogger<CandidatesController> logger)
+            ILogger<CandidatesController> logger,
+            IConfiguration config)
         {
             _context = context;
             _candidateRepo = candidateRepo;
             _categoryRepo = categoryRepo;
             _installmentRepo = installmentRepo;
             _logger = logger;
+            _config = config;
         }
 
         ///<summary>
@@ -279,6 +283,36 @@ namespace AdminApi.Controllers
 
                 var list = await query.OrderByDescending(c => c.DateAdded).ToListAsync();
 
+                // Collect lesson counts for all returned candidates in one query
+                var candidateIds = list.Select(c => c.CandidateId).ToList();
+                var lessonCounts = await _context.PracticalLessons
+                    .Where(l => candidateIds.Contains(l.CandidateId))
+                    .GroupBy(l => l.CandidateId)
+                    .Select(g => new { CandidateId = g.Key, Count = g.Count() })
+                    .ToListAsync();
+                var countDict = lessonCounts.ToDictionary(x => x.CandidateId, x => x.Count);
+
+                // For Instructor: also count only this instructor's lessons
+                Dictionary<int, int> instructorCountDict = new();
+                if (role == "Instructor")
+                {
+                    var instructorCounts = await _context.PracticalLessons
+                        .Where(l => candidateIds.Contains(l.CandidateId) && l.InstructorUserId == currentUserId)
+                        .GroupBy(l => l.CandidateId)
+                        .Select(g => new { CandidateId = g.Key, Count = g.Count() })
+                        .ToListAsync();
+                    instructorCountDict = instructorCounts.ToDictionary(x => x.CandidateId, x => x.Count);
+                }
+
+                foreach (var c in list)
+                {
+                    c.PracticalLessonCount = countDict.GetValueOrDefault(c.CandidateId, 0);
+                    c.CompletedHours = role == "Instructor"
+                        ? instructorCountDict.GetValueOrDefault(c.CandidateId, 0)
+                        : c.PracticalLessonCount;
+                    c.RemainingHours = Math.Max(0, (c.PracticalHours ?? 0) - c.CompletedHours);
+                }
+
                 int totalRecords = list.Count;
                 _logger.LogInformation("GetCandidatesList: returning {Count} candidates (search={Search}, categoryId={CatId}, year={Year})",
                     totalRecords, search ?? "(null)", categoryId ?? 0, year ?? 0);
@@ -356,6 +390,7 @@ namespace AdminApi.Controllers
                 var practicalLessons = await (from l in lessonsQuery
                                               join u in _context.Users on l.InstructorUserId equals u.UserId into uu
                                               from u in uu.DefaultIfEmpty()
+                                              orderby l.LessonDate ascending, l.Time ascending
                                               select new
                                               {
                                                   practicalLessonId = l.PracticalLessonId,
@@ -364,6 +399,7 @@ namespace AdminApi.Controllers
                                                   instructorName = u != null ? u.FullName : null,
                                                   lessonDate = l.LessonDate,
                                                   time = l.Time,
+                                                  endTime = l.EndTime,
                                                   vehicle = l.Vehicle
                                               }).ToListAsync();
 
@@ -481,7 +517,7 @@ namespace AdminApi.Controllers
                 var list = await (from l in query
                                  join u in _context.Users on l.InstructorUserId equals u.UserId into uu
                                  from u in uu.DefaultIfEmpty()
-                                 orderby l.LessonDate descending, l.Time descending
+                                 orderby l.LessonDate ascending, l.Time ascending
                                  select new
                                  {
                                      practicalLessonId = l.PracticalLessonId,
@@ -490,6 +526,7 @@ namespace AdminApi.Controllers
                                      instructorName = u != null ? u.FullName : null,
                                      lessonDate = l.LessonDate,
                                      time = l.Time,
+                                     endTime = l.EndTime,
                                      vehicle = l.Vehicle
                                  }).ToListAsync();
                 return Ok(new { data = list });
@@ -502,6 +539,8 @@ namespace AdminApi.Controllers
 
         ///<summary>
         ///Add a practical lesson. Instructor may add only for candidates assigned to them.
+        ///Lesson duration is fixed at 45 minutes. EndTime is auto-calculated.
+        ///Overlap check: same instructor or same vehicle on the same date must not overlap.
         ///</summary>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpPost]
@@ -509,31 +548,113 @@ namespace AdminApi.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+                if (currentUserId == 0)
+                    return Unauthorized(new Confirmation { Status = "error", ResponseMsg = "Invalid token – user id missing" });
+
                 var role = User.FindFirst("role")?.Value ?? "";
                 var candidate = await _context.Candidates.FindAsync(request.CandidateId);
                 if (candidate == null)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
                 if (role == "Instructor" && candidate.InstructorId != currentUserId)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Not authorized to add lessons for this candidate" });
+                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Not authorized to add lessons for this candidate" });
+
+                // Parse and validate required fields
+                if (string.IsNullOrWhiteSpace(request.Time) || string.IsNullOrWhiteSpace(request.LessonDate))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Date and Time are required" });
+
+                // Validate date format dd.MM.yyyy (max 10 chars)
+                var lessonDate = request.LessonDate.Trim();
+                if (lessonDate.Length > 10 || !System.Text.RegularExpressions.Regex.IsMatch(lessonDate, @"^\d{2}\.\d{2}\.\d{4}$"))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format. Use dd.MM.yyyy" });
+
+                if (!TimeSpan.TryParse(request.Time, out var startTs))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid time format. Use HH:mm" });
+
+                var endTs = startTs.Add(TimeSpan.FromMinutes(45));
+                var endTime = $"{endTs.Hours:D2}:{endTs.Minutes:D2}";
+
+                // Overlap check: same instructor on same date must not have overlapping time
+                var sameDayLessons = await _context.PracticalLessons
+                    .Where(l => l.LessonDate == request.LessonDate &&
+                                (l.InstructorUserId == currentUserId ||
+                                 (!string.IsNullOrEmpty(request.Vehicle) && l.Vehicle == request.Vehicle)))
+                    .ToListAsync();
+
+                foreach (var existing in sameDayLessons)
+                {
+                    if (!TimeSpan.TryParse(existing.Time, out var exStart)) continue;
+                    var exEnd = !string.IsNullOrEmpty(existing.EndTime) && TimeSpan.TryParse(existing.EndTime, out var parsedEnd)
+                        ? parsedEnd
+                        : exStart.Add(TimeSpan.FromMinutes(45));
+
+                    bool overlaps = startTs < exEnd && endTs > exStart;
+                    if (overlaps)
+                    {
+                        if (existing.InstructorUserId == currentUserId)
+                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Overlap: you already have a lesson at {existing.Time}–{existing.EndTime ?? exEnd.ToString(@"hh\:mm")} on {request.LessonDate}" });
+                        if (!string.IsNullOrEmpty(request.Vehicle) && existing.Vehicle == request.Vehicle)
+                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Overlap: vehicle '{request.Vehicle}' is booked at {existing.Time}–{existing.EndTime ?? exEnd.ToString(@"hh\:mm")} on {request.LessonDate}" });
+                    }
+                }
 
                 var lesson = new PracticalLesson
                 {
                     CandidateId = request.CandidateId,
                     InstructorUserId = currentUserId,
-                    LessonDate = request.LessonDate ?? "",
-                    Time = request.Time ?? "",
+                    LessonDate = lessonDate,
+                    Time = request.Time.Trim(),
+                    EndTime = endTime,
                     Vehicle = request.Vehicle,
                     DateAdded = DateTime.UtcNow
                 };
                 _context.PracticalLessons.Add(lesson);
                 await _context.SaveChangesAsync();
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Lesson added" });
+
+                // Return the created lesson so the UI can update immediately
+                var instructorName = await _context.Users
+                    .Where(u => u.UserId == currentUserId)
+                    .Select(u => u.FullName)
+                    .FirstOrDefaultAsync();
+
+                return Ok(new
+                {
+                    status = "success",
+                    responseMsg = "Lesson added",
+                    lesson = new
+                    {
+                        practicalLessonId = lesson.PracticalLessonId,
+                        candidateId = lesson.CandidateId,
+                        instructorUserId = lesson.InstructorUserId,
+                        instructorName = instructorName,
+                        lessonDate = lesson.LessonDate,
+                        time = lesson.Time,
+                        endTime = lesson.EndTime,
+                        vehicle = lesson.Vehicle
+                    }
+                });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                _logger.LogError(ex, "AddPracticalLesson failed");
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Failed to save lesson. " + ex.Message });
             }
+        }
+
+        ///<summary>
+        ///Get registered vehicle names for the practical lesson dropdown. Admin and Instructor.
+        ///</summary>
+        [Authorize(Roles = "Admin,Instructor")]
+        [HttpGet]
+        public ActionResult GetLessonVehicles()
+        {
+            var vehicles = _config.GetSection("LessonVehicles").Get<string[]>();
+            if (vehicles == null || vehicles.Length == 0)
+                vehicles = new[] { "Vehicle 1", "Vehicle 2", "Vehicle 3" };
+            return Ok(new { data = vehicles });
         }
 
         ///<summary>
