@@ -1,7 +1,8 @@
-﻿using AdminApi.Models.Helper;
+using AdminApi.Models.Helper;
 using AdminApi.Models.Menu;
 using AdminApi.Models.Others;
 using AdminApi.Models.User;
+using CandidateModel = AdminApi.Models.Candidate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -27,6 +28,11 @@ namespace AdminApi.Models
         public virtual DbSet<Faq> Faqs { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<SiteSettings> SiteSettings { get; set; }
+        public virtual DbSet<CandidateModel.Category> Categories { get; set; }
+        public virtual DbSet<CandidateModel.Candidate> Candidates { get; set; }
+        public virtual DbSet<CandidateModel.CandidateInstallment> CandidateInstallments { get; set; }
+        public virtual DbSet<CandidateModel.PracticalLesson> PracticalLessons { get; set; }
+        public virtual DbSet<InstructorProfile> InstructorProfiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {   

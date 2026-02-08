@@ -69,14 +69,35 @@ import { ref } from 'vue';
 
 const userStore = useUserStore()
 const settingStore = useSettingStore()
-const userStatus = ref({})
+const userStatus = ref({
+    totalUser: 0,
+    activeUser: 0,
+    inActiveUser: 0,
+    adminUser: 0
+})
 const router = useRouter()
 
-//get users status
+// Default status so template never reads undefined
+const defaultStatus = () => ({
+    totalUser: 0,
+    activeUser: 0,
+    inActiveUser: 0,
+    adminUser: 0
+})
+
+// Get users status; handle 403/401 so Dashboard does not crash
 userStore.getUserStatus()
     .then((res) => {
+        const data = res?.data
+        userStatus.value = (data && typeof data === 'object')
+            ? { ...defaultStatus(), ...data }
+            : defaultStatus()
+    })
+    .catch(() => {
+        userStatus.value = defaultStatus()
+    })
+    .finally(() => {
         settingStore.overlayToggle(false)
-        userStatus.value = res.data
     })
 
 //switch to user

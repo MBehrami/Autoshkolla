@@ -2,6 +2,7 @@ using System;
 using AdminApi.Models.Menu;
 using AdminApi.Models.Others;
 using AdminApi.Models.User;
+using AdminApi.Models.Candidate;
 using Microsoft.EntityFrameworkCore;
 
 namespace AdminApi.Models.Helper
@@ -96,7 +97,7 @@ namespace AdminApi.Models.Helper
 
             modelBuilder.Entity<AppMenu>(b=>{
                 b.HasKey(e=>e.MenuID);  
-                b.Property(b=>b.MenuID).HasIdentityOptions(startValue:11);              
+                b.Property(b=>b.MenuID).HasIdentityOptions(startValue:15);              
                 b.HasData(
                     new AppMenu
                     {
@@ -279,13 +280,41 @@ namespace AdminApi.Models.Helper
                         DateAdded=DateTime.Now,
                         IsMigrationData=true,
                         AddedBy=1                 
+                    },
+                    new AppMenu
+                    {
+                        MenuID=14,
+                        ParentID=0,
+                        MenuTitle="Candidates",
+                        URL="/candidates",
+                        IsSubMenu=0,
+                        SortOrder=8,
+                        IconClass="mdi-account-group",
+                        IsActive=true,
+                        DateAdded=DateTime.Now,
+                        IsMigrationData=true,
+                        AddedBy=1                 
+                    },
+                    new AppMenu
+                    {
+                        MenuID=15,
+                        ParentID=0,
+                        MenuTitle="Instructors",
+                        URL="/instructors",
+                        IsSubMenu=0,
+                        SortOrder=9,
+                        IconClass="mdi-account-tie",
+                        IsActive=true,
+                        DateAdded=DateTime.Now,
+                        IsMigrationData=true,
+                        AddedBy=1                 
                     });
             });
 
 
             modelBuilder.Entity<MenuGroupWiseMenuMapping>(b=>{
                 b.HasKey(e=>e.MenuGroupWiseMenuMappingId);  
-                b.Property(b=>b.MenuGroupWiseMenuMappingId).HasIdentityOptions(startValue:9);                
+                b.Property(b=>b.MenuGroupWiseMenuMappingId).HasIdentityOptions(startValue:13);                
                 b.HasData(
                     new MenuGroupWiseMenuMapping
                     {
@@ -390,6 +419,26 @@ namespace AdminApi.Models.Helper
                     new MenuGroupWiseMenuMapping
                     {
                         MenuGroupWiseMenuMappingId=11,
+                        MenuGroupId=1,
+                        MenuId=14,                  
+                        IsActive=true,
+                        DateAdded=DateTime.Now,
+                        IsMigrationData=true,
+                        AddedBy=1                  
+                    },
+                    new MenuGroupWiseMenuMapping
+                    {
+                        MenuGroupWiseMenuMappingId=12,
+                        MenuGroupId=1,
+                        MenuId=15,                  
+                        IsActive=true,
+                        DateAdded=DateTime.Now,
+                        IsMigrationData=true,
+                        AddedBy=1                  
+                    },
+                    new MenuGroupWiseMenuMapping
+                    {
+                        MenuGroupWiseMenuMappingId=13,
                         MenuGroupId=2,
                         MenuId=10,                  
                         IsActive=true,
@@ -497,7 +546,20 @@ namespace AdminApi.Models.Helper
             });
 
             modelBuilder.Entity<LogHistory>().HasKey(b=>b.LogId);
-                      
+
+            modelBuilder.Entity<Category>(b=>{
+                b.HasKey(e=>e.CategoryId);
+                b.Property(b=>b.CategoryId).HasIdentityOptions(startValue:8);
+                b.HasData(
+                    new Category{CategoryId=1,CategoryName="A1",IsActive=true,AddedBy=1,DateAdded=DateTime.Now,IsMigrationData=true},
+                    new Category{CategoryId=2,CategoryName="A2",IsActive=true,AddedBy=1,DateAdded=DateTime.Now,IsMigrationData=true},
+                    new Category{CategoryId=3,CategoryName="A",IsActive=true,AddedBy=1,DateAdded=DateTime.Now,IsMigrationData=true},
+                    new Category{CategoryId=4,CategoryName="B",IsActive=true,AddedBy=1,DateAdded=DateTime.Now,IsMigrationData=true},
+                    new Category{CategoryId=5,CategoryName="B+E",IsActive=true,AddedBy=1,DateAdded=DateTime.Now,IsMigrationData=true},
+                    new Category{CategoryId=6,CategoryName="C1",IsActive=true,AddedBy=1,DateAdded=DateTime.Now,IsMigrationData=true},
+                    new Category{CategoryId=7,CategoryName="C",IsActive=true,AddedBy=1,DateAdded=DateTime.Now,IsMigrationData=true}
+                );
+            });
         }
     }
 }

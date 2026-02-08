@@ -39,12 +39,18 @@ namespace AdminApi.Controllers
         }
 
         ///<summary>
-        ///App Side bar menus
+        ///App Side bar menus. Instructor role gets only Candidates (MenuGroupId=3).
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="Admin,User,Instructor")]
         [HttpGet("{roleId}")]
         public async Task<ActionResult> GetSidebarMenu(int roleId)
         {
+            var roleRow = await _context.UserRole.Where(ur => ur.UserRoleId == roleId).Select(ur => new { ur.MenuGroupId }).FirstOrDefaultAsync();
+            if (roleRow == null || !roleRow.MenuGroupId.HasValue)
+                return Ok(new List<SidebarItems>());
+
+            int menuGroupId = roleRow.MenuGroupId.Value;
+
             var parentMenus=await (from m in _context.Menu 
             where m.ParentID.Equals(0)
             orderby m.SortOrder
@@ -64,10 +70,9 @@ namespace AdminApi.Controllers
 
             foreach(AppMenu m in parentMenuList)
             {
-                var childMenus=await (from mm in _context.Menu where mm.ParentID.Equals(m.MenuID)
-                && mm.MenuID.Equals((from mwm in _context.MenuGroupWiseMenuMapping 
-                where mwm.MenuGroupId.Equals((from ur in _context.UserRole where ur.UserRoleId==roleId select new{ur.MenuGroupId}).First().MenuGroupId) 
-                && mwm.MenuId.Equals(mm.MenuID) select new {mwm.MenuId}).First().MenuId)
+                var childMenus=await (from mm in _context.Menu
+                where mm.ParentID.Equals(m.MenuID)
+                where _context.MenuGroupWiseMenuMapping.Any(mwm => mwm.MenuGroupId == menuGroupId && mwm.MenuId == mm.MenuID)
                 select new {mm.MenuID,mm.MenuTitle,mm.URL}).ToListAsync();
 
                 if(childMenus.Count>0)
@@ -77,9 +82,9 @@ namespace AdminApi.Controllers
                 }
                 else
                 {
-                    var checkMenu=await (from mwm in _context.MenuGroupWiseMenuMapping 
-                    where mwm.MenuGroupId.Equals((from ur in _context.UserRole where ur.UserRoleId==roleId select new{ur.MenuGroupId}).First().MenuGroupId)
-                    && mwm.MenuId.Equals(m.MenuID) select new {mwm.MenuId}).FirstOrDefaultAsync();
+                    var checkMenu=await _context.MenuGroupWiseMenuMapping
+                        .Where(mwm => mwm.MenuGroupId == menuGroupId && mwm.MenuId.Equals(m.MenuID))
+                        .Select(mwm => new { mwm.MenuId }).FirstOrDefaultAsync();
                     if(checkMenu!=null)
                     {
                         sidebarInitial.Add(new SidebarItems{Id=m.MenuID,Title=m.MenuTitle,Icon=m.IconClass,Route=m.URL,Order=m.SortOrder,IsActive=m.IsActive,

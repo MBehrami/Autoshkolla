@@ -16,6 +16,8 @@ import UserRole from "@/pages/user/UserRole.vue";
 import Menus from "@/pages/menu/Menus.vue";
 import MenuGroup from "@/pages/menu/MenuGroup.vue";
 import ResetPassword from "@/pages/user/ResetPassword.vue";
+import Candidates from "@/pages/candidate/Candidates.vue";
+import Instructors from "@/pages/instructor/Instructors.vue";
 
 const routes = [
   { path: "/", name: "Landing", component: Landing },
@@ -42,6 +44,8 @@ const routes = [
   { path: "/menu-group", name: "MenuGroup", component: MenuGroup },
   { path: "/users", name: "Users", component: Users },
   { path: "/user-role", name: "UserRole", component: UserRole },
+  { path: "/candidates", name: "Candidates", component: Candidates },
+  { path: "/instructors", name: "Instructors", component: Instructors },
   {
     path: "/password-reset/:ref",
     name: "ResetPassword",

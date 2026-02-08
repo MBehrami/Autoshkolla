@@ -22,13 +22,14 @@
         </v-list>
         <v-divider></v-divider>
         <v-list density="default">
-            <v-list-item v-for="item in menus" :key="item.id" :to="item.route">
-                <v-list-item-title v-if="item.childItems.length == 0" class="pl-3">{{ item.title }}</v-list-item-title>
-                <template v-if="item.childItems.length == 0" v-slot:prepend>
+            <v-list-item v-for="item in menus" :key="item.id" :to="item.route"
+                @click="!(item.childItems && item.childItems.length) && item.route && smAndDown && (drawer = false)">
+                <v-list-item-title v-if="!(item.childItems && item.childItems.length)" class="pl-3">{{ item.title }}</v-list-item-title>
+                <template v-if="!(item.childItems && item.childItems.length)" v-slot:prepend>
                     <v-icon class="pl-7">{{ item.icon }}</v-icon>
                 </template>
 
-                <v-list-group :value="item.title" v-if="item.childItems.length > 0">
+                <v-list-group :value="item.title" v-if="item.childItems && item.childItems.length > 0">
                     <template v-slot:activator="{ props }">
                         <v-list-item v-bind="props" :title="item.title" :prepend-icon="item.icon"></v-list-item>
                     </template>
@@ -148,7 +149,7 @@ const linksOthers = ref([
     { text: 'Password', route: '/password-change' },
     { text: 'Faqs', route: '/faq' }
 ])
-const profileInfo = JSON.parse(localStorage.getItem('profile'))
+const profileInfo = JSON.parse(localStorage.getItem('profile') || '{}')
 
 //open lock
 const lockOpen = () => {
@@ -184,13 +185,58 @@ const profileImage = computed(() => {
     return profileInfo.obj.imagePath == null ? defaultImg : import.meta.env.VITE_API_URL + profileInfo.obj.imagePath
 })
 
-//fetch app sidebar
+//fetch app sidebar - normalize to ensure childItems exists (API may return ChildItems)
+// For Admin (userRoleId 1), ensure Candidates and Instructors are included even if not in DB
 menuStore.getSidebar(localStorage.getItem('userRoleId'))
     .then((res) => {
-        menus.value = res.data
+        const raw = res.data || []
+        let items = raw.map((item) => ({
+            id: item.id ?? item.Id,
+            title: item.title ?? item.Title,
+            icon: (item.icon ?? item.Icon) || 'mdi-circle-small',
+            route: (item.route ?? item.Route) || '',
+            order: item.order ?? item.Order ?? 99,
+            childItems: item.childItems ?? item.ChildItems ?? []
+        }))
+        const roleId = localStorage.getItem('userRoleId')
+        const roleName = (typeof profileInfo?.obj?.roleName === 'string') ? profileInfo.obj.roleName : (typeof profileInfo?.obj?.RoleName === 'string') ? profileInfo.obj.RoleName : ''
+        const isInstructor = roleId === '3' || roleName === 'Instructor'
+        if (roleId === '1') {
+            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates')
+            const hasInstructors = items.some((m) => (m.route || '').toLowerCase() === '/instructors')
+            if (!hasCandidates) {
+                items = [...items, { id: 14, title: 'Candidates', icon: 'mdi-account-group', route: '/candidates', order: 8, childItems: [] }]
+            }
+            if (!hasInstructors) {
+                items = [...items, { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] }]
+            }
+            items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+        } else if (isInstructor) {
+            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates')
+            if (!hasCandidates) {
+                items = [...items, { id: 14, title: 'My Candidates', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] }]
+            }
+            items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+        } else if (items.length === 0 && roleId !== '1') {
+            // Fallback: non-Admin with no menu (e.g. Instructor with wrong roleId) still gets My Candidates
+            items = [{ id: 14, title: 'My Candidates', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] }]
+        }
+        menus.value = items
     })
     .catch((error) => {
         console.log(error)
+        const roleId = localStorage.getItem('userRoleId')
+        const roleName = profileInfo?.obj?.roleName || profileInfo?.obj?.RoleName || ''
+        if (roleId === '1') {
+            menus.value = [
+                { id: 14, title: 'Candidates', icon: 'mdi-account-group', route: '/candidates', order: 8, childItems: [] },
+                { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] }
+            ]
+        } else if (roleId === '3' || roleName === 'Instructor') {
+            menus.value = [
+                { id: 14, title: 'My Candidates', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] }
+            ]
+        }
     })
 
 //fetch notifications

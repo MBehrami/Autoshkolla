@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -666,10 +666,10 @@ namespace AdminApi.Controllers
         }
 
         ///<summary>
-        ///Dashboard User Status
+        ///Dashboard User Status. Allowed for Admin, User, and Instructor so Dashboard loads without 403.
         ///</summary>
-        [Authorize(Roles="Admin,User")]   
-        [HttpGet]       
+        [Authorize(Roles="Admin,User,Instructor")]
+        [HttpGet]
         public async Task<ActionResult> UserStatus()
         {
             try

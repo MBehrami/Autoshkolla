@@ -434,13 +434,13 @@ export const useUserStore = defineStore("userStore", {
         this.loading = true;
         API.get(import.meta.env.VITE_API_URL + "/api/Users/UserStatus")
           .then((response) => {
-            this.loading = false;
             resolve(response);
           })
           .catch((error) => {
-            console.log("error thrown");
-            this.loading = false;
             reject(error);
+          })
+          .finally(() => {
+            this.loading = false;
           });
       });
     },
