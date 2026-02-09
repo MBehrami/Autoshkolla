@@ -1,29 +1,30 @@
 <template>
-    <v-navigation-drawer theme="dark" v-model="drawer">
+    <v-navigation-drawer v-model="drawer" class="sidebar-drawer" elevation="2">
         <template v-if="smAndDown" v-slot:append>
             <div class="d-flex justify-center py-2">
-                <v-btn text="Sign Out" variant="text" prepend-icon="mdi-logout" class="text-capitalize text-purple"
-                    @click.stop="dialogSignout = true">
+                <v-btn text="Sign Out" variant="text" prepend-icon="mdi-logout" class="text-capitalize"
+                    style="color: #1565C0;" @click.stop="dialogSignout = true">
                 </v-btn>
             </div>
         </template>
-        <v-list>
+        <v-list class="sidebar-profile-list">
             <v-list-item>
                 <template v-slot:prepend>
                     <v-avatar><v-img :src="profileImage"></v-img></v-avatar>
                 </template>
                 <template v-slot:title>
-                    <div>{{ profileInfo.obj.fullName }}</div>
+                    <div class="sidebar-profile-name">{{ profileInfo.obj.fullName }}</div>
                 </template>
                 <template v-slot:subtitle>
-                    <div>{{ profileInfo.obj.roleName }}</div>
+                    <div class="sidebar-profile-role">{{ profileInfo.obj.roleName }}</div>
                 </template>
             </v-list-item>
         </v-list>
         <v-divider></v-divider>
-        <v-list density="default">
+        <v-list density="default" class="sidebar-menu-list">
             <v-list-item v-for="item in menus" :key="item.id" :to="item.route"
-                @click="!(item.childItems && item.childItems.length) && item.route && smAndDown && (drawer = false)">
+                @click="!(item.childItems && item.childItems.length) && item.route && smAndDown && (drawer = false)"
+                active-class="sidebar-active-item">
                 <v-list-item-title v-if="!(item.childItems && item.childItems.length)" class="pl-3">{{ item.title }}</v-list-item-title>
                 <template v-if="!(item.childItems && item.childItems.length)" v-slot:prepend>
                     <v-icon class="pl-7">{{ item.icon }}</v-icon>
@@ -31,10 +32,11 @@
 
                 <v-list-group :value="item.title" v-if="item.childItems && item.childItems.length > 0">
                     <template v-slot:activator="{ props }">
-                        <v-list-item v-bind="props" :title="item.title" :prepend-icon="item.icon"></v-list-item>
+                        <v-list-item v-bind="props" :title="item.title" :prepend-icon="item.icon"
+                            active-class="sidebar-active-item"></v-list-item>
                     </template>
                     <v-list-item v-for="val in item.childItems" :key="val.id" :title="val.title" :value="val.title"
-                        :to="val.route"></v-list-item>
+                        :to="val.route" active-class="sidebar-active-item"></v-list-item>
                 </v-list-group>
             </v-list-item>
         </v-list>
@@ -83,7 +85,7 @@
         </template>
     </v-app-bar>
     <v-dialog v-model="dialogSignout" max-width="290" persistent>
-        <v-card theme="dark">
+        <v-card>
             <v-card-title class="text-h5">Want to leave?</v-card-title>
             <v-card-text class="py-2 text-grey-lighten-1 text-subtitle-2">Press Sign Out to leave</v-card-text>
             <v-card-actions>
@@ -95,7 +97,7 @@
         </v-card>
     </v-dialog>
     <v-dialog v-model="dialogLock" max-width="290" persistent>
-        <v-card theme="dark">
+        <v-card>
             <v-card-title class="d-flex justify-center"><v-avatar><v-img
                         :src="profileImage"></v-img></v-avatar></v-card-title>
             <v-card-text>
@@ -233,6 +235,16 @@ menuStore.getSidebar(localStorage.getItem('userRoleId'))
                     ]
                 }]
             }
+            // Reports (Admin only)
+            const hasReports = items.some((m) => (m.route || '').toLowerCase() === '/daily-report' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/daily-report')))
+            if (!hasReports) {
+                items = [...items, {
+                    id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11,
+                    childItems: [
+                        { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
+                    ]
+                }]
+            }
             items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
         } else if (isInstructor) {
             // Instructor: no Driving Sessions (Vozitjet), only Candidates + Oraret
@@ -280,6 +292,9 @@ menuStore.getSidebar(localStorage.getItem('userRoleId'))
                     { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
                     { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
                     { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
+                ]},
+                { id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11, childItems: [
+                    { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
                 ]}
             ]
         } else if (roleId === '3' || roleName === 'Instructor') {
@@ -306,3 +321,69 @@ const signOut = () => {
     router.push({ name: 'Landing' })
 }
 </script>
+
+<style>
+/* ─── Light Blue Sidebar Theme ─── */
+.sidebar-drawer {
+    background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%) !important;
+    color: #1A237E !important;
+}
+
+.sidebar-drawer .v-list-item-title {
+    color: #1A237E !important;
+    font-weight: 500;
+}
+
+.sidebar-drawer .v-list-item-subtitle {
+    color: #3949AB !important;
+}
+
+.sidebar-drawer .v-icon {
+    color: #1565C0 !important;
+}
+
+.sidebar-drawer .v-divider {
+    border-color: rgba(21, 101, 192, 0.15) !important;
+}
+
+.sidebar-profile-list {
+    background: rgba(21, 101, 192, 0.08) !important;
+}
+
+.sidebar-profile-name {
+    color: #0D47A1 !important;
+    font-weight: 600;
+}
+
+.sidebar-profile-role {
+    color: #1565C0 !important;
+    font-size: 0.8rem;
+}
+
+.sidebar-menu-list {
+    background: transparent !important;
+}
+
+.sidebar-active-item {
+    background: rgba(21, 101, 192, 0.15) !important;
+    border-radius: 8px;
+}
+
+.sidebar-active-item .v-list-item-title {
+    color: #0D47A1 !important;
+    font-weight: 700;
+}
+
+.sidebar-active-item .v-icon {
+    color: #0D47A1 !important;
+}
+
+.sidebar-drawer .v-list-group__items .v-list-item {
+    padding-left: 32px !important;
+}
+
+.sidebar-drawer .v-list-item:hover {
+    background: rgba(21, 101, 192, 0.1) !important;
+    border-radius: 8px;
+}
+</style>

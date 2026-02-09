@@ -444,6 +444,13 @@ export const useUserStore = defineStore("userStore", {
           });
       });
     },
+    getDashboardSummary() {
+      return new Promise((resolve, reject) => {
+        API.get(import.meta.env.VITE_API_URL + "/api/Users/DashboardSummary")
+          .then((response) => resolve(response))
+          .catch((error) => reject(error));
+      });
+    },
     getBrowseList(userId) {
       return new Promise((resolve, reject) => {
         this.loading = true;

@@ -306,4 +306,19 @@ watch(dialog, (val) => {
     padding: 16px 24px !important;
     min-height: 64px !important;
 }
+
+@media (max-width: 600px) {
+    .instructors-container {
+        padding: 8px !important;
+    }
+    .instructors-table :deep(thead th),
+    .instructors-table :deep(tbody td) {
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+    }
+    .instructors-table :deep(.v-toolbar) {
+        padding: 8px !important;
+        flex-wrap: wrap;
+    }
+}
 </style>

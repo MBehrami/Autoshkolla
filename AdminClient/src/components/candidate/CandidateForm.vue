@@ -14,12 +14,11 @@
                         <v-text-field
                             v-model="candidateForm.serialNumber"
                             label="Serial Number (Nr. Rendor)"
-                            :rules="[rules.required, rules.serialNumber]"
+                            :rules="[rules.serialNumber]"
                             variant="outlined"
                             density="comfortable"
                             hide-details="auto"
                             clearable
-                            required
                         ></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4">
@@ -303,6 +302,69 @@
                     </v-col>
                 </v-row>
 
+                <!-- Additional Payments -->
+                <h3 class="form-section-title">Additional payments</h3>
+                <v-row class="form-row">
+                    <v-col cols="12" md="3">
+                        <v-text-field
+                            v-model.number="candidateForm.docWithdrawalAmount"
+                            label="Doc Withdrawal Amount (Terheqja)"
+                            type="number"
+                            variant="outlined"
+                            clearable
+                        ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <v-menu v-model="docWithdrawalDateMenu" :close-on-content-click="false"
+                            location="bottom" transition="scale-transition" min-width="auto">
+                            <template v-slot:activator="{ props: menuProps }">
+                                <v-text-field
+                                    v-model="docWithdrawalDateDisplay"
+                                    label="Doc Withdrawal Date"
+                                    prepend-inner-icon="mdi-calendar"
+                                    readonly
+                                    v-bind="menuProps"
+                                    variant="outlined"
+                                    density="comfortable"
+                                    clearable
+                                    @click:clear="clearDocWithdrawalDate"
+                                ></v-text-field>
+                            </template>
+                            <v-date-picker v-model="docWithdrawalDateModel" color="primary"
+                                @update:model-value="handleDocWithdrawalDateChange"></v-date-picker>
+                        </v-menu>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <v-text-field
+                            v-model.number="candidateForm.drivingPaymentAmount"
+                            label="Driving Payment (Pagesa e vozitjes)"
+                            type="number"
+                            variant="outlined"
+                            clearable
+                        ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                        <v-menu v-model="drivingPaymentDateMenu" :close-on-content-click="false"
+                            location="bottom" transition="scale-transition" min-width="auto">
+                            <template v-slot:activator="{ props: menuProps }">
+                                <v-text-field
+                                    v-model="drivingPaymentDateDisplay"
+                                    label="Driving Payment Date"
+                                    prepend-inner-icon="mdi-calendar"
+                                    readonly
+                                    v-bind="menuProps"
+                                    variant="outlined"
+                                    density="comfortable"
+                                    clearable
+                                    @click:clear="clearDrivingPaymentDate"
+                                ></v-text-field>
+                            </template>
+                            <v-date-picker v-model="drivingPaymentDateModel" color="primary"
+                                @update:model-value="handleDrivingPaymentDateChange"></v-date-picker>
+                        </v-menu>
+                    </v-col>
+                </v-row>
+
                 <!-- Available Schedule / Free Hours -->
                 <h3 class="form-section-title">Available schedule / free hours</h3>
                 <v-row class="form-row">
@@ -374,6 +436,13 @@ const installment2DateDisplay = ref('')
 const installment3DateMenu = ref(false)
 const installment3DateModel = ref(null)
 const installment3DateDisplay = ref('')
+
+const docWithdrawalDateMenu = ref(false)
+const docWithdrawalDateModel = ref(null)
+const docWithdrawalDateDisplay = ref('')
+const drivingPaymentDateMenu = ref(false)
+const drivingPaymentDateModel = ref(null)
+const drivingPaymentDateDisplay = ref('')
 
 // Convert date from dd.MM.yyyy to YYYY-MM-DD for date picker model
 const parseDate = (dateStr) => {
@@ -457,6 +526,40 @@ const handleInstallment3DateChange = (value) => {
     nextTick(() => { installment3DateMenu.value = false })
 }
 
+const handleDocWithdrawalDateChange = (value) => {
+    if (value) {
+        candidateForm.value.docWithdrawalDate = formatDate(value)
+        docWithdrawalDateDisplay.value = formatDate(value)
+    } else {
+        candidateForm.value.docWithdrawalDate = ''
+        docWithdrawalDateDisplay.value = ''
+    }
+    nextTick(() => { docWithdrawalDateMenu.value = false })
+}
+
+const clearDocWithdrawalDate = () => {
+    candidateForm.value.docWithdrawalDate = ''
+    docWithdrawalDateDisplay.value = ''
+    docWithdrawalDateModel.value = null
+}
+
+const handleDrivingPaymentDateChange = (value) => {
+    if (value) {
+        candidateForm.value.drivingPaymentDate = formatDate(value)
+        drivingPaymentDateDisplay.value = formatDate(value)
+    } else {
+        candidateForm.value.drivingPaymentDate = ''
+        drivingPaymentDateDisplay.value = ''
+    }
+    nextTick(() => { drivingPaymentDateMenu.value = false })
+}
+
+const clearDrivingPaymentDate = () => {
+    candidateForm.value.drivingPaymentDate = ''
+    drivingPaymentDateDisplay.value = ''
+    drivingPaymentDateModel.value = null
+}
+
 const candidateForm = ref({
     serialNumber: '',
     firstName: '',
@@ -473,6 +576,10 @@ const candidateForm = ref({
     paymentMethod: '',
     practicalHours: null,
     totalServiceAmount: 0,
+    docWithdrawalAmount: null,
+    docWithdrawalDate: '',
+    drivingPaymentAmount: null,
+    drivingPaymentDate: '',
     availableSchedule: ''
 })
 
@@ -601,6 +708,10 @@ const resetForm = () => {
         paymentMethod: '',
         practicalHours: null,
         totalServiceAmount: 0,
+        docWithdrawalAmount: null,
+        docWithdrawalDate: '',
+        drivingPaymentAmount: null,
+        drivingPaymentDate: '',
         availableSchedule: ''
     }
     installments.value = [
@@ -622,6 +733,10 @@ const resetForm = () => {
     installment2DateDisplay.value = ''
     installment3DateModel.value = null
     installment3DateDisplay.value = ''
+    docWithdrawalDateModel.value = null
+    docWithdrawalDateDisplay.value = ''
+    drivingPaymentDateModel.value = null
+    drivingPaymentDateDisplay.value = ''
 }
 
 // Watch for candidate prop changes (edit mode)
@@ -644,7 +759,21 @@ watch(() => props.candidate, (newVal) => {
             paymentMethod: candidate.paymentMethod || '',
             practicalHours: candidate.practicalHours,
             totalServiceAmount: candidate.totalServiceAmount || 0,
+            docWithdrawalAmount: candidate.docWithdrawalAmount ?? null,
+            docWithdrawalDate: candidate.docWithdrawalDate || '',
+            drivingPaymentAmount: candidate.drivingPaymentAmount ?? null,
+            drivingPaymentDate: candidate.drivingPaymentDate || '',
             availableSchedule: candidate.availableSchedule || ''
+        }
+
+        // Set additional payment date pickers
+        if (candidate.docWithdrawalDate) {
+            docWithdrawalDateModel.value = parseDate(candidate.docWithdrawalDate)
+            docWithdrawalDateDisplay.value = candidate.docWithdrawalDate
+        }
+        if (candidate.drivingPaymentDate) {
+            drivingPaymentDateModel.value = parseDate(candidate.drivingPaymentDate)
+            drivingPaymentDateDisplay.value = candidate.drivingPaymentDate
         }
         
         if (candidate.categoryName) {

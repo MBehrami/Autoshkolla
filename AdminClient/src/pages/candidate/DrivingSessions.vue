@@ -914,4 +914,19 @@ onMounted(() => {
     padding: 16px 24px !important;
     min-height: 64px !important;
 }
+
+@media (max-width: 600px) {
+    .vehicles-container {
+        padding: 8px !important;
+    }
+    .vehicles-toolbar {
+        flex-wrap: wrap;
+        padding: 8px !important;
+    }
+    .ds-filter-status,
+    .ds-filter-date {
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+}
 </style>

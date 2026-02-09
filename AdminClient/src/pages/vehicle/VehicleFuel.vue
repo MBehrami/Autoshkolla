@@ -333,4 +333,19 @@ onMounted(() => {
     padding: 16px 24px !important;
     min-height: 64px !important;
 }
+
+@media (max-width: 600px) {
+    .vehicles-container {
+        padding: 8px !important;
+    }
+    .vehicles-table :deep(thead th),
+    .vehicles-table :deep(tbody td) {
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+    }
+    .vehicles-table :deep(.v-toolbar) {
+        padding: 8px !important;
+        flex-wrap: wrap;
+    }
+}
 </style>

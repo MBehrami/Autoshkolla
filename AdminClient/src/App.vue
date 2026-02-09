@@ -123,4 +123,104 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* ─── Global Mobile Responsiveness ─── */
+
+/* Prevent horizontal overflow on all containers */
+.v-main {
+  overflow-x: hidden !important;
+}
+
+.v-container {
+  max-width: 100% !important;
+}
+
+/* Make data tables horizontally scrollable on mobile */
+.v-data-table {
+  overflow-x: auto;
+}
+
+/* Responsive: stack filters and buttons vertically on small screens */
+@media (max-width: 600px) {
+  /* Cards/containers full width */
+  .vehicles-container,
+  .dashboard-container {
+    padding: 8px !important;
+  }
+
+  /* Make v-row items stack */
+  .v-row > .v-col {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Table font size reduction for mobile */
+  .v-data-table th,
+  .v-data-table td {
+    font-size: 0.75rem !important;
+    padding: 4px 8px !important;
+  }
+
+  /* Touch-friendly buttons */
+  .v-btn {
+    min-height: 40px;
+  }
+
+  /* Touch-friendly inputs */
+  .v-text-field input,
+  .v-select .v-field__input {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+
+  /* Dialog full-width on mobile */
+  .v-dialog > .v-overlay__content {
+    max-width: 95vw !important;
+    margin: 8px !important;
+  }
+
+  /* Calendar cards overflow */
+  .calendar-card {
+    overflow-x: auto !important;
+  }
+
+  /* Stat cards compact */
+  .stat-card .v-card-text {
+    padding: 12px !important;
+  }
+
+  .stat-card .text-h5 {
+    font-size: 1.1rem !important;
+  }
+
+  /* Tabs: scroll on overflow */
+  .v-tabs {
+    overflow-x: auto !important;
+  }
+
+  /* App bar compact */
+  .v-app-bar .v-btn {
+    min-width: 36px !important;
+    padding: 0 6px !important;
+  }
+
+  /* Filter rows stack properly */
+  .v-toolbar__content {
+    flex-wrap: wrap !important;
+    height: auto !important;
+  }
+}
+
+/* Tablet breakpoint */
+@media (max-width: 960px) {
+  .vehicles-container,
+  .dashboard-container {
+    padding: 12px !important;
+  }
+
+  /* 2-column layout for medium screens */
+  .v-row > .v-col-md-4 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+}
 </style>

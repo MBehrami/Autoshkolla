@@ -164,7 +164,7 @@ namespace AdminApi.Controllers
                 // Create candidate
                 var candidate = new Candidate
                 {
-                    SerialNumber = request.SerialNumber,
+                    SerialNumber = string.IsNullOrWhiteSpace(request.SerialNumber) ? null : request.SerialNumber.Trim(),
                     FirstName = request.FirstName,
                     ParentName = request.ParentName,
                     LastName = request.LastName,
@@ -179,13 +179,51 @@ namespace AdminApi.Controllers
                     PaymentMethod = request.PaymentMethod,
                     PracticalHours = request.PracticalHours,
                     TotalServiceAmount = request.TotalServiceAmount,
+                    DocWithdrawalAmount = request.DocWithdrawalAmount,
+                    DocWithdrawalDate = string.IsNullOrWhiteSpace(request.DocWithdrawalDate) ? null : request.DocWithdrawalDate.Trim(),
+                    DrivingPaymentAmount = request.DrivingPaymentAmount,
+                    DrivingPaymentDate = string.IsNullOrWhiteSpace(request.DrivingPaymentDate) ? null : request.DrivingPaymentDate.Trim(),
                     AddedBy = int.Parse(User.FindFirst("sub")?.Value ?? "1"),
                     DateAdded = DateTime.Now
                 };
 
                 await _candidateRepo.Insert(candidate);
 
-                // Create installments
+                string candidateFullName = (candidate.FirstName ?? "") + " " + (candidate.LastName ?? "");
+
+                // Auto daily report: Document Withdrawal Payment
+                if (candidate.DocWithdrawalAmount.HasValue && candidate.DocWithdrawalAmount.Value > 0)
+                {
+                    try
+                    {
+                        string reportDate = !string.IsNullOrWhiteSpace(candidate.DocWithdrawalDate)
+                            ? candidate.DocWithdrawalDate : DateTime.Now.ToString("dd.MM.yyyy");
+                        await DailyReportsController.CreateAutoEntry(
+                            _context, reportDate, "Income", candidateFullName,
+                            candidate.DocWithdrawalAmount.Value,
+                            "Terheqja e Dokumentave (Document Withdrawal)",
+                            "CandidateDocWithdrawal", candidate.CandidateId, candidate.AddedBy);
+                    }
+                    catch (Exception autoEx) { _logger.LogWarning(autoEx, "Auto daily report (DocWithdrawal) failed"); }
+                }
+
+                // Auto daily report: Driving Payment
+                if (candidate.DrivingPaymentAmount.HasValue && candidate.DrivingPaymentAmount.Value > 0)
+                {
+                    try
+                    {
+                        string reportDate = !string.IsNullOrWhiteSpace(candidate.DrivingPaymentDate)
+                            ? candidate.DrivingPaymentDate : DateTime.Now.ToString("dd.MM.yyyy");
+                        await DailyReportsController.CreateAutoEntry(
+                            _context, reportDate, "Income", candidateFullName,
+                            candidate.DrivingPaymentAmount.Value,
+                            "Pagesa e Vozitjes (Driving Payment)",
+                            "CandidateDrivingPayment", candidate.CandidateId, candidate.AddedBy);
+                    }
+                    catch (Exception autoEx) { _logger.LogWarning(autoEx, "Auto daily report (DrivingPayment) failed"); }
+                }
+
+                // Create installments + auto daily report entries
                 foreach (var installment in request.Installments)
                 {
                     if (installment.Amount > 0)
@@ -200,6 +238,29 @@ namespace AdminApi.Controllers
                             DateAdded = DateTime.Now
                         };
                         await _installmentRepo.Insert(candidateInstallment);
+
+                        // Auto-create income entry in Daily Report
+                        try
+                        {
+                            string reportDate = !string.IsNullOrWhiteSpace(installment.InstallmentDate)
+                                ? installment.InstallmentDate.Trim()
+                                : DateTime.Now.ToString("dd.MM.yyyy");
+                            await DailyReportsController.CreateAutoEntry(
+                                _context,
+                                reportDate,
+                                "Income",
+                                candidate.FirstName + " " + candidate.LastName,
+                                installment.Amount,
+                                $"Candidate installment #{installment.InstallmentNumber} - {request.PaymentMethod ?? "Cash"}",
+                                "CandidateInstallment",
+                                candidateInstallment.InstallmentId,
+                                candidate.AddedBy
+                            );
+                        }
+                        catch (Exception autoEx)
+                        {
+                            _logger.LogWarning(autoEx, "Failed to auto-create daily report entry for installment");
+                        }
                     }
                 }
 
@@ -362,6 +423,10 @@ namespace AdminApi.Controllers
                                           PaymentMethod = c.PaymentMethod,
                                           PracticalHours = c.PracticalHours,
                                           TotalServiceAmount = c.TotalServiceAmount,
+                                          DocWithdrawalAmount = c.DocWithdrawalAmount,
+                                          DocWithdrawalDate = c.DocWithdrawalDate,
+                                          DrivingPaymentAmount = c.DrivingPaymentAmount,
+                                          DrivingPaymentDate = c.DrivingPaymentDate,
                                           DateAdded = c.DateAdded
                                       }).FirstOrDefaultAsync();
 
@@ -438,8 +503,12 @@ namespace AdminApi.Controllers
                     return Accepted(new Confirmation { Status = "error", ResponseMsg = "Sum of installments must not exceed Total service amount." });
                 }
 
+                // Track old values for daily report diff
+                int? oldDocAmount = existingCandidate.DocWithdrawalAmount;
+                int? oldDrivingAmount = existingCandidate.DrivingPaymentAmount;
+
                 // Update candidate
-                existingCandidate.SerialNumber = request.SerialNumber;
+                existingCandidate.SerialNumber = string.IsNullOrWhiteSpace(request.SerialNumber) ? null : request.SerialNumber.Trim();
                 existingCandidate.FirstName = request.FirstName;
                 existingCandidate.ParentName = request.ParentName;
                 existingCandidate.LastName = request.LastName;
@@ -454,6 +523,10 @@ namespace AdminApi.Controllers
                 existingCandidate.PaymentMethod = request.PaymentMethod;
                 existingCandidate.PracticalHours = request.PracticalHours;
                 existingCandidate.TotalServiceAmount = request.TotalServiceAmount;
+                existingCandidate.DocWithdrawalAmount = request.DocWithdrawalAmount;
+                existingCandidate.DocWithdrawalDate = string.IsNullOrWhiteSpace(request.DocWithdrawalDate) ? null : request.DocWithdrawalDate.Trim();
+                existingCandidate.DrivingPaymentAmount = request.DrivingPaymentAmount;
+                existingCandidate.DrivingPaymentDate = string.IsNullOrWhiteSpace(request.DrivingPaymentDate) ? null : request.DrivingPaymentDate.Trim();
                 existingCandidate.LastUpdatedBy = int.Parse(User.FindFirst("sub")?.Value ?? "1");
                 existingCandidate.LastUpdatedDate = DateTime.Now;
 
@@ -484,6 +557,46 @@ namespace AdminApi.Controllers
                         };
                         await _installmentRepo.Insert(candidateInstallment);
                     }
+                }
+
+                // Auto daily report entries for new/increased payment fields
+                string fullName = (existingCandidate.FirstName ?? "") + " " + (existingCandidate.LastName ?? "");
+                int currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "1");
+
+                // Document Withdrawal: create entry only if amount is new or increased
+                int newDocAmt = existingCandidate.DocWithdrawalAmount ?? 0;
+                int prevDocAmt = oldDocAmount ?? 0;
+                if (newDocAmt > prevDocAmt && (newDocAmt - prevDocAmt) > 0)
+                {
+                    try
+                    {
+                        string rptDate = !string.IsNullOrWhiteSpace(existingCandidate.DocWithdrawalDate)
+                            ? existingCandidate.DocWithdrawalDate : DateTime.Now.ToString("dd.MM.yyyy");
+                        await DailyReportsController.CreateAutoEntry(
+                            _context, rptDate, "Income", fullName,
+                            newDocAmt - prevDocAmt,
+                            "Terheqja e Dokumentave (Document Withdrawal)",
+                            "CandidateDocWithdrawal", existingCandidate.CandidateId, currentUserId);
+                    }
+                    catch (Exception autoEx) { _logger.LogWarning(autoEx, "Auto daily report (DocWithdrawal update) failed"); }
+                }
+
+                // Driving Payment: create entry only if amount is new or increased
+                int newDrvAmt = existingCandidate.DrivingPaymentAmount ?? 0;
+                int prevDrvAmt = oldDrivingAmount ?? 0;
+                if (newDrvAmt > prevDrvAmt && (newDrvAmt - prevDrvAmt) > 0)
+                {
+                    try
+                    {
+                        string rptDate = !string.IsNullOrWhiteSpace(existingCandidate.DrivingPaymentDate)
+                            ? existingCandidate.DrivingPaymentDate : DateTime.Now.ToString("dd.MM.yyyy");
+                        await DailyReportsController.CreateAutoEntry(
+                            _context, rptDate, "Income", fullName,
+                            newDrvAmt - prevDrvAmt,
+                            "Pagesa e Vozitjes (Driving Payment)",
+                            "CandidateDrivingPayment", existingCandidate.CandidateId, currentUserId);
+                    }
+                    catch (Exception autoEx) { _logger.LogWarning(autoEx, "Auto daily report (DrivingPayment update) failed"); }
                 }
 
                 return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Updated" });
@@ -649,11 +762,13 @@ namespace AdminApi.Controllers
         ///</summary>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpGet]
-        public ActionResult GetLessonVehicles()
+        public async Task<ActionResult> GetLessonVehicles()
         {
-            var vehicles = _config.GetSection("LessonVehicles").Get<string[]>();
-            if (vehicles == null || vehicles.Length == 0)
-                vehicles = new[] { "Vehicle 1", "Vehicle 2", "Vehicle 3" };
+            var vehicles = await _context.Vehicles
+                .Where(v => v.IsActive)
+                .OrderBy(v => v.PlateNumber)
+                .Select(v => new { v.VehicleId, label = v.PlateNumber + " – " + v.Brand, v.PlateNumber })
+                .ToListAsync();
             return Ok(new { data = vehicles });
         }
 

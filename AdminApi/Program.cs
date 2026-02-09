@@ -158,7 +158,7 @@ using (var scope = app.Services.CreateScope())
             BEGIN
                 CREATE TABLE [dbo].[Candidates] (
                     [CandidateId] INT IDENTITY(1,1) NOT NULL,
-                    [SerialNumber] NVARCHAR(4) NOT NULL,
+                    [SerialNumber] NVARCHAR(4) NULL,
                     [FirstName] NVARCHAR(100) NOT NULL,
                     [ParentName] NVARCHAR(100) NULL,
                     [LastName] NVARCHAR(100) NOT NULL,
@@ -182,6 +182,28 @@ using (var scope = app.Services.CreateScope())
                     CONSTRAINT [FK_Candidates_Categories] FOREIGN KEY ([CategoryId]) REFERENCES [dbo].[Categories]([CategoryId]),
                     CONSTRAINT [FK_Candidates_Users] FOREIGN KEY ([InstructorId]) REFERENCES [dbo].[Users]([UserId])
                 );
+            END
+            -- Make SerialNumber nullable for existing DBs
+            IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Candidates' AND COLUMN_NAME = 'SerialNumber' AND IS_NULLABLE = 'NO')
+            BEGIN
+                ALTER TABLE [dbo].[Candidates] ALTER COLUMN [SerialNumber] NVARCHAR(4) NULL;
+            END
+            -- Add new payment columns
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Candidates' AND COLUMN_NAME = 'DocWithdrawalAmount')
+            BEGIN
+                ALTER TABLE [dbo].[Candidates] ADD [DocWithdrawalAmount] INT NULL;
+            END
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Candidates' AND COLUMN_NAME = 'DocWithdrawalDate')
+            BEGIN
+                ALTER TABLE [dbo].[Candidates] ADD [DocWithdrawalDate] NVARCHAR(20) NULL;
+            END
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Candidates' AND COLUMN_NAME = 'DrivingPaymentAmount')
+            BEGIN
+                ALTER TABLE [dbo].[Candidates] ADD [DrivingPaymentAmount] INT NULL;
+            END
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Candidates' AND COLUMN_NAME = 'DrivingPaymentDate')
+            BEGIN
+                ALTER TABLE [dbo].[Candidates] ADD [DrivingPaymentDate] NVARCHAR(20) NULL;
             END
         ").GetAwaiter().GetResult();
     }
@@ -444,6 +466,44 @@ using (var scope = app.Services.CreateScope())
         ").GetAwaiter().GetResult();
     }
     catch { /* Table may already exist */ }
+
+    // ── Daily Report tables ──
+    try
+    {
+        _ = db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.DailyReportEntries', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[DailyReportEntries] (
+                    [DailyReportEntryId] INT IDENTITY(1,1) NOT NULL,
+                    [EntryDate] NVARCHAR(20) NOT NULL,
+                    [EntryType] NVARCHAR(20) NOT NULL,
+                    [SerialNumber] INT NOT NULL,
+                    [FullName] NVARCHAR(200) NOT NULL,
+                    [Amount] DECIMAL(18,2) NOT NULL,
+                    [Description] NVARCHAR(500) NOT NULL,
+                    [SourceType] NVARCHAR(50) NULL,
+                    [SourceId] INT NULL,
+                    [ReversalOfEntryId] INT NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    CONSTRAINT [PK_DailyReportEntries] PRIMARY KEY ([DailyReportEntryId])
+                );
+            END
+
+            IF OBJECT_ID(N'dbo.DailyReportStatuses', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[DailyReportStatuses] (
+                    [DailyReportStatusId] INT IDENTITY(1,1) NOT NULL,
+                    [ReportDate] NVARCHAR(20) NOT NULL,
+                    [Status] NVARCHAR(10) NOT NULL DEFAULT 'Open',
+                    [ClosedBy] INT NULL,
+                    [ClosedAt] DATETIME2 NULL,
+                    CONSTRAINT [PK_DailyReportStatuses] PRIMARY KEY ([DailyReportStatusId])
+                );
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* Tables may already exist */ }
 }
 
 // Configure the HTTP request pipeline.

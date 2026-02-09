@@ -295,6 +295,32 @@ namespace AdminApi.Controllers
 
                 await _sessionRepo.Insert(session);
 
+                // Auto-create income entry in Daily Report if payment > 0
+                if (session.PaymentAmount > 0)
+                {
+                    try
+                    {
+                        string reportDate = !string.IsNullOrWhiteSpace(session.PaymentDate)
+                            ? session.PaymentDate
+                            : session.DrivingDate;
+                        await DailyReportsController.CreateAutoEntry(
+                            _context,
+                            reportDate,
+                            "Income",
+                            candidate.FirstName + " " + candidate.LastName,
+                            session.PaymentAmount,
+                            $"Driving session payment - {session.DrivingDate} {session.DrivingTime}",
+                            "DrivingSession",
+                            session.DrivingSessionId,
+                            currentUserId
+                        );
+                    }
+                    catch (Exception autoEx)
+                    {
+                        _logger.LogWarning(autoEx, "Failed to auto-create daily report entry for driving session");
+                    }
+                }
+
                 var result = new
                 {
                     session.DrivingSessionId,

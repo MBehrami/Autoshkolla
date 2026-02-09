@@ -23,6 +23,7 @@ import VehicleFuel from "@/pages/vehicle/VehicleFuel.vue";
 import VehicleServices from "@/pages/vehicle/VehicleServices.vue";
 import DrivingSessions from "@/pages/candidate/DrivingSessions.vue";
 import Schedules from "@/pages/schedule/Schedules.vue";
+import DailyReport from "@/pages/report/DailyReport.vue";
 
 const routes = [
   { path: "/", name: "Landing", component: Landing },
@@ -61,6 +62,12 @@ const routes = [
     meta: { adminOnly: true },
   },
   { path: "/schedules", name: "Schedules", component: Schedules },
+  {
+    path: "/daily-report",
+    name: "DailyReport",
+    component: DailyReport,
+    meta: { adminOnly: true },
+  },
   {
     path: "/password-reset/:ref",
     name: "ResetPassword",

@@ -19,6 +19,10 @@ namespace AdminApi.ViewModels.Candidate
         public string? PaymentMethod { get; set; }
         public int? PracticalHours { get; set; }
         public int TotalServiceAmount { get; set; }
+        public int? DocWithdrawalAmount { get; set; }
+        public string? DocWithdrawalDate { get; set; }
+        public int? DrivingPaymentAmount { get; set; }
+        public string? DrivingPaymentDate { get; set; }
         public List<InstallmentInfo> Installments { get; set; } = new List<InstallmentInfo>();
     }
 

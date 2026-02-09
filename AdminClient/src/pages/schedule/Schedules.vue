@@ -727,4 +727,36 @@ onMounted(() => {
     font-size: 10px;
     opacity: 0.8;
 }
+
+/* ─── Mobile responsiveness ─── */
+@media (max-width: 600px) {
+    .schedules-container {
+        padding: 8px !important;
+    }
+    .schedules-toolbar {
+        padding: 8px !important;
+        flex-wrap: wrap;
+    }
+    .sch-filter {
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+    .calendar-card {
+        overflow-x: auto !important;
+    }
+    .day-body,
+    .week-body {
+        max-height: 60vh;
+    }
+    .time-gutter,
+    .time-gutter-header {
+        width: 45px;
+        min-width: 45px;
+        font-size: 10px;
+    }
+    .cal-event {
+        font-size: 9px;
+        padding: 1px 3px;
+    }
+}
 </style>

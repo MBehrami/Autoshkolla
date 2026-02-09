@@ -139,6 +139,40 @@
                     ></v-text-field>
                 </v-col>
             </v-row>
+            <v-row>
+                <v-col cols="12" md="3">
+                    <v-text-field
+                        :model-value="candidate.docWithdrawalAmount"
+                        label="Doc Withdrawal Amount"
+                        variant="outlined"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="3">
+                    <v-text-field
+                        :model-value="candidate.docWithdrawalDate"
+                        label="Doc Withdrawal Date"
+                        variant="outlined"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="3">
+                    <v-text-field
+                        :model-value="candidate.drivingPaymentAmount"
+                        label="Driving Payment Amount"
+                        variant="outlined"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="3">
+                    <v-text-field
+                        :model-value="candidate.drivingPaymentDate"
+                        label="Driving Payment Date"
+                        variant="outlined"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+            </v-row>
 
             <!-- Installments Section -->
             <v-divider class="my-4"></v-divider>

@@ -8,9 +8,8 @@ namespace AdminApi.Models.Candidate
     {
         [Key]
         public int CandidateId { get; set; }
-        [Required]
         [StringLength(4)]
-        public string? SerialNumber { get; set; } // Nr. Rendor - max 4 digits
+        public string? SerialNumber { get; set; } // Nr. Rendor - max 4 digits (optional)
         [Required]
         [StringLength(100)]
         public string? FirstName { get; set; }
@@ -39,6 +38,17 @@ namespace AdminApi.Models.Candidate
         public int? PracticalHours { get; set; }
         [Required]
         public int TotalServiceAmount { get; set; }
+
+        /// <summary>Document Withdrawal Payment (Terheqja e Dokumentave)</summary>
+        public int? DocWithdrawalAmount { get; set; }
+        [StringLength(20)]
+        public string? DocWithdrawalDate { get; set; }
+
+        /// <summary>Driving Payment (Pagesa e vozitjes)</summary>
+        public int? DrivingPaymentAmount { get; set; }
+        [StringLength(20)]
+        public string? DrivingPaymentDate { get; set; }
+
         [Required]
         public int AddedBy { get; set; }
         [Required]

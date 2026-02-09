@@ -691,6 +691,29 @@ namespace AdminApi.Controllers
         }
 
         ///<summary>
+        ///Dashboard summary: total candidates, instructors, active vehicles
+        ///</summary>
+        [Authorize(Roles="Admin,User,Instructor")]
+        [HttpGet]
+        public async Task<ActionResult> DashboardSummary()
+        {
+            try
+            {
+                int totalCandidates = await _context.Candidates.CountAsync();
+                int totalInstructors = await (from u in _context.Users
+                    join r in _context.UserRole on u.UserRoleId equals r.UserRoleId
+                    where r.RoleName == "Instructor" && u.IsActive == true
+                    select u).CountAsync();
+                int activeVehicles = await _context.Vehicles.Where(v => v.IsActive).CountAsync();
+                return Ok(new { totalCandidates, totalInstructors, activeVehicles });
+            }
+            catch (Exception ex)
+            {
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+            }
+        }
+
+        ///<summary>
         ///Get Browsing Log
         ///</summary>
         [AllowAnonymous]     

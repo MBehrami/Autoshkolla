@@ -122,6 +122,8 @@
                             <v-select
                                 v-model="newLessonVehicle"
                                 :items="lessonVehicles"
+                                item-title="label"
+                                item-value="plateNumber"
                                 label="Vehicle"
                                 variant="outlined"
                                 density="compact"
@@ -264,10 +266,14 @@ const loadLessonVehicles = () => {
     candidateStore.getLessonVehicles()
         .then((response) => {
             const raw = response?.data?.data;
-            lessonVehicles.value = Array.isArray(raw) ? raw : ['Vehicle 1', 'Vehicle 2', 'Vehicle 3'];
+            if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === 'object') {
+                lessonVehicles.value = raw;
+            } else {
+                lessonVehicles.value = [];
+            }
         })
         .catch(() => {
-            lessonVehicles.value = ['Vehicle 1', 'Vehicle 2', 'Vehicle 3'];
+            lessonVehicles.value = [];
         });
 };
 
