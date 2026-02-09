@@ -341,7 +341,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get Role List
         ///</summary>
-        [Authorize(Roles="Admin,User")]     
+        [Authorize(Roles="SuperAdmin,Admin,User")]     
         [HttpGet]        
         public async Task<ActionResult> GetUserRoleList()
         {
@@ -366,7 +366,7 @@ namespace AdminApi.Controllers
         ///Get Single Role by ID
         ///</summary>
         [HttpGet("{id}")]       
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetSingleRole(int id)
         {
             try
@@ -384,7 +384,7 @@ namespace AdminApi.Controllers
         ///Delete Single Role by ID
         ///</summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> DeleteSingleRole(int id)
         {
             try
@@ -410,7 +410,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Create User Role
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPost]       
         public async Task<ActionResult> CreateUserRole(UserRole model)
         {
@@ -439,7 +439,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Update User Role
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateUserRole(UserRole model)
         {
@@ -473,7 +473,7 @@ namespace AdminApi.Controllers
         ///Get User List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetUserList()
         {
             try
@@ -500,7 +500,7 @@ namespace AdminApi.Controllers
         ///Get Single User by ID
         ///</summary>
         [HttpGet("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetSingleUser(int id)
         {
             try
@@ -536,7 +536,7 @@ namespace AdminApi.Controllers
         ///Delete Single User by ID
         ///</summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> DeleteSingleUser(int id)
         {
             try
@@ -553,7 +553,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Create User
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPost]       
         public async Task<ActionResult> CreateUser(Users model)
         {
@@ -587,7 +587,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Update User
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateUser(Users model)
         {
@@ -614,7 +614,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Update User Profile
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateUserProfile(UserInfo model)
         {
@@ -668,7 +668,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Dashboard User Status. Allowed for Admin, User, and Instructor so Dashboard loads without 403.
         ///</summary>
-        [Authorize(Roles="Admin,User,Instructor")]
+        [Authorize(Roles="SuperAdmin,Admin,User,Instructor")]
         [HttpGet]
         public async Task<ActionResult> UserStatus()
         {
@@ -693,7 +693,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Dashboard summary: total candidates, instructors, active vehicles
         ///</summary>
-        [Authorize(Roles="Admin,User,Instructor")]
+        [Authorize(Roles="SuperAdmin,Admin,User,Instructor")]
         [HttpGet]
         public async Task<ActionResult> DashboardSummary()
         {
@@ -775,7 +775,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Profile picture upload
         ///</summary>
-        [Authorize(Roles="Admin,User")]   
+        [Authorize(Roles="SuperAdmin,Admin,User")]   
         [HttpPost, DisableRequestSizeLimit]
         public async Task<ActionResult> Upload()
         {

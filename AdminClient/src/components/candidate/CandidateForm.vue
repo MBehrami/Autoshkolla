@@ -1,19 +1,19 @@
 <template>
     <v-card>
         <v-card-title class="d-flex justify-space-between align-center sticky-header">
-            <span>{{ isEdit ? 'Edit Candidate' : 'Add Candidate' }}</span>
+            <span>{{ isEdit ? 'Ndrysho të dhënat e kandidatit' : 'Regjistro kandidatë' }}</span>
             <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="candidate-form-body">
             <v-form v-model="valid" ref="formRef" @submit.prevent="saveCandidate">
                 <!-- Personal info -->
-                <h3 class="form-section-title">Personal information</h3>
+                <h3 class="form-section-title">Të dhënat personale</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.serialNumber"
-                            label="Serial Number (Nr. Rendor)"
+                            label="Nr. Rendor"
                             :rules="[rules.serialNumber]"
                             variant="outlined"
                             density="comfortable"
@@ -24,7 +24,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.firstName"
-                            label="First Name"
+                            label="Emri"
                             :rules="[rules.required]"
                             variant="outlined"
                             clearable
@@ -34,7 +34,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.parentName"
-                            label="Parent Name"
+                            label="Emri i prindit"
                             variant="outlined"
                             clearable
                         ></v-text-field>
@@ -44,7 +44,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.lastName"
-                            label="Last Name"
+                            label="Mbiemri"
                             :rules="[rules.required]"
                             variant="outlined"
                             clearable
@@ -57,7 +57,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     :model-value="dateOfBirthDisplay"
-                                    label="Date of Birth (dd.MM.yyyy)"
+                                    label="Data e lindjes (dd.MM.yyyy)"
                                     variant="outlined"
                                     density="comfortable"
                                     prepend-inner-icon="mdi-calendar"
@@ -88,12 +88,12 @@
                     </v-col>
                 </v-row>
                 <!-- Contact -->
-                <h3 class="form-section-title">Contact & address</h3>
+                <h3 class="form-section-title">Numri i telefonit & adresa</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.phoneNumber"
-                            label="Phone Number"
+                            label="Numri i telefonit"
                             variant="outlined"
                             clearable
                         ></v-text-field>
@@ -101,7 +101,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.placeOfBirth"
-                            label="Place of Birth"
+                            label="Vendi i lindjes"
                             variant="outlined"
                             clearable
                         ></v-text-field>
@@ -109,14 +109,14 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.address"
-                            label="Address"
+                            label="Adresa"
                             variant="outlined"
                             clearable
                         ></v-text-field>
                     </v-col>
                 </v-row>
                 <!-- Category, instructor, vehicle -->
-                <h3 class="form-section-title">Driving & payment</h3>
+                <h3 class="form-section-title">Të dhënat tjera</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-select
@@ -124,7 +124,7 @@
                             :items="categories"
                             item-title="categoryName"
                             item-value="categoryId"
-                            label="Category"
+                            label="Kategoria"
                             :rules="[rules.required]"
                             variant="outlined"
                             return-object
@@ -138,7 +138,7 @@
                             :items="instructors"
                             item-title="fullName"
                             item-value="userId"
-                            label="Instructor"
+                            label="Instruktori"
                             variant="outlined"
                             return-object
                             clearable
@@ -148,7 +148,7 @@
                         <v-select
                             v-model="candidateForm.vehicleType"
                             :items="['Manual', 'Automatic']"
-                            label="Vehicle Type"
+                            label="Lloji i vetures"
                             variant="outlined"
                             clearable
                         ></v-select>
@@ -159,7 +159,7 @@
                         <v-select
                             v-model="candidateForm.paymentMethod"
                             :items="['Bank', 'Cash']"
-                            label="Payment Method"
+                            label="Metoda e pagesës"
                             variant="outlined"
                             clearable
                         ></v-select>
@@ -167,7 +167,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model.number="candidateForm.practicalHours"
-                            label="Practical Hours"
+                            label="Orët praktike"
                             type="number"
                             variant="outlined"
                             clearable
@@ -176,7 +176,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model.number="candidateForm.totalServiceAmount"
-                            label="Total Service Amount"
+                            label="Pagesa e shërbimit"
                             :rules="[rules.required]"
                             type="number"
                             variant="outlined"
@@ -187,12 +187,12 @@
                 </v-row>
 
                 <!-- Installments -->
-                <h3 class="form-section-title">Installments</h3>
+                <h3 class="form-section-title">Pagesat</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="6">
                         <v-text-field
                             v-model.number="installments[0].amount"
-                            label="Installment 1 Amount"
+                            label="Pagesa - Kësti 1"
                             type="number"
                             variant="outlined"
                             :disabled="installmentsDisabled[0]"
@@ -206,7 +206,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     v-model="installment1DateDisplay"
-                                    label="Installment 1 Date (dd.MM.yyyy)"
+                                    label="Data e pagesës - Kësti 1"
                                     prepend-inner-icon="mdi-calendar"
                                     readonly
                                     v-bind="menuProps"
@@ -228,7 +228,7 @@
                     <v-col cols="12" md="6">
                         <v-text-field
                             v-model.number="installments[1].amount"
-                            label="Installment 2 Amount"
+                            label="Pagesa - Kësti 2"
                             type="number"
                             variant="outlined"
                             :disabled="installmentsDisabled[1]"
@@ -242,7 +242,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     v-model="installment2DateDisplay"
-                                    label="Installment 2 Date (dd.MM.yyyy)"
+                                    label="Data e pagesës - Kësti 2"
                                     prepend-inner-icon="mdi-calendar"
                                     readonly
                                     v-bind="menuProps"
@@ -264,7 +264,7 @@
                     <v-col cols="12" md="6">
                         <v-text-field
                             v-model.number="installments[2].amount"
-                            label="Installment 3 Amount"
+                            label="Pagesa - Kësti 3"
                             type="number"
                             variant="outlined"
                             :disabled="installmentsDisabled[2]"
@@ -278,7 +278,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     v-model="installment3DateDisplay"
-                                    label="Installment 3 Date (dd.MM.yyyy)"
+                                    label="Data e pagesës - Kësti 3"
                                     prepend-inner-icon="mdi-calendar"
                                     readonly
                                     v-bind="menuProps"
@@ -303,12 +303,12 @@
                 </v-row>
 
                 <!-- Additional Payments -->
-                <h3 class="form-section-title">Additional payments</h3>
+                <h3 class="form-section-title">Pagesa tjera</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="3">
                         <v-text-field
                             v-model.number="candidateForm.docWithdrawalAmount"
-                            label="Doc Withdrawal Amount (Terheqja)"
+                            label="Pagesa e terheqjes së dokumentëve"
                             type="number"
                             variant="outlined"
                             clearable
@@ -320,7 +320,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     v-model="docWithdrawalDateDisplay"
-                                    label="Doc Withdrawal Date"
+                                    label="Data e pagesës së terheqjes së dokumentëve"
                                     prepend-inner-icon="mdi-calendar"
                                     readonly
                                     v-bind="menuProps"
@@ -337,7 +337,7 @@
                     <v-col cols="12" md="3">
                         <v-text-field
                             v-model.number="candidateForm.drivingPaymentAmount"
-                            label="Driving Payment (Pagesa e vozitjes)"
+                            label="Pagesa e vozitjes"
                             type="number"
                             variant="outlined"
                             clearable
@@ -349,7 +349,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     v-model="drivingPaymentDateDisplay"
-                                    label="Driving Payment Date"
+                                    label="Data e pagesës së vozitjes"
                                     prepend-inner-icon="mdi-calendar"
                                     readonly
                                     v-bind="menuProps"
@@ -366,13 +366,13 @@
                 </v-row>
 
                 <!-- Available Schedule / Free Hours -->
-                <h3 class="form-section-title">Available schedule / free hours</h3>
+                <h3 class="form-section-title">Shënime shtesë</h3>
                 <v-row class="form-row">
                     <v-col cols="12">
                         <v-textarea
                             v-model="candidateForm.availableSchedule"
-                            label="Notes about the candidate’s available times"
-                            placeholder="e.g. Monday–Friday 14:00–18:00, weekends on request"
+                            label="Shënime shtesë rreth orarit të lirë të kandidatit"
+                            placeholder="psh. Hënë 14:00–18:00, shtunë 14:00–18:00, javën e parë 14:00–18:00, javën e dytë 14:00–18:00"
                             variant="outlined"
                             rows="3"
                             auto-grow
@@ -387,7 +387,7 @@
         <v-card-actions class="sticky-footer pa-4">
             <v-spacer></v-spacer>
             <v-btn text="Cancel" color="primary" class="text-capitalize" @click="closeDialog"></v-btn>
-            <v-btn :disabled="!valid || !!installmentError" :loading="loading" text="Save" color="grey-darken-4"
+            <v-btn :disabled="!valid || !!installmentError" :loading="loading" text="Regjistro" color="grey-darken-4"
                 class="text-capitalize" @click="saveCandidate"></v-btn>
         </v-card-actions>
     </v-card>

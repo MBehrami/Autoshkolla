@@ -102,6 +102,21 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  background: #FAFAFA;
+}
+
+/* ─── Global Clean UI ─── */
+.v-main {
+  background: #FAFAFA !important;
+  overflow-x: hidden !important;
+}
+
+.v-card {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.v-data-table {
+  border-radius: 8px !important;
 }
 
 /* width */
@@ -125,11 +140,6 @@ body {
 }
 
 /* ─── Global Mobile Responsiveness ─── */
-
-/* Prevent horizontal overflow on all containers */
-.v-main {
-  overflow-x: hidden !important;
-}
 
 .v-container {
   max-width: 100% !important;

@@ -13,7 +13,7 @@ namespace AdminApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public class InstructorsController : ControllerBase
     {
         private readonly AppDbContext _context;

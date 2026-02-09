@@ -39,7 +39,7 @@ namespace AdminApi.Controllers
         //       &month=01&year=2026&entryType=Income&search=John
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> GetEntries(
             string? date = null,
             int? month = null,
@@ -131,7 +131,7 @@ namespace AdminApi.Controllers
         //  GET  api/DailyReports/GetDayStatus?date=26.01.2026
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> GetDayStatus(string? date = null)
         {
             try
@@ -158,7 +158,7 @@ namespace AdminApi.Controllers
         //  POST api/DailyReports/CreateEntry
         // ─────────────────────────────────────────────────────────────
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> CreateEntry([FromBody] AddDailyReportEntryRequest req)
         {
             try
@@ -243,7 +243,7 @@ namespace AdminApi.Controllers
         //  Creates a reversal (adjustment) entry instead of deleting
         // ─────────────────────────────────────────────────────────────
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> ReverseEntry([FromBody] ReverseDailyReportEntryRequest req)
         {
             try
@@ -324,7 +324,7 @@ namespace AdminApi.Controllers
         //  Toggles day between Open and Closed
         // ─────────────────────────────────────────────────────────────
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> ToggleDayStatus(string date)
         {
             try
@@ -433,6 +433,49 @@ namespace AdminApi.Controllers
 
             context.DailyReportEntries.Add(entry);
             await context.SaveChangesAsync();
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        //  PUBLIC STATIC: Upsert auto-entry (update if exists, else insert)
+        //  Used by DrivingSessions when payment changes on update
+        // ─────────────────────────────────────────────────────────────
+        public static async Task UpsertAutoEntry(
+            AppDbContext context,
+            string entryDate,
+            string entryType,
+            string fullName,
+            decimal amount,
+            string description,
+            string sourceType,
+            int sourceId,
+            int addedBy)
+        {
+            // Find existing entry for this source
+            var existing = await context.DailyReportEntries
+                .FirstOrDefaultAsync(e => e.SourceType == sourceType && e.SourceId == sourceId
+                    && e.ReversalOfEntryId == null);
+
+            if (amount <= 0)
+            {
+                // If amount is zero/negative and entry exists, leave it (ledger-style, no delete)
+                return;
+            }
+
+            if (existing != null)
+            {
+                // Update existing entry
+                existing.EntryDate = entryDate;
+                existing.FullName = fullName;
+                existing.Amount = amount;
+                existing.Description = description;
+                context.DailyReportEntries.Update(existing);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                // Create new entry
+                await CreateAutoEntry(context, entryDate, entryType, fullName, amount, description, sourceType, sourceId, addedBy);
+            }
         }
     }
 }

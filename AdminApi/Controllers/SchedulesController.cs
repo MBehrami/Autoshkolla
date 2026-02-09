@@ -38,7 +38,7 @@ namespace AdminApi.Controllers
         //  Returns schedule events + driving sessions merged
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         public async Task<ActionResult> GetEvents(string? dateFrom = null, string? dateTo = null,
             int instructorId = 0, int vehicleId = 0)
         {
@@ -200,7 +200,7 @@ namespace AdminApi.Controllers
         //  GET  api/Schedules/GetInstructorsDropdown
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         public async Task<ActionResult> GetInstructorsDropdown()
         {
             try
@@ -223,7 +223,7 @@ namespace AdminApi.Controllers
         //  GET  api/Schedules/GetCandidatesDropdown
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         public async Task<ActionResult> GetCandidatesDropdown()
         {
             try
@@ -251,7 +251,7 @@ namespace AdminApi.Controllers
         //  GET  api/Schedules/GetVehiclesDropdown
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         public async Task<ActionResult> GetVehiclesDropdown()
         {
             var list = await _context.Vehicles
@@ -266,7 +266,7 @@ namespace AdminApi.Controllers
         //  POST api/Schedules/CreateEvent
         // ─────────────────────────────────────────────────────────────
         [HttpPost]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         public async Task<ActionResult> CreateEvent([FromBody] AddScheduleEventRequest req)
         {
             try
@@ -371,7 +371,7 @@ namespace AdminApi.Controllers
         //  PUT api/Schedules/UpdateEvent/{id}
         // ─────────────────────────────────────────────────────────────
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         public async Task<ActionResult> UpdateEvent(int id, [FromBody] UpdateScheduleEventRequest req)
         {
             try
@@ -463,7 +463,7 @@ namespace AdminApi.Controllers
         //  DELETE api/Schedules/DeleteEvent?id=1
         // ─────────────────────────────────────────────────────────────
         [HttpDelete]
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         public async Task<ActionResult> DeleteEvent(int id)
         {
             try

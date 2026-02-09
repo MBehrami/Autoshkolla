@@ -253,7 +253,11 @@ const { loading } = storeToRefs(store);
 
 // ─── Role ───
 const isAdmin = computed(() => {
-    try { return localStorage.getItem('userRoleId') === '1'; } catch { return false; }
+    try {
+        const profile = JSON.parse(localStorage.getItem('profile') || '{}');
+        const role = profile?.obj?.roleName || profile?.obj?.RoleName || '';
+        return role === 'Admin' || role === 'SuperAdmin';
+    } catch { return false; }
 });
 const currentUserId = computed(() => {
     try { return parseInt(localStorage.getItem('userId') || '0'); } catch { return 0; }

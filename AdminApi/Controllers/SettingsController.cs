@@ -94,7 +94,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Update General Settings
         ///</summary>
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateGeneralSetting(SiteSettings model)
         {
@@ -122,7 +122,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Update Email Settings
         ///</summary>
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateEmailSetting(SiteSettings model)
         {
@@ -147,7 +147,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Update Color Settings
         ///</summary>
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateColorSetting(SiteSettings model)
         {
@@ -172,7 +172,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Update Landing Settings
         ///</summary>
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateLandingSetting(SiteSettings model)
         {
@@ -227,7 +227,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Update Email Text Settings
         ///</summary>
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateEmailTextSetting(SiteSettings model)
         {
@@ -253,7 +253,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Site Logo upload
         ///</summary>
-        [Authorize(Roles="Admin")]   
+        [Authorize(Roles="SuperAdmin,Admin")]   
         [HttpPost, DisableRequestSizeLimit]
         public async Task<ActionResult> UploadLogo()
         {
@@ -293,7 +293,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Site Favicon upload
         ///</summary>
-        [Authorize(Roles="Admin")]   
+        [Authorize(Roles="SuperAdmin,Admin")]   
         [HttpPost, DisableRequestSizeLimit]
         public async Task<ActionResult> UploadFavicon()
         {
@@ -333,7 +333,7 @@ namespace QuizplusApi.Controllers
         ///Get FAQ List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetFaqList()
         {
             try
@@ -351,7 +351,7 @@ namespace QuizplusApi.Controllers
         ///Get Single FAQ
         ///</summary>
         [HttpGet("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetSingleFaq(int id)
         {
             try
@@ -369,7 +369,7 @@ namespace QuizplusApi.Controllers
         ///Delete FAQ by Id
         ///</summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         public async Task<ActionResult> DeleteFaq(int id)
         {
             try
@@ -386,7 +386,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Create Faq
         ///</summary>
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         [HttpPost]       
         public async Task<ActionResult> CreateFaq(Faq model)
         {
@@ -414,7 +414,7 @@ namespace QuizplusApi.Controllers
         ///<summary>
         ///Update Faq
         ///</summary>
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateFaq(Faq model)
         {
@@ -446,7 +446,7 @@ namespace QuizplusApi.Controllers
         ///Get Contacts
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         public async Task<ActionResult> GetContacts()
         {
             try
@@ -482,7 +482,7 @@ namespace QuizplusApi.Controllers
         ///Get Error Log List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         public async Task<ActionResult> GetErrorLogList()
         {
             try

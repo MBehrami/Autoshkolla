@@ -42,7 +42,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetSessionsByDate?date=26.01.2026&status=Kaloi
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> GetSessionsByDate(string? date = null, string? status = null)
         {
             try
@@ -98,7 +98,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetSessionsByDateRange?from=...&to=...&status=...
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> GetSessionsByDateRange(string? from = null, string? to = null, string? status = null)
         {
             try
@@ -171,7 +171,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetSessionStats?date=26.01.2026
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> GetSessionStats(string? date = null)
         {
             try
@@ -205,7 +205,7 @@ namespace AdminApi.Controllers
         //  GET  api/DrivingSessions/GetCandidatesDropdown
         // ─────────────────────────────────────────────────────────────
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> GetCandidatesDropdown()
         {
             try
@@ -235,7 +235,7 @@ namespace AdminApi.Controllers
         //  POST api/DrivingSessions/CreateDrivingSession
         // ─────────────────────────────────────────────────────────────
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> CreateDrivingSession([FromBody] AddDrivingSessionRequest request)
         {
             try
@@ -350,10 +350,10 @@ namespace AdminApi.Controllers
 
         // ─────────────────────────────────────────────────────────────
         //  PUT  api/DrivingSessions/UpdateDrivingSession/{id}
-        //  Updates Status and Examiner only (post-creation edit)
+        //  Updates Status, Examiner, PaymentAmount, PaymentDate
         // ─────────────────────────────────────────────────────────────
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> UpdateDrivingSession(int id, [FromBody] UpdateDrivingSessionRequest request)
         {
             try
@@ -377,12 +377,51 @@ namespace AdminApi.Controllers
                 // Examiner is free text, just trim
                 session.Examiner = string.IsNullOrWhiteSpace(request.Examiner) ? null : request.Examiner.Trim();
 
+                // Payment fields (optional update)
+                if (request.PaymentAmount.HasValue)
+                    session.PaymentAmount = request.PaymentAmount.Value;
+                if (request.PaymentDate != null)
+                {
+                    string pd = request.PaymentDate.Trim();
+                    if (pd.Length > 0 && (!Regex.IsMatch(pd, @"^\d{2}\.\d{2}\.\d{4}$") ||
+                        !DateTime.TryParseExact(pd, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)))
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid payment date format. Use dd.MM.yyyy." });
+                    session.PaymentDate = pd.Length > 0 ? pd : null;
+                }
+
                 _context.DrivingSessions.Update(session);
                 await _context.SaveChangesAsync();
 
-                // Return updated data with joins
+                // Upsert Daily Report entry for payment
                 var candidate = await _context.Candidates.FindAsync(session.CandidateId);
                 var vehicle = await _context.Vehicles.FindAsync(session.VehicleId);
+                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+
+                if (session.PaymentAmount > 0)
+                {
+                    try
+                    {
+                        string reportDate = !string.IsNullOrWhiteSpace(session.PaymentDate)
+                            ? session.PaymentDate
+                            : session.DrivingDate;
+                        string candidateName = (candidate?.FirstName ?? "") + " " + (candidate?.LastName ?? "");
+                        await DailyReportsController.UpsertAutoEntry(
+                            _context,
+                            reportDate,
+                            "Income",
+                            candidateName,
+                            session.PaymentAmount,
+                            $"Driving session payment - {session.DrivingDate} {session.DrivingTime}",
+                            "DrivingSession",
+                            session.DrivingSessionId,
+                            currentUserId
+                        );
+                    }
+                    catch (Exception autoEx)
+                    {
+                        _logger.LogWarning(autoEx, "Failed to upsert daily report entry for driving session update");
+                    }
+                }
 
                 var result = new
                 {
@@ -415,7 +454,7 @@ namespace AdminApi.Controllers
         //  DELETE api/DrivingSessions/DeleteDrivingSession?id=1
         // ─────────────────────────────────────────────────────────────
         [HttpDelete]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> DeleteDrivingSession(int id)
         {
             try

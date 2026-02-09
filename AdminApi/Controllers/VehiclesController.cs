@@ -42,7 +42,7 @@ namespace AdminApi.Controllers
         // ─────────────────────────────────────────────────────────────
 
         /// <summary>Get vehicles. Admin can filter by status (all/active/inactive) and search text.</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         public async Task<ActionResult> GetVehiclesList(string? search, string? status)
         {
@@ -95,7 +95,7 @@ namespace AdminApi.Controllers
         }
 
         /// <summary>Get vehicle details by id.</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetVehicleDetails(int id)
         {
@@ -113,7 +113,7 @@ namespace AdminApi.Controllers
         }
 
         /// <summary>Create a new vehicle.</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
         public async Task<ActionResult> CreateVehicle(AddVehicleRequest request)
         {
@@ -152,7 +152,7 @@ namespace AdminApi.Controllers
         }
 
         /// <summary>Update an existing vehicle.</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateVehicle(int id, AddVehicleRequest request)
         {
@@ -190,7 +190,7 @@ namespace AdminApi.Controllers
         }
 
         /// <summary>Toggle vehicle active/inactive (soft delete).</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> ToggleVehicleStatus(int id)
         {
@@ -224,7 +224,7 @@ namespace AdminApi.Controllers
         /// Get fuel entries. Admin sees ALL; Instructor sees ONLY their own.
         /// Supports filters: search, vehicleId, dateFrom (dd.MM.yyyy), dateTo (dd.MM.yyyy).
         /// </summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet]
         public async Task<ActionResult> GetVehicleFuelList(string? search, int? vehicleId, string? dateFrom, string? dateTo)
         {
@@ -314,7 +314,7 @@ namespace AdminApi.Controllers
         /// Create a new fuel entry. Instructor: StaffUserId is auto-assigned.
         /// Admin: StaffUserId comes from the request.
         /// </summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpPost]
         public async Task<ActionResult> CreateVehicleFuel(AddVehicleFuelRequest request)
         {
@@ -370,7 +370,7 @@ namespace AdminApi.Controllers
         }
 
         /// <summary>Get vehicles dropdown (id + plate). Only active vehicles shown.</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet]
         public async Task<ActionResult> GetVehiclesDropdown()
         {
@@ -383,7 +383,7 @@ namespace AdminApi.Controllers
         }
 
         /// <summary>Get all users (Admin + Instructor) for Staff dropdown. Admin only.</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         public async Task<ActionResult> GetStaffDropdown()
         {
@@ -401,7 +401,7 @@ namespace AdminApi.Controllers
         // ─────────────────────────────────────────────────────────────
 
         /// <summary>Get all vehicle service entries.</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         public async Task<ActionResult> GetVehicleServiceList(string? search)
         {

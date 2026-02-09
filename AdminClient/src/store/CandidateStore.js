@@ -162,5 +162,11 @@ export const useCandidateStore = defineStore("candidateStore", {
           });
       });
     },
+    downloadApplication(candidateId) {
+      return API.get(
+        import.meta.env.VITE_API_URL + `/api/Candidates/DownloadApplication/${candidateId}`,
+        { responseType: "blob" }
+      );
+    },
   },
 });

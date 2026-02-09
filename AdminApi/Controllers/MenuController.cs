@@ -41,7 +41,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///App Side bar menus. Instructor role gets only Candidates (MenuGroupId=3).
         ///</summary>
-        [Authorize(Roles="Admin,User,Instructor")]
+        [Authorize(Roles="SuperAdmin,Admin,User,Instructor")]
         [HttpGet("{roleId}")]
         public async Task<ActionResult> GetSidebarMenu(int roleId)
         {
@@ -98,7 +98,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Filter menus by menuGroupId
         ///</summary>      
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpGet("{menuGroupId}")]
         public async Task<ActionResult> GetAllMenu(int menuGroupId)
         {
@@ -144,7 +144,7 @@ namespace AdminApi.Controllers
         ///Assign App Menu
         ///</summary>
         [HttpPost]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> MenuAssign(MenuOperation model)
         {
             try
@@ -183,7 +183,7 @@ namespace AdminApi.Controllers
         ///Get App Menu List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetMenuList()
         {
             try
@@ -205,7 +205,7 @@ namespace AdminApi.Controllers
         ///Get App Parent Menu List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetParentMenuList()
         {
             try
@@ -232,7 +232,7 @@ namespace AdminApi.Controllers
         ///Get Single Menu by ID
         ///</summary>
         [HttpGet("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetSingleMenu(int id)
         {
             try
@@ -250,7 +250,7 @@ namespace AdminApi.Controllers
         ///Delete Single Menu by ID
         ///</summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> DeleteSingleMenu(int id)
         {
             try
@@ -267,7 +267,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Create App Menu
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPost]       
         public async Task<ActionResult> CreateMenu(AppMenu model)
         {
@@ -307,7 +307,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Update App Menu
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateMenu(AppMenu model)
         {
@@ -354,7 +354,7 @@ namespace AdminApi.Controllers
         ///Get Menu Group List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetMenuGroupList()
         {
             try
@@ -374,7 +374,7 @@ namespace AdminApi.Controllers
         ///Get Single Menu Group by ID
         ///</summary>
         [HttpGet("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetSingleMenuGroup(int id)
         {
             try
@@ -392,7 +392,7 @@ namespace AdminApi.Controllers
         ///Delete Single Menu Group by ID
         ///</summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> DeleteSingleMenuGroup(int id)
         {
             try
@@ -417,7 +417,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Create Menu Group
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPost]       
         public async Task<ActionResult> CreateMenuGroup(MenuGroup model)
         {
@@ -446,7 +446,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Update Menu Group
         ///</summary>
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         [HttpPatch]       
         public async Task<ActionResult> UpdateMenuGroup(MenuGroup model)
         {
@@ -479,7 +479,7 @@ namespace AdminApi.Controllers
         ///Get Menu Group wise Menu Mapping List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin,User")]
         public async Task<ActionResult> GetMenuGroupWiseMenuMappingList()
         {
             try

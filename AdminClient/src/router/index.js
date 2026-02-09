@@ -25,6 +25,16 @@ import DrivingSessions from "@/pages/candidate/DrivingSessions.vue";
 import Schedules from "@/pages/schedule/Schedules.vue";
 import DailyReport from "@/pages/report/DailyReport.vue";
 
+// Helper: get current user's role name from stored profile
+function getRoleName() {
+  try {
+    const profile = JSON.parse(localStorage.getItem("profile") || "{}");
+    return profile?.obj?.roleName || profile?.obj?.RoleName || "";
+  } catch {
+    return "";
+  }
+}
+
 const routes = [
   { path: "/", name: "Landing", component: Landing },
   {
@@ -40,34 +50,40 @@ const routes = [
     component: PasswordChange,
   },
   { path: "/profile", name: "Profile", component: Profile },
-  { path: "/settings", name: "AppSettings", component: AppSettings },
-  { path: "/errors", name: "OtherError", component: OtherError },
-  { path: "/error-log", name: "ErrorLog", component: ErrorLog },
-  { path: "/browse-log", name: "BrowseLog", component: BrowseLog },
-  { path: "/contact", name: "Contact", component: Contact },
-  { path: "/faq", name: "Faq", component: Faq },
-  { path: "/menu", name: "Menus", component: Menus },
-  { path: "/menu-group", name: "MenuGroup", component: MenuGroup },
-  { path: "/users", name: "Users", component: Users },
-  { path: "/user-role", name: "UserRole", component: UserRole },
-  { path: "/candidates", name: "Candidates", component: Candidates },
-  { path: "/instructors", name: "Instructors", component: Instructors },
-  { path: "/vehicles", name: "Vehicles", component: Vehicles },
-  { path: "/vehicle-fuel", name: "VehicleFuel", component: VehicleFuel },
-  { path: "/vehicle-services", name: "VehicleServices", component: VehicleServices },
+
+  // ─── System pages (SuperAdmin only) ───
+  { path: "/settings", name: "AppSettings", component: AppSettings, meta: { superAdminOnly: true } },
+  { path: "/error-log", name: "ErrorLog", component: ErrorLog, meta: { superAdminOnly: true } },
+  { path: "/browse-log", name: "BrowseLog", component: BrowseLog, meta: { superAdminOnly: true } },
+  { path: "/menu", name: "Menus", component: Menus, meta: { superAdminOnly: true } },
+  { path: "/menu-group", name: "MenuGroup", component: MenuGroup, meta: { superAdminOnly: true } },
+  { path: "/users", name: "Users", component: Users, meta: { superAdminOnly: true } },
+  { path: "/user-role", name: "UserRole", component: UserRole, meta: { superAdminOnly: true } },
+
+  // ─── Admin + SuperAdmin pages ───
   {
     path: "/driving-sessions",
     name: "DrivingSessions",
     component: DrivingSessions,
     meta: { adminOnly: true },
   },
-  { path: "/schedules", name: "Schedules", component: Schedules },
   {
     path: "/daily-report",
     name: "DailyReport",
     component: DailyReport,
     meta: { adminOnly: true },
   },
+
+  // ─── General pages ───
+  { path: "/errors", name: "OtherError", component: OtherError },
+  { path: "/contact", name: "Contact", component: Contact },
+  { path: "/faq", name: "Faq", component: Faq },
+  { path: "/candidates", name: "Candidates", component: Candidates },
+  { path: "/instructors", name: "Instructors", component: Instructors },
+  { path: "/vehicles", name: "Vehicles", component: Vehicles },
+  { path: "/vehicle-fuel", name: "VehicleFuel", component: VehicleFuel },
+  { path: "/vehicle-services", name: "VehicleServices", component: VehicleServices },
+  { path: "/schedules", name: "Schedules", component: Schedules },
   {
     path: "/password-reset/:ref",
     name: "ResetPassword",
@@ -84,13 +100,24 @@ const router = createRouter({
 const appInitialData = JSON.parse(localStorage.getItem("allSettings"));
 
 router.beforeEach((to, from, next) => {
-  // Block Instructor from admin-only routes
-  if (to.meta?.adminOnly) {
-    const roleId = localStorage.getItem('userRoleId');
-    if (roleId !== '1') {
-      return next({ name: 'Dashboard' });
+  const role = getRoleName();
+  const isSuperAdmin = role === "SuperAdmin";
+  const isAdmin = role === "Admin";
+
+  // SuperAdmin-only routes
+  if (to.meta?.superAdminOnly) {
+    if (!isSuperAdmin) {
+      return next({ name: "Dashboard" });
     }
   }
+
+  // Admin-only routes (Admin OR SuperAdmin)
+  if (to.meta?.adminOnly) {
+    if (!isSuperAdmin && !isAdmin) {
+      return next({ name: "Dashboard" });
+    }
+  }
+
   next();
 });
 

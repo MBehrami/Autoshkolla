@@ -15,6 +15,12 @@
     <Folder Include="ViewModels\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\Templates\aplikacioni.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <Target Name="CreateAppDataFolder" AfterTargets="AfterPublish">
     <MakeDir Directories="$(PublishDir)Resources\EmailTemplate" Condition="!Exists('$(PublishDir)Resources\EmailTemplate')" />
     <MakeDir Directories="$(PublishDir)Resources\Favicon" Condition="!Exists('$(PublishDir)Resources\Favicon')" />
@@ -25,6 +31,8 @@
   </Target>
 
   <ItemGroup>
+    <PackageReference Include="itext7" Version="9.5.0" />
+    <PackageReference Include="itext7.bouncy-castle-adapter" Version="9.5.0" />
     <PackageReference Include="MailKit" Version="4.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.6" />

@@ -25,7 +25,7 @@
                         <div class="candidates-filters d-flex flex-wrap align-center ga-4">
                             <v-text-field
                                 v-model="searchText"
-                                label="Search (Name, Personal Number)"
+                                label="Kërko (Emri, Numri personal)"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -38,7 +38,7 @@
                                 :items="categories"
                                 item-title="categoryName"
                                 item-value="categoryId"
-                                label="Category"
+                                label="Kategoria"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -49,7 +49,7 @@
                             <v-select
                                 v-model="selectedYear"
                                 :items="years"
-                                label="Year"
+                                label="Viti"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -61,7 +61,7 @@
                                 <template v-slot:activator="{ props: activatorProps }">
                                     <v-btn v-if="!isInstructor" v-bind="activatorProps" color="primary" variant="elevated"
                                         class="text-capitalize" prepend-icon="mdi-plus">
-                                        Add Candidate
+                                        Regjistro kandidatë
                                     </v-btn>
                                 </template>
                                 <CandidateForm
@@ -80,11 +80,16 @@
                 <div class="d-flex align-center ga-2">
                     <v-btn size="small" variant="tonal" color="primary" class="text-capitalize" density="comfortable"
                         prepend-icon="mdi-eye" @click.stop="viewItem(item)">
-                        View
+                        Shiko
                     </v-btn>
                     <v-btn size="small" variant="tonal" color="secondary" class="text-capitalize" density="comfortable"
                         prepend-icon="mdi-pencil" @click.stop="editItem(item)">
-                        Edit
+                        Ndrysho
+                    </v-btn>
+                    <v-btn v-if="!isInstructor" size="small" variant="tonal" color="error" class="text-capitalize" density="comfortable"
+                        prepend-icon="mdi-file-pdf-box" :loading="downloadingId === item.candidateId"
+                        @click.stop="downloadApp(item)">
+                        PDF
                     </v-btn>
                 </div>
             </template>
@@ -114,6 +119,7 @@ import DownloadExcel from 'vue-json-excel3';
 import CandidateForm from '@/components/candidate/CandidateForm.vue';
 import CandidateDetails from '@/components/candidate/CandidateDetails.vue';
 import CandidateInstructorEdit from '@/components/candidate/CandidateInstructorEdit.vue';
+import { downloadApplicationPdf } from '@/utils/applicationPdf';
 
 const candidateStore = useCandidateStore()
 const settingStore = useSettingStore()
@@ -129,56 +135,56 @@ const isInstructor = computed(() => {
 
 // Admin headers
 const headersAdmin = [
-    { title: 'Serial Number', key: 'serialNumber' },
-    { title: 'First Name', key: 'firstName' },
-    { title: 'Last Name', key: 'lastName' },
-    { title: 'Phone', key: 'phoneNumber' },
-    { title: 'Category', key: 'categoryName' },
-    { title: 'Instructor', key: 'instructorName' },
-    { title: 'Vehicle Type', key: 'vehicleType' },
-    { title: 'Practical Hours', key: 'practicalHours' },
-    { title: 'Total Amount', key: 'totalServiceAmount' },
-    { title: 'Actions', key: 'actions', sortable: false }
+    { title: 'Nr. Rendor', key: 'serialNumber' },
+    { title: 'Emri', key: 'firstName' },
+    { title: 'Mbiemri', key: 'lastName' },
+    { title: 'Numri i telefonit', key: 'phoneNumber' },
+    { title: 'Kategoria', key: 'categoryName' },
+    { title: 'Instruktori', key: 'instructorName' },
+    { title: 'Lloji i vetures', key: 'vehicleType' },
+    { title: 'Orët praktike', key: 'practicalHours' },
+    { title: 'Pagesa e shërbimit', key: 'totalServiceAmount' },
+    { title: 'Veprimet', key: 'actions', sortable: false }
 ]
 
 // Instructor headers (no address, amount, schedule, practicalHours; add counts)
 const headersInstructor = [
-    { title: 'Serial Number', key: 'serialNumber' },
-    { title: 'First Name', key: 'firstName' },
-    { title: 'Last Name', key: 'lastName' },
-    { title: 'Phone', key: 'phoneNumber' },
-    { title: 'Category', key: 'categoryName' },
-    { title: 'Vehicle Type', key: 'vehicleType' },
-    { title: 'Practical Lessons', key: 'practicalLessonCount' },
-    { title: 'Completed Hours', key: 'completedHours' },
-    { title: 'Remaining Hours', key: 'remainingHours' },
-    { title: 'Actions', key: 'actions', sortable: false }
+    { title: 'Nr. Rendor', key: 'serialNumber' },
+    { title: 'Emri', key: 'firstName' },
+    { title: 'Mbiemri', key: 'lastName' },
+    { title: 'Numri i telefonit', key: 'phoneNumber' },
+    { title: 'Kategoria', key: 'categoryName' },
+    { title: 'Lloji i vetures', key: 'vehicleType' },
+    { title: 'Orët praktike', key: 'practicalLessonCount' },
+    { title: 'Orët të kryera', key: 'completedHours' },
+    { title: 'Orët të mbetura', key: 'remainingHours' },
+    { title: 'Veprimet', key: 'actions', sortable: false }
 ]
 
 const headers = computed(() => isInstructor.value ? headersInstructor : headersAdmin)
 
 const headersExcelAdmin = {
-    'Serial Number': 'serialNumber',
-    'First Name': 'firstName',
-    'Last Name': 'lastName',
-    'Phone': 'phoneNumber',
-    'Category': 'categoryName',
-    'Instructor': 'instructorName',
-    'Vehicle Type': 'vehicleType',
-    'Practical Hours': 'practicalHours',
-    'Total Amount': 'totalServiceAmount',
+    'Nr. Rendor': 'serialNumber',
+    'Emri': 'firstName',
+    'Mbiemri': 'lastName',
+    'Numri i telefonit': 'phoneNumber',
+    'Kategoria': 'categoryName',
+    'Instruktori': 'instructorName',
+    'Lloji i vetures': 'vehicleType',
+    'Orët praktike': 'practicalHours',
+    'Pagesa e shërbimit': 'totalServiceAmount',
 }
 
 const headersExcelInstructor = {
-    'Serial Number': 'serialNumber',
+    'Nr. Rendor': 'serialNumber',
     'First Name': 'firstName',
-    'Last Name': 'lastName',
-    'Phone': 'phoneNumber',
-    'Category': 'categoryName',
-    'Vehicle Type': 'vehicleType',
-    'Practical Lessons': 'practicalLessonCount',
-    'Completed Hours': 'completedHours',
-    'Remaining Hours': 'remainingHours',
+    'Mbiemri': 'lastName',
+    'Numri i telefonit': 'phoneNumber',
+    'Kategoria': 'categoryName',
+    'Lloji i vetures': 'vehicleType',
+    'Orët praktike': 'practicalLessonCount',
+    'Orët të kryera': 'completedHours',
+    'Orët të mbetura': 'remainingHours',
 }
 
 const headersExcel = computed(() => isInstructor.value ? headersExcelInstructor : headersExcelAdmin)
@@ -200,6 +206,7 @@ const instructorEditCandidateId = ref(null)
 const editedIndex = ref(-1)
 const editedCandidate = ref(null)
 const editedCandidateId = ref(null)
+const downloadingId = ref(null)
 
 // Debounce search
 let searchTimeout = null
@@ -348,6 +355,21 @@ const handleSaved = () => {
     selectedCategory.value = null
     selectedYear.value = null
     loadCandidates()
+}
+
+const downloadApp = async (item) => {
+    downloadingId.value = item.candidateId
+    try {
+        // Fetch full candidate details for the PDF
+        const response = await candidateStore.getCandidateDetails(item.candidateId)
+        const candidateData = response.data?.candidate || response.data
+        await downloadApplicationPdf(candidateData)
+    } catch (err) {
+        console.error('Download application error:', err)
+        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të aplikacionit' })
+    } finally {
+        downloadingId.value = null
+    }
 }
 
 const closeInstructorEdit = () => {

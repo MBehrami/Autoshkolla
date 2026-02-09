@@ -1,9 +1,9 @@
 <template>
-    <v-navigation-drawer v-model="drawer" class="sidebar-drawer" elevation="2">
+    <v-navigation-drawer v-model="drawer" class="sidebar-drawer" elevation="1">
         <template v-if="smAndDown" v-slot:append>
             <div class="d-flex justify-center py-2">
                 <v-btn text="Sign Out" variant="text" prepend-icon="mdi-logout" class="text-capitalize"
-                    style="color: #1565C0;" @click.stop="dialogSignout = true">
+                    style="color: #546E7A;" @click.stop="dialogSignout = true">
                 </v-btn>
             </div>
         </template>
@@ -41,19 +41,19 @@
             </v-list-item>
         </v-list>
     </v-navigation-drawer>
-    <v-app-bar>
+    <v-app-bar elevation="1" class="app-top-bar">
         <template v-slot:prepend>
             <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         </template>
         <template v-slot:append>
-            <v-btn icon="mdi-lock" @click.stop="dialogLock = true"></v-btn>
-            <v-btn @click.stop="toggleFullScreen"
+            <v-btn icon="mdi-lock" size="small" @click.stop="dialogLock = true"></v-btn>
+            <v-btn @click.stop="toggleFullScreen" size="small"
                 :icon="props.isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"></v-btn>
             <v-menu>
                 <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props">
+                    <v-btn v-bind="props" size="small">
                         <v-badge :content="notifications.recordsTotal">
-                            <v-icon icon="mdi-bell" size="x-large"></v-icon>
+                            <v-icon icon="mdi-bell" size="large"></v-icon>
                         </v-badge>
                     </v-btn>
                 </template>
@@ -69,9 +69,9 @@
             </v-menu>
             <v-menu>
                 <template v-slot:activator="{ props }">
-                    <v-btn text="Personalize" class="text-capitalize" v-bind="props">
+                    <v-btn text="Personalize" class="text-capitalize" v-bind="props" size="small">
                         <template v-slot:prepend>
-                            <v-icon icon="mdi-menu-down" size="x-large"></v-icon>
+                            <v-icon icon="mdi-menu-down" size="large"></v-icon>
                         </template>
                     </v-btn>
                 </template>
@@ -81,24 +81,23 @@
                     </v-list-item>
                 </v-list>
             </v-menu>
-            <v-btn v-if="mdAndUp" icon="mdi-logout" @click.stop="dialogSignout = true"></v-btn>
+            <v-btn v-if="mdAndUp" icon="mdi-logout" size="small" @click.stop="dialogSignout = true"></v-btn>
         </template>
     </v-app-bar>
-    <v-dialog v-model="dialogSignout" max-width="290" persistent>
-        <v-card>
-            <v-card-title class="text-h5">Want to leave?</v-card-title>
-            <v-card-text class="py-2 text-grey-lighten-1 text-subtitle-2">Press Sign Out to leave</v-card-text>
+    <v-dialog v-model="dialogSignout" max-width="320" persistent>
+        <v-card rounded="lg">
+            <v-card-title class="text-h6 pt-4">Want to leave?</v-card-title>
+            <v-card-text class="py-2 text-body-2 text-medium-emphasis">Press Sign Out to leave</v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn variant="text" class="text-capitalize text-purple" @click.stop="dialogSignout = false">Stay
-                    Here</v-btn>
-                <v-btn variant="text" class="text-capitalize" @click.stop="signOut">Sign Out</v-btn>
+                <v-btn variant="text" class="text-capitalize" @click.stop="dialogSignout = false">Stay Here</v-btn>
+                <v-btn variant="flat" color="error" class="text-capitalize" @click.stop="signOut">Sign Out</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogLock" max-width="290" persistent>
-        <v-card>
-            <v-card-title class="d-flex justify-center"><v-avatar><v-img
+    <v-dialog v-model="dialogLock" max-width="320" persistent>
+        <v-card rounded="lg">
+            <v-card-title class="d-flex justify-center pt-4"><v-avatar><v-img
                         :src="profileImage"></v-img></v-avatar></v-card-title>
             <v-card-text>
                 <v-form v-model="valid" @submit.prevent="lockOpen">
@@ -153,6 +152,15 @@ const linksOthers = ref([
 ])
 const profileInfo = JSON.parse(localStorage.getItem('profile') || '{}')
 
+// ─── Role helpers ───
+const roleId = localStorage.getItem('userRoleId')
+const roleName = (typeof profileInfo?.obj?.roleName === 'string') ? profileInfo.obj.roleName
+    : (typeof profileInfo?.obj?.RoleName === 'string') ? profileInfo.obj.RoleName : ''
+const isSuperAdmin = roleName === 'SuperAdmin'
+const isAdmin = roleId === '1' || roleName === 'Admin'
+const isInstructor = roleId === '3' || roleName === 'Instructor'
+const isAdminLevel = isSuperAdmin || isAdmin  // either Admin or SuperAdmin
+
 //open lock
 const lockOpen = () => {
     const obj = {
@@ -163,7 +171,7 @@ const lockOpen = () => {
         .then(response => {
             if (response.status == 200) {
                 dialogLock.value = false
-            } else if (response.status = 202) {
+            } else if (response.status == 202) {
                 settingStore.toggleSnackbar({ status: true, msg: response.data.responseMsg })
             }
         })
@@ -174,7 +182,7 @@ const lockOpen = () => {
 
 //personalize menu selection depend on role
 const personalizeSelect = computed(() => {
-    return localStorage.getItem('userRoleId') == 1 ? linksAdmin.value : linksOthers.value
+    return isAdminLevel ? linksAdmin.value : linksOthers.value
 })
 
 //toggle full screen event emit
@@ -187,123 +195,226 @@ const profileImage = computed(() => {
     return profileInfo.obj.imagePath == null ? defaultImg : import.meta.env.VITE_API_URL + profileInfo.obj.imagePath
 })
 
-//fetch app sidebar - normalize to ensure childItems exists (API may return ChildItems)
-// For Admin (userRoleId 1), ensure Candidates and Instructors are included even if not in DB
-menuStore.getSidebar(localStorage.getItem('userRoleId'))
-    .then((res) => {
-        const raw = res.data || []
-        let items = raw.map((item) => ({
-            id: item.id ?? item.Id,
-            title: item.title ?? item.Title,
-            icon: (item.icon ?? item.Icon) || 'mdi-circle-small',
-            route: (item.route ?? item.Route) || '',
-            order: item.order ?? item.Order ?? 99,
-            childItems: item.childItems ?? item.ChildItems ?? []
-        }))
-        const roleId = localStorage.getItem('userRoleId')
-        const roleName = (typeof profileInfo?.obj?.roleName === 'string') ? profileInfo.obj.roleName : (typeof profileInfo?.obj?.RoleName === 'string') ? profileInfo.obj.RoleName : ''
-        const isInstructor = roleId === '3' || roleName === 'Instructor'
-        if (roleId === '1') {
-            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/candidates')))
-            const hasInstructors = items.some((m) => (m.route || '').toLowerCase() === '/instructors')
-            const hasVehicles = items.some((m) => m.title === 'Vehicles' || m.title === 'Automjetet')
-            const hasDrivingSessions = items.some((m) => (m.route || '').toLowerCase() === '/driving-sessions' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/driving-sessions')))
-            const hasSchedules = items.some((m) => (m.route || '').toLowerCase() === '/schedules')
-            if (!hasCandidates || !hasDrivingSessions) {
-                items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates')
-                items = [...items, {
-                    id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8,
-                    childItems: [
-                        { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
-                        { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
-                    ]
-                }]
-            }
-            if (!hasSchedules) {
-                items = [...items, { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] }]
-            }
-            if (!hasInstructors) {
-                items = [...items, { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] }]
-            }
-            if (!hasVehicles) {
-                items = [...items, {
-                    id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10,
-                    childItems: [
-                        { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
-                        { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
-                        { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
-                    ]
-                }]
-            }
-            // Reports (Admin only)
-            const hasReports = items.some((m) => (m.route || '').toLowerCase() === '/daily-report' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/daily-report')))
-            if (!hasReports) {
-                items = [...items, {
-                    id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11,
-                    childItems: [
-                        { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
-                    ]
-                }]
-            }
-            items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
-        } else if (isInstructor) {
-            // Instructor: no Driving Sessions (Vozitjet), only Candidates + Oraret
-            const hasCandidates = items.some((m) => (m.route || '').toLowerCase() === '/candidates')
-            const hasSchedules = items.some((m) => (m.route || '').toLowerCase() === '/schedules')
-            // Remove Vozitjet if present
-            items = items.filter(m => (m.route || '').toLowerCase() !== '/driving-sessions')
-            items.forEach(m => {
-                if (m.childItems) m.childItems = m.childItems.filter(c => (c.route || '').toLowerCase() !== '/driving-sessions')
-            })
-            if (!hasCandidates) {
-                items = [...items, { id: 14, title: 'Kandidatet e Mi', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] }]
-            }
-            if (!hasSchedules) {
-                items = [...items, { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 2, childItems: [] }]
-            }
-            // Instructor gets Vehicle Fuel only (no Vehicle List)
-            const hasFuel = items.some((m) => (m.route || '').toLowerCase() === '/vehicle-fuel' || (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === '/vehicle-fuel')))
-            if (!hasFuel) {
-                items = [...items, { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel', order: 10, childItems: [] }]
-            }
-            items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
-        } else if (items.length === 0 && roleId !== '1') {
-            // Fallback: non-Admin with no menu
-            items = [
-                { id: 14, title: 'Kandidatet e Mi', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] },
-                { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 2, childItems: [] }
-            ]
+// ─── Build sidebar menu ───
+// SuperAdmin: FULL menu (all business + all system pages)
+// Admin:      Business modules only (no system pages like Error Log, Users, Menus, etc.)
+// Instructor: Candidates (own), Schedules, Vehicle Fuel only
+const buildMenu = (apiItems) => {
+    const raw = apiItems || []
+    let items = raw.map((item) => ({
+        id: item.id ?? item.Id,
+        title: item.title ?? item.Title,
+        icon: (item.icon ?? item.Icon) || 'mdi-circle-small',
+        route: (item.route ?? item.Route) || '',
+        order: item.order ?? item.Order ?? 99,
+        childItems: item.childItems ?? item.ChildItems ?? []
+    }))
+
+    if (isSuperAdmin) {
+        // ── SuperAdmin: ensure ALL items exist ──
+        const has = (route) => items.some(m =>
+            (m.route || '').toLowerCase() === route ||
+            (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === route)))
+        const hasTitle = (title) => items.some(m => m.title === title)
+
+        if (!has('/dashboard')) {
+            items = [{ id: 1, title: 'Dashboard', icon: 'mdi-view-dashboard', route: '/dashboard', order: 0, childItems: [] }, ...items]
         }
-        menus.value = items
-    })
-    .catch((error) => {
-        console.log(error)
-        const roleId = localStorage.getItem('userRoleId')
-        const roleName = profileInfo?.obj?.roleName || profileInfo?.obj?.RoleName || ''
-        if (roleId === '1') {
-            menus.value = [
-                { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] },
-                { id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8, childItems: [
+        if (!has('/candidates') || !has('/driving-sessions')) {
+            items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates')
+            items.push({
+                id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8,
+                childItems: [
                     { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
                     { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
-                ]},
-                { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
-                { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
+                ]
+            })
+        }
+        if (!has('/schedules')) {
+            items.push({ id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] })
+        }
+        if (!has('/instructors')) {
+            items.push({ id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] })
+        }
+        if (!hasTitle('Automjetet') && !hasTitle('Vehicles')) {
+            items.push({
+                id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10,
+                childItems: [
                     { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
                     { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
                     { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
-                ]},
-                { id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11, childItems: [
-                    { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
-                ]}
-            ]
-        } else if (roleId === '3' || roleName === 'Instructor') {
-            menus.value = [
-                { id: 14, title: 'Kandidatet e Mi', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] },
-                { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 2, childItems: [] },
-                { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel', order: 10, childItems: [] }
-            ]
+                ]
+            })
         }
+        if (!has('/daily-report')) {
+            items.push({
+                id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11,
+                childItems: [
+                    { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
+                ]
+            })
+        }
+        // System pages (SuperAdmin only)
+        if (!has('/users')) {
+            items.push({
+                id: 50, title: 'System', icon: 'mdi-cog', route: '', order: 20,
+                childItems: [
+                    { id: 51, title: 'Users', icon: 'mdi-account-multiple', route: '/users' },
+                    { id: 52, title: 'User Roles', icon: 'mdi-shield-account', route: '/user-role' },
+                    { id: 53, title: 'Menus', icon: 'mdi-menu', route: '/menu' },
+                    { id: 54, title: 'Menu Groups', icon: 'mdi-format-list-group', route: '/menu-group' },
+                    { id: 55, title: 'Settings', icon: 'mdi-cog-outline', route: '/settings' },
+                    { id: 56, title: 'Error Log', icon: 'mdi-alert-circle-outline', route: '/error-log' },
+                    { id: 57, title: 'Browse Log', icon: 'mdi-history', route: '/browse-log' }
+                ]
+            })
+        }
+    } else if (isAdmin) {
+        // ── Admin: business modules only, NO system pages ──
+        const has = (route) => items.some(m =>
+            (m.route || '').toLowerCase() === route ||
+            (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === route)))
+        const hasTitle = (title) => items.some(m => m.title === title)
+
+        // Remove any system pages that might come from API
+        const systemRoutes = ['/users', '/user-role', '/menu', '/menu-group', '/settings', '/error-log', '/browse-log']
+        items = items.filter(m => !systemRoutes.includes((m.route || '').toLowerCase()))
+        items.forEach(m => {
+            if (m.childItems) {
+                m.childItems = m.childItems.filter(c => !systemRoutes.includes((c.route || '').toLowerCase()))
+            }
+        })
+        // Remove empty groups after filtering
+        items = items.filter(m => m.route || (m.childItems && m.childItems.length > 0))
+
+        if (!has('/candidates') || !has('/driving-sessions')) {
+            items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates')
+            items.push({
+                id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8,
+                childItems: [
+                    { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                    { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+                ]
+            })
+        }
+        if (!has('/schedules')) {
+            items.push({ id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] })
+        }
+        if (!has('/instructors')) {
+            items.push({ id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] })
+        }
+        if (!hasTitle('Automjetet') && !hasTitle('Vehicles')) {
+            items.push({
+                id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10,
+                childItems: [
+                    { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
+                    { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
+                    { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
+                ]
+            })
+        }
+        if (!has('/daily-report')) {
+            items.push({
+                id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11,
+                childItems: [
+                    { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
+                ]
+            })
+        }
+    } else if (isInstructor) {
+        // ── Instructor: limited menu ──
+        // Remove Driving Sessions
+        items = items.filter(m => (m.route || '').toLowerCase() !== '/driving-sessions')
+        items.forEach(m => {
+            if (m.childItems) m.childItems = m.childItems.filter(c => (c.route || '').toLowerCase() !== '/driving-sessions')
+        })
+        // Remove system routes
+        const systemRoutes = ['/users', '/user-role', '/menu', '/menu-group', '/settings', '/error-log', '/browse-log']
+        items = items.filter(m => !systemRoutes.includes((m.route || '').toLowerCase()))
+        items.forEach(m => {
+            if (m.childItems) m.childItems = m.childItems.filter(c => !systemRoutes.includes((c.route || '').toLowerCase()))
+        })
+        items = items.filter(m => m.route || (m.childItems && m.childItems.length > 0))
+
+        const has = (route) => items.some(m => (m.route || '').toLowerCase() === route)
+        if (!has('/candidates')) {
+            items.push({ id: 14, title: 'Kandidatet e Mi', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] })
+        }
+        if (!has('/schedules')) {
+            items.push({ id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 2, childItems: [] })
+        }
+        if (!has('/vehicle-fuel')) {
+            items.push({ id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel', order: 10, childItems: [] })
+        }
+    }
+
+    items.sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+    return items
+}
+
+// Fallback menu (used when API call fails)
+const getFallbackMenu = () => {
+    if (isSuperAdmin) {
+        return [
+            { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] },
+            { id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8, childItems: [
+                { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+            ]},
+            { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
+            { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
+                { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
+                { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
+                { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
+            ]},
+            { id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11, childItems: [
+                { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
+            ]},
+            { id: 50, title: 'System', icon: 'mdi-cog', route: '', order: 20, childItems: [
+                { id: 51, title: 'Users', icon: 'mdi-account-multiple', route: '/users' },
+                { id: 52, title: 'User Roles', icon: 'mdi-shield-account', route: '/user-role' },
+                { id: 53, title: 'Menus', icon: 'mdi-menu', route: '/menu' },
+                { id: 54, title: 'Menu Groups', icon: 'mdi-format-list-group', route: '/menu-group' },
+                { id: 55, title: 'Settings', icon: 'mdi-cog-outline', route: '/settings' },
+                { id: 56, title: 'Error Log', icon: 'mdi-alert-circle-outline', route: '/error-log' },
+                { id: 57, title: 'Browse Log', icon: 'mdi-history', route: '/browse-log' }
+            ]}
+        ]
+    } else if (isAdmin) {
+        return [
+            { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] },
+            { id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8, childItems: [
+                { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
+            ]},
+            { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
+            { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
+                { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
+                { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel' },
+                { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
+            ]},
+            { id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11, childItems: [
+                { id: 31, title: 'Raporti Ditor', icon: 'mdi-file-document-outline', route: '/daily-report' }
+            ]}
+        ]
+    } else {
+        // Instructor fallback
+        return [
+            { id: 14, title: 'Kandidatet e Mi', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] },
+            { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 2, childItems: [] },
+            { id: 22, title: 'Derivatet e Automjeteve', icon: 'mdi-gas-station', route: '/vehicle-fuel', order: 10, childItems: [] }
+        ]
+    }
+}
+
+// Fetch sidebar from API then apply role-based logic
+menuStore.getSidebar(roleId)
+    .then((res) => {
+        menus.value = buildMenu(res.data)
+    })
+    .catch((error) => {
+        console.log(error)
+        menus.value = getFallbackMenu()
     })
 
 //fetch notifications
@@ -323,59 +434,64 @@ const signOut = () => {
 </script>
 
 <style>
-/* ─── Light Blue Sidebar Theme ─── */
+/* ─── Clean Gray Sidebar Theme ─── */
 .sidebar-drawer {
-    background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%) !important;
-    color: #1A237E !important;
+    background: #F5F5F5 !important;
+    border-right: 1px solid #E0E0E0 !important;
+    color: #37474F !important;
 }
 
 .sidebar-drawer .v-list-item-title {
-    color: #1A237E !important;
+    color: #37474F !important;
     font-weight: 500;
+    font-size: 0.875rem;
 }
 
 .sidebar-drawer .v-list-item-subtitle {
-    color: #3949AB !important;
+    color: #78909C !important;
 }
 
 .sidebar-drawer .v-icon {
-    color: #1565C0 !important;
+    color: #607D8B !important;
 }
 
 .sidebar-drawer .v-divider {
-    border-color: rgba(21, 101, 192, 0.15) !important;
+    border-color: #E0E0E0 !important;
 }
 
 .sidebar-profile-list {
-    background: rgba(21, 101, 192, 0.08) !important;
+    background: #EEEEEE !important;
+    padding: 12px 0 !important;
 }
 
 .sidebar-profile-name {
-    color: #0D47A1 !important;
+    color: #263238 !important;
     font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .sidebar-profile-role {
-    color: #1565C0 !important;
-    font-size: 0.8rem;
+    color: #78909C !important;
+    font-size: 0.75rem;
 }
 
 .sidebar-menu-list {
     background: transparent !important;
+    padding: 8px !important;
 }
 
 .sidebar-active-item {
-    background: rgba(21, 101, 192, 0.15) !important;
+    background: #E0E0E0 !important;
     border-radius: 8px;
 }
 
 .sidebar-active-item .v-list-item-title {
-    color: #0D47A1 !important;
-    font-weight: 700;
+    color: #263238 !important;
+    font-weight: 600;
 }
 
 .sidebar-active-item .v-icon {
-    color: #0D47A1 !important;
+    color: #455A64 !important;
 }
 
 .sidebar-drawer .v-list-group__items .v-list-item {
@@ -383,7 +499,13 @@ const signOut = () => {
 }
 
 .sidebar-drawer .v-list-item:hover {
-    background: rgba(21, 101, 192, 0.1) !important;
+    background: #EEEEEE !important;
     border-radius: 8px;
+}
+
+/* App Bar clean style */
+.app-top-bar {
+    background: #FAFAFA !important;
+    border-bottom: 1px solid #E0E0E0 !important;
 }
 </style>

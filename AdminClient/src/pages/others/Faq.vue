@@ -1,5 +1,5 @@
 <template>
-    <v-container v-if="profileInfo.obj.roleName == 'Admin'">
+    <v-container v-if="profileInfo.obj.roleName == 'Admin' || profileInfo.obj.roleName == 'SuperAdmin'">
         <v-data-table :headers="headersFaq" :items="itemsFaq" :loading="loading" class="elevation-2">
             <template v-slot:top>
                 <v-toolbar density="comfortable" flat>

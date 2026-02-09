@@ -437,8 +437,9 @@ const { loading } = storeToRefs(store);
 // ─── Role helpers ───
 const isAdmin = computed(() => {
     try {
-        const roleId = localStorage.getItem('userRoleId');
-        return roleId === '1';
+        const profile = JSON.parse(localStorage.getItem('profile') || '{}');
+        const role = profile?.obj?.roleName || profile?.obj?.RoleName || '';
+        return role === 'Admin' || role === 'SuperAdmin';
     } catch { return false; }
 });
 

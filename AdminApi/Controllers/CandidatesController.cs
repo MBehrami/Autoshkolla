@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AdminApi.Models;
@@ -7,6 +8,12 @@ using AdminApi.Models.Candidate;
 using AdminApi.Models.Helper;
 using AdminApi.Models.User;
 using AdminApi.ViewModels.Candidate;
+using iText.Kernel.Pdf;
+using iText.Kernel.Font;
+using iText.IO.Font.Constants;
+using iText.Kernel.Pdf.Canvas;
+using iText.Layout;
+using iText.Layout.Element;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +31,7 @@ namespace AdminApi.Controllers
         private readonly ISqlRepository<CandidateInstallment> _installmentRepo;
         private readonly ILogger<CandidatesController> _logger;
         private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _env;
 
         public CandidatesController(
             AppDbContext context,
@@ -31,7 +39,8 @@ namespace AdminApi.Controllers
             ISqlRepository<Category> categoryRepo,
             ISqlRepository<CandidateInstallment> installmentRepo,
             ILogger<CandidatesController> logger,
-            IConfiguration config)
+            IConfiguration config,
+            IWebHostEnvironment env)
         {
             _context = context;
             _candidateRepo = candidateRepo;
@@ -39,12 +48,13 @@ namespace AdminApi.Controllers
             _installmentRepo = installmentRepo;
             _logger = logger;
             _config = config;
+            _env = env;
         }
 
         ///<summary>
         ///Get Categories List. If table is empty, inserts default categories (A1, A2, A, B, B+E, C1, C) and returns them. Instructor needs this for Candidates list filters.
         ///</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet]
         public async Task<ActionResult> GetCategories()
         {
@@ -123,7 +133,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get Active Instructors List
         ///</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
         public async Task<ActionResult> GetActiveInstructors()
         {
@@ -148,7 +158,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Create Candidate
         ///</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPost]
         public async Task<ActionResult> CreateCandidate(CandidateCreateRequest request)
         {
@@ -276,7 +286,7 @@ namespace AdminApi.Controllers
         ///Get Candidates List with search and filters.
         ///Admin sees all; Instructor sees only candidates where InstructorId = current user.
         ///</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet]
         public async Task<ActionResult> GetCandidatesList(string? search = null, int? categoryId = null, int? year = null)
         {
@@ -389,7 +399,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get Single Candidate by ID with details. Instructor may only access candidates assigned to them.
         ///</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetCandidateDetails(int id)
         {
@@ -436,6 +446,49 @@ namespace AdminApi.Controllers
                 if (role == "Instructor" && candidate.InstructorId != currentUserId)
                     return Accepted(new Confirmation { Status = "error", ResponseMsg = "Not authorized to view this candidate" });
 
+                // ── Instructor: return only limited fields ──
+                if (role == "Instructor")
+                {
+                    var lessonsInstructor = await (from l in _context.PracticalLessons
+                                                   join u in _context.Users on l.InstructorUserId equals u.UserId into uu
+                                                   from u in uu.DefaultIfEmpty()
+                                                   where l.CandidateId == id && l.InstructorUserId == currentUserId
+                                                   orderby l.LessonDate ascending, l.Time ascending
+                                                   select new
+                                                   {
+                                                       practicalLessonId = l.PracticalLessonId,
+                                                       candidateId = l.CandidateId,
+                                                       instructorUserId = l.InstructorUserId,
+                                                       instructorName = u != null ? u.FullName : null,
+                                                       lessonDate = l.LessonDate,
+                                                       time = l.Time,
+                                                       endTime = l.EndTime,
+                                                       vehicle = l.Vehicle
+                                                   }).ToListAsync();
+
+                    return Ok(new
+                    {
+                        candidate = new
+                        {
+                            candidate.CandidateId,
+                            candidate.SerialNumber,
+                            candidate.FirstName,
+                            candidate.LastName,
+                            candidate.PhoneNumber,
+                            candidate.Address,
+                            candidate.VehicleType,
+                            candidate.CategoryId,
+                            candidate.CategoryName,
+                            candidate.PracticalHours
+                        },
+                        installments = Array.Empty<object>(),
+                        practicalLessons = lessonsInstructor,
+                        drivingSessions = Array.Empty<object>(),
+                        payments = Array.Empty<object>()
+                    });
+                }
+
+                // ── Admin / SuperAdmin: full details ──
                 var installments = await _context.CandidateInstallments
                     .Where(i => i.CandidateId == id)
                     .OrderBy(i => i.InstallmentNumber)
@@ -450,8 +503,6 @@ namespace AdminApi.Controllers
 
                 var lessonsQuery = _context.PracticalLessons
                     .Where(l => l.CandidateId == id);
-                if (role == "Instructor")
-                    lessonsQuery = lessonsQuery.Where(l => l.InstructorUserId == currentUserId);
                 var practicalLessons = await (from l in lessonsQuery
                                               join u in _context.Users on l.InstructorUserId equals u.UserId into uu
                                               from u in uu.DefaultIfEmpty()
@@ -468,11 +519,102 @@ namespace AdminApi.Controllers
                                                   vehicle = l.Vehicle
                                               }).ToListAsync();
 
+                // ── Driving Sessions for this candidate ──
+                var drivingSessions = await (from ds in _context.DrivingSessions
+                                              join v in _context.Vehicles on ds.VehicleId equals v.VehicleId into vv
+                                              from v in vv.DefaultIfEmpty()
+                                              where ds.CandidateId == id
+                                              orderby ds.DrivingDate descending, ds.DrivingTime descending
+                                              select new
+                                              {
+                                                  ds.DrivingSessionId,
+                                                  ds.DrivingDate,
+                                                  ds.DrivingTime,
+                                                  vehiclePlate = v != null ? v.PlateNumber : "",
+                                                  vehicleBrand = v != null ? v.Brand : "",
+                                                  ds.PaymentAmount,
+                                                  ds.PaymentDate,
+                                                  ds.Status,
+                                                  ds.Examiner
+                                              }).ToListAsync();
+
+                // ── Aggregated Payments History ──
+                var payments = new List<object>();
+
+                // 1) Registration payment (from installments)
+                foreach (var inst in installments)
+                {
+                    payments.Add(new
+                    {
+                        type = "Registration Installment",
+                        description = $"Installment #{inst.InstallmentNumber}",
+                        amount = inst.Amount,
+                        date = inst.InstallmentDate,
+                        status = (string?)null,
+                        examiner = (string?)null,
+                        sourceType = "CandidateInstallment",
+                        sourceId = inst.InstallmentId
+                    });
+                }
+
+                // 2) Document Withdrawal payment
+                if (candidate.DocWithdrawalAmount.HasValue && candidate.DocWithdrawalAmount.Value > 0)
+                {
+                    payments.Add(new
+                    {
+                        type = "Document Withdrawal",
+                        description = "Terheqja e Dokumentave",
+                        amount = (decimal)candidate.DocWithdrawalAmount.Value,
+                        date = candidate.DocWithdrawalDate ?? "",
+                        status = (string?)null,
+                        examiner = (string?)null,
+                        sourceType = "CandidateDocWithdrawal",
+                        sourceId = candidate.CandidateId
+                    });
+                }
+
+                // 3) Driving Payment (single field on candidate)
+                if (candidate.DrivingPaymentAmount.HasValue && candidate.DrivingPaymentAmount.Value > 0)
+                {
+                    payments.Add(new
+                    {
+                        type = "Driving Payment",
+                        description = "Pagesa e Vozitjes",
+                        amount = (decimal)candidate.DrivingPaymentAmount.Value,
+                        date = candidate.DrivingPaymentDate ?? "",
+                        status = (string?)null,
+                        examiner = (string?)null,
+                        sourceType = "CandidateDrivingPayment",
+                        sourceId = candidate.CandidateId
+                    });
+                }
+
+                // 4) Driving Session payments
+                foreach (var ds in drivingSessions)
+                {
+                    if (ds.PaymentAmount > 0)
+                    {
+                        payments.Add(new
+                        {
+                            type = "Driving Session",
+                            description = $"Session {ds.DrivingDate} {ds.DrivingTime} – {ds.vehiclePlate}",
+                            amount = ds.PaymentAmount,
+                            date = ds.PaymentDate ?? ds.DrivingDate,
+                            status = ds.Status,
+                            examiner = ds.Examiner,
+                            sourceType = "DrivingSession",
+                            sourceId = ds.DrivingSessionId
+                        });
+                    }
+                }
+
                 return Ok(new
                 {
                     candidate = candidate,
                     installments = installments,
-                    practicalLessons = practicalLessons
+                    practicalLessons = practicalLessons,
+                    drivingSessions = drivingSessions,
+                    payments = payments
                 });
             }
             catch (Exception ex)
@@ -484,7 +626,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Update Candidate
         ///</summary>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpPatch("{candidateId}")]
         public async Task<ActionResult> UpdateCandidate(int candidateId, CandidateCreateRequest request)
         {
@@ -610,7 +752,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get practical lessons for a candidate. Admin sees all; Instructor sees only their own.
         ///</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet("{candidateId}")]
         public async Task<ActionResult> GetPracticalLessons(int candidateId)
         {
@@ -655,7 +797,7 @@ namespace AdminApi.Controllers
         ///Lesson duration is fixed at 45 minutes. EndTime is auto-calculated.
         ///Overlap check: same instructor or same vehicle on the same date must not overlap.
         ///</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpPost]
         public async Task<ActionResult> AddPracticalLesson(AddPracticalLessonRequest request)
         {
@@ -760,7 +902,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get registered vehicle names for the practical lesson dropdown. Admin and Instructor.
         ///</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet]
         public async Task<ActionResult> GetLessonVehicles()
         {
@@ -773,9 +915,160 @@ namespace AdminApi.Controllers
         }
 
         ///<summary>
+        ///Download a pre-filled PDF Application form for a Candidate.
+        ///Overlays candidate data onto the official "aplikacioni.pdf" template.
+        ///</summary>
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult> DownloadApplication(int id)
+        {
+            try
+            {
+                // ── Load candidate + category ──
+                var data = await (from c in _context.Candidates
+                                  join cat in _context.Categories on c.CategoryId equals cat.CategoryId into catG
+                                  from cat in catG.DefaultIfEmpty()
+                                  where c.CandidateId == id
+                                  select new
+                                  {
+                                      c.CandidateId,
+                                      c.SerialNumber,
+                                      c.FirstName,
+                                      c.ParentName,
+                                      c.LastName,
+                                      c.DateOfBirth,
+                                      c.PersonalNumber,
+                                      c.PlaceOfBirth,
+                                      c.Address,
+                                      CategoryName = cat != null ? cat.CategoryName : null
+                                  }).FirstOrDefaultAsync();
+
+                if (data == null)
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
+
+                // ── Locate template ──
+                string templatePath = Path.Combine(_env.ContentRootPath, "Resources", "Templates", "aplikacioni.pdf");
+                if (!System.IO.File.Exists(templatePath))
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "PDF template not found" });
+
+                // ── Generate stamped PDF ──
+                using var ms = new MemoryStream();
+                using (var reader = new PdfReader(templatePath))
+                using (var writer = new PdfWriter(ms))
+                {
+                    // Do not close output stream so we can read from ms
+                    writer.SetCloseStream(false);
+                    using var pdfDoc = new PdfDocument(reader, writer);
+                    var page = pdfDoc.GetFirstPage();
+                    var pageSize = page.GetPageSize();
+                    float pageW = pageSize.GetWidth();   // ~595
+                    float pageH = pageSize.GetHeight();   // ~839
+
+                    var canvas = new PdfCanvas(page);
+                    var font = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+                    var fontBold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                    float fontSize = 11f;
+
+                    // Helper: draw text at absolute position (x from left, y from bottom)
+                    void StampText(float x, float y, string? text, PdfFont f = null, float fs = 0)
+                    {
+                        if (string.IsNullOrWhiteSpace(text)) return;
+                        f ??= font;
+                        if (fs <= 0) fs = fontSize;
+                        canvas.BeginText()
+                              .SetFontAndSize(f, fs)
+                              .MoveText(x, y)
+                              .ShowText(text)
+                              .EndText();
+                    }
+
+                    // ────────────────────────────────────────────────────
+                    // FIELD COORDINATES (measured from bottom-left origin)
+                    // These are calibrated for the Kosovo "Aplikacioni"
+                    // scanned form at ~595 x 839 points.
+                    // The form is a scanned image; coordinates may need
+                    // minor adjustments for different scan resolutions.
+                    // ────────────────────────────────────────────────────
+
+                    // ── Header: Reg./Book No. (top-right area) ──
+                    StampText(460, pageH - 80, data.SerialNumber ?? "", fontBold, 12f);
+
+                    // ── APPLICANT'S DETAILS box ──
+                    // The box occupies roughly the middle portion of the page.
+                    // Fields are arranged as labeled rows in the form.
+
+                    // Family Name / Mbiemri / Prezime
+                    float detailsBaseY = pageH - 253;
+                    StampText(200, detailsBaseY, data.LastName ?? "");
+
+                    // Father's Name / Emri i babait
+                    StampText(200, detailsBaseY - 24, data.ParentName ?? "");
+
+                    // First Name / Emri / Ime
+                    StampText(200, detailsBaseY - 48, data.FirstName ?? "");
+
+                    // Date of Birth (dd.MM.yyyy)
+                    StampText(200, detailsBaseY - 72, data.DateOfBirth ?? "");
+
+                    // Place of Birth
+                    StampText(200, detailsBaseY - 96, data.PlaceOfBirth ?? "");
+
+                    // Municipality / Komuna – use address as fallback
+                    string municipality = "/";
+                    if (!string.IsNullOrWhiteSpace(data.Address))
+                    {
+                        // Try to extract municipality from address (e.g., "Street, City" → "City")
+                        var parts = data.Address.Split(',', StringSplitOptions.TrimEntries);
+                        municipality = parts.Length > 1 ? parts[^1] : parts[0];
+                    }
+                    StampText(200, detailsBaseY - 120, municipality);
+
+                    // Personal Number / Numri personal
+                    StampText(200, detailsBaseY - 144, data.PersonalNumber ?? "");
+
+                    // ── Category marking ──
+                    // The categories appear as checkboxes in a row.
+                    // We place an "X" at the appropriate position.
+                    if (!string.IsNullOrWhiteSpace(data.CategoryName))
+                    {
+                        // Category checkbox X-positions (approximate, in the category row)
+                        float catY = pageH - 465;
+                        var categoryPositions = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            { "A1", 90 },
+                            { "A2", 131 },
+                            { "A",  171 },
+                            { "B",  210 },
+                            { "B+E", 262 },
+                            { "C1", 318 },
+                            { "C",  365 }
+                        };
+
+                        if (categoryPositions.TryGetValue(data.CategoryName.Trim(), out float catX))
+                        {
+                            StampText(catX, catY, "X", fontBold, 13f);
+                        }
+                    }
+                }
+
+                ms.Position = 0;
+                string lastName = (data.LastName ?? "Candidate").Replace(" ", "_");
+                string firstName = (data.FirstName ?? "").Replace(" ", "_");
+                string fileName = $"Application_{lastName}_{firstName}_{data.CandidateId}.pdf";
+
+                return File(ms.ToArray(), "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DownloadApplication failed for candidate {Id}", id);
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Failed to generate application PDF: " + ex.Message });
+            }
+        }
+
+        ///<summary>
         ///Get Available Years for filtering. Instructor sees years only from their assigned candidates.
         ///</summary>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
         [HttpGet]
         public async Task<ActionResult> GetAvailableYears()
         {

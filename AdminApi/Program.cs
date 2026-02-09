@@ -504,6 +504,33 @@ using (var scope = app.Services.CreateScope())
         ").GetAwaiter().GetResult();
     }
     catch { /* Tables may already exist */ }
+
+    // ── SuperAdmin role + assign admin@vueadmin.com ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            -- Create SuperAdmin role if it doesn't exist
+            IF NOT EXISTS (SELECT 1 FROM [dbo].[UserRole] WHERE [RoleName] = N'SuperAdmin')
+            BEGIN
+                INSERT INTO [dbo].[UserRole] ([RoleName], [RoleDesc], [MenuGroupId], [IsActive], [AddedBy], [DateAdded], [IsMigrationData])
+                VALUES (N'SuperAdmin', N'Full system access', 1, 1, 1, GETDATE(), 0);
+            END
+        ").GetAwaiter().GetResult();
+
+        db.Database.ExecuteSqlRawAsync(@"
+            -- Assign admin@vueadmin.com to SuperAdmin role
+            DECLARE @saRoleId INT;
+            SELECT @saRoleId = [UserRoleId] FROM [dbo].[UserRole] WHERE [RoleName] = N'SuperAdmin';
+            IF @saRoleId IS NOT NULL
+            BEGIN
+                UPDATE [dbo].[Users]
+                SET [UserRoleId] = @saRoleId,
+                    [FullName] = N'John Doe'
+                WHERE [Email] = N'admin@vueadmin.com';
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception ex) { Console.WriteLine($"SuperAdmin setup error: {ex.Message}"); }
 }
 
 // Configure the HTTP request pipeline.
