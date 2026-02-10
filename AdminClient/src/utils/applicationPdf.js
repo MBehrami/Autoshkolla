@@ -1,3 +1,13 @@
+/**
+ * Kosovo Driving Exam Reservation Form – PDF-like HTML → PDF (html2pdf.js)
+ *
+ * ✅ Pika 8 jashtë kategorive
+ * ✅ Kategoria e zgjedhur RRETHOHET (rreth rreth kutisë)
+ * ✅ Remarks: vetëm logo e kompanisë (rowspan) – pa tekst “Linda”
+ * ✅ Pika 10/11 bosh (nuk plotësohet asgjë)
+ * ✅ “Nr.Regj / book.no.” shfaq vlerën (sipër + te slip poshtë)
+ * ✅ Fundi (slip) pozicionohet me flex/margin-top:auto që të mos pritet
+ */
 import html2pdf from "html2pdf.js";
 
 /** Helpers */
@@ -27,9 +37,10 @@ function buildPersonalNumberBoxes(personalNumber, boxCount = 10) {
 }
 
 /**
- * Category strip like PDF:
+ * Categories strip like PDF:
  * - "8." is OUTSIDE categories (left)
  * - Selected category is CIRCLED around the category square
+ * - Only category boxes (no extra labels under)
  */
 function buildCategoriesStrip(selectedCategory) {
   const cats = [
@@ -121,14 +132,14 @@ function signatureBoxHTML(pointNo, titleLine) {
   `;
 }
 
-/** Bottom slip (exactly like PDF layout) */
-function bottomSlipHTML(city, stateLogoDataUrl) {
+/** Bottom slip (keeps 10/11 empty) */
+function bottomSlipHTML(city, stateLogoDataUrl, regNo) {
   const stateLogo = stateLogoDataUrl
     ? `<img class="state-logo" src="${esc(stateLogoDataUrl)}" alt="State emblem" />`
     : `<div class="state-logo-spacer"></div>`;
 
   return `
-    <div class="slip">
+    <div class="slip push-bottom">
       <div class="slip-logo">${stateLogo}</div>
 
       <div class="slip-lines">
@@ -142,11 +153,13 @@ function bottomSlipHTML(city, stateLogoDataUrl) {
 
       <div class="slip-form-row">
         <div class="slip-left">
-          <span class="bold">FORMA A 1</span> NJPSH/JVD/DLU; &nbsp; <span class="bold">${esc(city)}</span>
+          <span class="bold">FORMA A 1</span> NJPSH/JVD/DLU; &nbsp; <span class="bold">${esc(
+            city
+          )}</span>
         </div>
         <div class="slip-right">
           <span class="bold">Nr.Regj./ Br.Reg./Lbook.no.</span>
-          <span class="slip-line"></span>
+          <div class="slip-line"><span class="reg-text">${esc(regNo)}</span></div>
         </div>
       </div>
 
@@ -167,12 +180,14 @@ function bottomSlipHTML(city, stateLogoDataUrl) {
 export function generateApplicationHtml(candidate) {
   const c = candidate || {};
   const city = c.city || "PRISHTINË";
-  const regNo = esc(c.serialNumber || c.regNo || "");
+  const regNoRaw = c.serialNumber || c.regNo || "";
+  const regNo = esc(regNoRaw);
 
   const stateLogo = c.stateLogoDataUrl
     ? `<img class="state-logo" src="${esc(c.stateLogoDataUrl)}" alt="State emblem" />`
     : `<div class="state-logo-spacer"></div>`;
 
+  // Company logo for Remarks column (replace "Linda")
   const companyLogo = c.companyLogoDataUrl || null;
 
   const familyName = esc(c.lastName || "");
@@ -188,7 +203,7 @@ export function generateApplicationHtml(candidate) {
   return `
   <div id="kosovo-form" class="page">
     <style>
-      /* Page */
+      /* Page: flex so bottom slip always shows */
       .page{
         width:210mm;
         height:297mm;
@@ -200,10 +215,7 @@ export function generateApplicationHtml(candidate) {
 
         display:flex;
         flex-direction:column;
-
-        overflow:visible; /* mos e pre këtu */
       }
-
 
       .bold{ font-weight:700; }
       .header-top{ display:flex; justify-content:center; margin-bottom:2mm; }
@@ -222,11 +234,21 @@ export function generateApplicationHtml(candidate) {
       }
       .form-left{ display:flex; gap:6mm; align-items:flex-end; }
       .reg-right{ display:flex; gap:2mm; align-items:flex-end; }
-      .reg-line{
+
+      /* Reg number line WITH text inside */
+      .reg-line, .slip-line{
         border-bottom:1px solid #000;
         width:55mm;
         height:5mm;
-        display:inline-block;
+        display:flex;
+        align-items:flex-end;
+        justify-content:center;
+      }
+      .reg-text{
+        font-size:9pt;
+        font-weight:700;
+        line-height:1;
+        padding-bottom:0.4mm;
       }
 
       /* Applicant details box */
@@ -268,7 +290,7 @@ export function generateApplicationHtml(candidate) {
         font-size:9pt;
       }
 
-      /* Categories (PDF-like) */
+      /* Categories */
       .cats-wrap{ border:2px solid #000; margin-top:2mm; }
       .cats-title{
         border-bottom:1px solid #000;
@@ -300,7 +322,7 @@ export function generateApplicationHtml(candidate) {
         font-size:9pt;
         position:relative;
       }
-      /* Circle the CATEGORY BOX itself (not inside) */
+      /* Circle the CATEGORY BOX itself */
       .cat-box.selected::after{
         content:"";
         position:absolute;
@@ -330,13 +352,6 @@ export function generateApplicationHtml(candidate) {
         text-transform:uppercase;
         font-size:9pt;
       }
-        .content{
-          /* le të marrë hapësirën sa duhet */
-        }
-
-        .push-bottom{
-          margin-top:auto; /* KY është triku: e vendos slip-in në fund të faqes */
-        }
       .docs{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:9pt; }
       .docs th, .docs td{ border:1px solid #000; padding:1mm 1.4mm; }
       .docs th{ font-weight:700; text-align:left; }
@@ -347,52 +362,58 @@ export function generateApplicationHtml(candidate) {
       .company-logo{ max-width:48mm; max-height:18mm; object-fit:contain; }
       .company-logo-placeholder{ width:48mm; height:18mm; }
 
-      /* Reservation title */
+      /* Reservation (top) - slightly tighter */
       .res-title{
-  font-weight:700;
-  text-transform:uppercase;
-  font-size:9.5pt;      /* ishte 10pt */
-  margin:1.6mm 0 0.9mm 0; /* ishte 2mm 0 1.2mm 0 */
-}
+        font-weight:700;
+        text-transform:uppercase;
+        font-size:9.5pt;
+        margin:1.6mm 0 0.9mm 0;
+      }
 
       /* Signature boxes like PDF (gray header + blank body) */
       .sig-row{
         display:flex;
-        gap:12mm;
+        gap:10mm;
         align-items:flex-start;
       }
       .sig-box{
-        width:calc(50% - 6mm);
+        width:calc(50% - 5mm);
         border:1px solid #000;
       }
       .sig-head{
-  background:#d9d9d9;
-  border-bottom:1px solid #000;
-  padding:0.9mm 1.3mm;  /* ishte 1.2mm 1.6mm */
-  font-size:7.5pt;      /* ishte 8pt */
-  line-height:1.12;
-  display:flex;
-  gap:1.6mm;            /* ishte 2mm */
-}
+        background:#d9d9d9;
+        border-bottom:1px solid #000;
+        padding:0.9mm 1.3mm;
+        font-size:7.5pt;
+        line-height:1.12;
+        display:flex;
+        gap:1.6mm;
+      }
       .sig-no{ font-weight:700; }
       .sig-body{
-  height:9mm;           /* ishte 10mm -> pak më e ulët */
-  background:#fff;
-}
+        height:9mm;
+        background:#fff;
+      }
 
       .tear{
-  margin:1.4mm 0 1mm 0;  /* ishte 2.2mm 0 1.8mm 0 */
-  border-top:1px dashed #000;
-}
+        margin:1.4mm 0 1mm 0;
+        border-top:1px dashed #000;
+      }
+      .tel{
+        font-size:8.5pt;
+        margin-bottom:0.6mm;
+      }
 
-.tel{
-  font-size:8.5pt;         /* ishte 9pt */
-  margin-bottom:0.6mm;     /* ishte 1.6mm */
-}
+      /* Content wrapper so slip pushes to bottom */
+      .content{
+        display:block;
+      }
+      .push-bottom{
+        margin-top:auto;
+      }
 
-
-      /* Slip (bottom part) */
-      .slip{ margin-top:0.8mm; }
+      /* Slip (bottom) */
+      .slip{ }
       .slip-logo{ display:flex; justify-content:center; margin-bottom:1mm; }
       .slip-lines{
         text-align:center;
@@ -412,108 +433,103 @@ export function generateApplicationHtml(candidate) {
         align-items:flex-end;
         gap:2mm;
       }
-      .slip-line{
-        width:55mm;
-        height:5mm;
-        border-bottom:1px solid #000;
-        display:inline-block;
-      }
       .slip-sigs{
         display:flex;
-        gap:12mm;
+        gap:10mm;
       }
     </style>
 
-    <!-- HEADER -->
-    <div class="header-top">${stateLogo}</div>
-    <div class="header-lines">
-      <div class="bold">REPUBLIKA E KOSOVËS / REPUBLIKA KOSOVA / REPUBLIC OF KOSOVO</div>
-      <div class="bold">QEVERIA E KOSOVËS / VLADA KOSOVA / GOVERNMENT OF KOSOVA</div>
-      <div class="bold">MINISTRIA E INFRASTRUKTURËS DHE TRANSPORTIT</div>
-      <div class="bold">MINISTARSTVO ZA INFRASTRUKTURE I TRANSPORTA</div>
-      <div class="bold">MINISTRY OF INFRASTRUCTURE AND TRANSPORT</div>
-      <div class="bold" style="margin-top:1mm;">NJËSIA E TESTIMIT PËR PATENTË SHOFER: ${esc(city)}</div>
-      <div class="bold">FLETËPARAQITJE PËR PROVIM PËR SHOFER / PRIJAVA ZA POLAGANJE VOZAČKOG ISPITA</div>
-      <div class="bold">DRIVING EXAM RESERVATION FORM</div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-left">
-        <div><span class="bold">FORMA A 1</span> NJPSH/JVD/DLU:</div>
-        <div class="bold">${esc(city)}</div>
-      </div>
-      <div class="reg-right">
-        <div class="bold">Nr.Regj./ Br.Reg./Lbook.no.</div>
-        <span class="reg-line"></span>
-      </div>
-    </div>
-
-    <!-- APPLICANT DETAILS -->
-    <div class="box">
-      <div class="section-title">
-        TË DHËNAT E PARAQITËSIT / PODACI PODNOSIOCA / APLICANT'S DETAILS
-      </div>
-      <table class="details">
-        <tr><td class="n">1.</td><td class="lbl">Mbiemri / Prezime / Family Name:</td><td class="val">${familyName}</td></tr>
-        <tr><td class="n">2.</td><td class="lbl">Emri i babait / Očevo ime / Father’s Name:</td><td class="val">${fatherName}</td></tr>
-        <tr><td class="n">3.</td><td class="lbl">Emri / Ime / First Name:</td><td class="val">${firstName}</td></tr>
-        <tr><td class="n">4.</td><td class="lbl">Data e lindjes / Datum rodjenja / Date of birth:</td><td class="val">${dob}</td></tr>
-        <tr><td class="n">5.</td><td class="lbl">Vendi i lindjes / Mesto rodjenja / Place of birth:</td><td class="val">${pob}</td></tr>
-        <tr><td class="n">6.</td><td class="lbl">Komuna / Opština / Municipality:</td><td class="val">${municipality}</td></tr>
-        <tr><td class="n">7.</td><td class="lbl">Numri personal / Lični broj / Personal Number:</td><td class="val-no-line">${personal}</td></tr>
-      </table>
-    </div>
-
-    <!-- CATEGORIES -->
-    <div class="cats-wrap">
-      <div class="cats-title">
-        KATEGORITË PËR PATENTË SHOFER / KATEGORIJE ZA VOZAČKU DOZVOLU / DRIVING LICENSE CATEGORIES
+    <div class="content">
+      <!-- HEADER -->
+      <div class="header-top">${stateLogo}</div>
+      <div class="header-lines">
+        <div class="bold">REPUBLIKA E KOSOVËS / REPUBLIKA KOSOVA / REPUBLIC OF KOSOVO</div>
+        <div class="bold">QEVERIA E KOSOVËS / VLADA KOSOVA / GOVERNMENT OF KOSOVA</div>
+        <div class="bold">MINISTRIA E INFRASTRUKTURËS DHE TRANSPORTIT</div>
+        <div class="bold">MINISTARSTVO ZA INFRASTRUKTURE I TRANSPORTA</div>
+        <div class="bold">MINISTRY OF INFRASTRUCTURE AND TRANSPORT</div>
+        <div class="bold" style="margin-top:1mm;">NJËSIA E TESTIMIT PËR PATENTË SHOFER: ${esc(
+          city
+        )}</div>
+        <div class="bold">FLETËPARAQITJE PËR PROVIM PËR SHOFER / PRIJAVA ZA POLAGANJE VOZAČKOG ISPITA</div>
+        <div class="bold">DRIVING EXAM RESERVATION FORM</div>
       </div>
 
-      ${buildCategoriesStrip(category)}
-
-      <div class="cats-note">Shënoni kategorinë / Obeležiti kategoriju / Mark category</div>
-    </div>
-
-    <!-- DOCUMENTS -->
-    <div class="docs-wrap">
-      <div class="docs-title">
-        DOKUMENTET E BASHKANGJITURA / PRILOŽENI DOKUMENTI / ATTACHED DOCUMENTS
+      <div class="form-row">
+        <div class="form-left">
+          <div><span class="bold">FORMA A 1</span> NJPSH/JVD/DLU:</div>
+          <div class="bold">${esc(city)}</div>
+        </div>
+        <div class="reg-right">
+          <div class="bold">Nr.Regj./ Br.Reg./Lbook.no.</div>
+          <div class="reg-line"><span class="reg-text">${regNo}</span></div>
+        </div>
       </div>
-      <table class="docs">
-        <thead>
-          <tr>
-            <th class="docs-col-doc">9. Dokumentet / Dokumentacija / Documents</th>
-            <th class="docs-col-yes">Po / Jes / Yes</th>
-            <th class="docs-col-rem">Vërejtje / Primedbe / Remarks</th>
-          </tr>
-        </thead>
-        <tbody>${buildDocumentsRows(companyLogo)}</tbody>
-      </table>
+
+      <!-- APPLICANT DETAILS -->
+      <div class="box">
+        <div class="section-title">
+          TË DHËNAT E PARAQITËSIT / PODACI PODNOSIOCA / APLICANT'S DETAILS
+        </div>
+        <table class="details">
+          <tr><td class="n">1.</td><td class="lbl">Mbiemri / Prezime / Family Name:</td><td class="val">${familyName}</td></tr>
+          <tr><td class="n">2.</td><td class="lbl">Emri i babait / Očevo ime / Father’s Name:</td><td class="val">${fatherName}</td></tr>
+          <tr><td class="n">3.</td><td class="lbl">Emri / Ime / First Name:</td><td class="val">${firstName}</td></tr>
+          <tr><td class="n">4.</td><td class="lbl">Data e lindjes / Datum rodjenja / Date of birth:</td><td class="val">${dob}</td></tr>
+          <tr><td class="n">5.</td><td class="lbl">Vendi i lindjes / Mesto rodjenja / Place of birth:</td><td class="val">${pob}</td></tr>
+          <tr><td class="n">6.</td><td class="lbl">Komuna / Opština / Municipality:</td><td class="val">${municipality}</td></tr>
+          <tr><td class="n">7.</td><td class="lbl">Numri personal / Lični broj / Personal Number:</td><td class="val-no-line">${personal}</td></tr>
+        </table>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="cats-wrap">
+        <div class="cats-title">
+          KATEGORITË PËR PATENTË SHOFER / KATEGORIJE ZA VOZAČKU DOZVOLU / DRIVING LICENSE CATEGORIES
+        </div>
+
+        ${buildCategoriesStrip(category)}
+
+        <div class="cats-note">Shënoni kategorinë / Obeležiti kategoriju / Mark category</div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="docs-wrap">
+        <div class="docs-title">
+          DOKUMENTET E BASHKANGJITURA / PRILOŽENI DOKUMENTI / ATTACHED DOCUMENTS
+        </div>
+        <table class="docs">
+          <thead>
+            <tr>
+              <th class="docs-col-doc">9. Dokumentet / Dokumentacija / Documents</th>
+              <th class="docs-col-yes">Po / Jes / Yes</th>
+              <th class="docs-col-rem">Vërejtje / Primedbe / Remarks</th>
+            </tr>
+          </thead>
+          <tbody>${buildDocumentsRows(companyLogo)}</tbody>
+        </table>
+      </div>
+
+      <!-- RESERVATION (TOP) -->
+      <div class="res-title">PARAQITJA / PRIJAVA / RESERVATION</div>
+      <div class="sig-row">
+        ${signatureBoxHTML(
+          10,
+          "Nënshkrimi i paraqitësit / Data / Potpis podnosioca / Datum / Applicant’s Signature / Date"
+        )}
+        ${signatureBoxHTML(
+          11,
+          "Nënshkrimi i nëpunësit zyrtar / Data / Potpis službenog lica / Datum / Officer’s Signature / Date"
+        )}
+      </div>
+
+      <div class="tear"></div>
+
+      <div class="tel">Tel:&nbsp;______________________________</div>
     </div>
-
-    <!-- RESERVATION (TOP) -->
-    <div class="res-title">PARAQITJA / PRIJAVA / RESERVATION</div>
-    <div class="sig-row">
-      ${signatureBoxHTML(
-        10,
-        "Nënshkrimi i paraqitësit / Data / Potpis podnosioca / Datum / Applicant’s Signature / Date"
-      )}
-      ${signatureBoxHTML(
-        11,
-        "Nënshkrimi i nëpunësit zyrtar / Data / Potpis službenog lica / Datum / Officer’s Signature / Date"
-      )}
-    </div>
-
-    <div class="tear"></div>
-
-    <div class="tel">Tel:&nbsp;______________________________</div>
 
     <!-- SLIP (BOTTOM) -->
-    <div class="slip push-bottom">
-  ${bottomSlipHTML(city, c.stateLogoDataUrl)}
-</div>
-  
+    ${bottomSlipHTML(city, c.stateLogoDataUrl, regNoRaw)}
   </div>
   `;
 }

@@ -77,19 +77,14 @@
                 </v-toolbar>
             </template>
             <template v-slot:item.actions="{ item }">
-                <div class="d-flex align-center ga-2">
-                    <v-btn size="small" variant="tonal" color="primary" class="text-capitalize" density="comfortable"
-                        prepend-icon="mdi-eye" @click.stop="viewItem(item)">
-                        Shiko
+                <div class="d-flex align-center ga-1">
+                    <v-btn icon variant="tonal" color="primary" size="36" @click.stop="viewItem(item)">
+                        <v-icon size="20">mdi-eye</v-icon>
+                        <v-tooltip activator="parent" location="top">Shiko</v-tooltip>
                     </v-btn>
-                    <v-btn size="small" variant="tonal" color="secondary" class="text-capitalize" density="comfortable"
-                        prepend-icon="mdi-pencil" @click.stop="editItem(item)">
-                        Ndrysho
-                    </v-btn>
-                    <v-btn v-if="!isInstructor" size="small" variant="tonal" color="error" class="text-capitalize" density="comfortable"
-                        prepend-icon="mdi-file-pdf-box" :loading="downloadingId === item.candidateId"
-                        @click.stop="downloadApp(item)">
-                        PDF
+                    <v-btn icon variant="tonal" color="secondary" size="36" @click.stop="editItem(item)">
+                        <v-icon size="20">mdi-pencil</v-icon>
+                        <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
                     </v-btn>
                 </div>
             </template>
@@ -119,7 +114,6 @@ import DownloadExcel from 'vue-json-excel3';
 import CandidateForm from '@/components/candidate/CandidateForm.vue';
 import CandidateDetails from '@/components/candidate/CandidateDetails.vue';
 import CandidateInstructorEdit from '@/components/candidate/CandidateInstructorEdit.vue';
-import { downloadApplicationPdf } from '@/utils/applicationPdf';
 
 const candidateStore = useCandidateStore()
 const settingStore = useSettingStore()
@@ -206,7 +200,6 @@ const instructorEditCandidateId = ref(null)
 const editedIndex = ref(-1)
 const editedCandidate = ref(null)
 const editedCandidateId = ref(null)
-const downloadingId = ref(null)
 
 // Debounce search
 let searchTimeout = null
@@ -355,21 +348,6 @@ const handleSaved = () => {
     selectedCategory.value = null
     selectedYear.value = null
     loadCandidates()
-}
-
-const downloadApp = async (item) => {
-    downloadingId.value = item.candidateId
-    try {
-        // Fetch full candidate details for the PDF
-        const response = await candidateStore.getCandidateDetails(item.candidateId)
-        const candidateData = response.data?.candidate || response.data
-        await downloadApplicationPdf(candidateData)
-    } catch (err) {
-        console.error('Download application error:', err)
-        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të aplikacionit' })
-    } finally {
-        downloadingId.value = null
-    }
 }
 
 const closeInstructorEdit = () => {
