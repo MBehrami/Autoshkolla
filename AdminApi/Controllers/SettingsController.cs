@@ -79,18 +79,62 @@ namespace QuizplusApi.Controllers
         ///</summary>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult> GetSiteSettings()
+        public async Task<IActionResult> GetSiteSettings()
         {
             try
-            {              
-                var siteSettings=await _context.SiteSettings.SingleOrDefaultAsync();
-                return Ok(siteSettings);           
+            {
+                var siteSettings = await _context.SiteSettings.AsNoTracking().FirstOrDefaultAsync();
+
+                if (siteSettings == null)
+                {
+                    // Return a safe default so the frontend never crashes on null fields
+                    return Ok(new
+                    {
+                        siteSettingsId = 0,
+                        siteTitle = "",
+                        welComeMessage = "",
+                        copyRightText = "© 2026 Autoshkolla Linda",
+                        logoPath = "",
+                        faviconPath = "",
+                        appBarColor = "#455a64",
+                        headerColor = "#455a64",
+                        footerColor = "#455a64",
+                        bodyColor = "#f5f5f5",
+                        allowWelcomeEmail = true,
+                        allowFaq = true,
+                        allowRightClick = true,
+                        clientUrl = "",
+                        defaultEmail = "",
+                        displayName = "",
+                        password = "",
+                        host = "",
+                        port = 0,
+                        version = 1,
+                        isActive = true,
+                        isMigrationData = false
+                    });
+                }
+
+                return Ok(siteSettings);
             }
             catch (Exception ex)
-            {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+            {
+                // TEMP DEBUG: return full exception so missing columns are visible in browser Network tab
+                return StatusCode(500, new { status = "error", message = ex.Message, detail = ex.ToString() });
             }
         }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult DbInfo()
+        {
+            var conn = _context.Database.GetDbConnection();
+            return Ok(new
+            {
+                Database = conn.Database,
+                DataSource = conn.DataSource
+            });
+        }
+
         ///<summary>
         ///Update General Settings
         ///</summary>
@@ -501,8 +545,11 @@ namespace QuizplusApi.Controllers
         ///</summary>
         [AllowAnonymous]
         [HttpPost]       
-        public async Task<ActionResult> CreateErrorLog(ErrorLog model)
+        public async Task<ActionResult> CreateErrorLog([FromBody] ErrorLog model)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new { status = "validation_error", errors = ModelState });
+
             try
             {  
                 model.DateAdded=DateTime.Now;
@@ -511,7 +558,7 @@ namespace QuizplusApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
             }
         }
     }

@@ -38,7 +38,13 @@ builder.Services.AddCors(options=>
 {
     options.AddPolicy(name:AllowSpecificOrigins,builder=>
         {
-            builder.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173")
+            builder.WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://46.225.108.159",
+                "http://46.225.108.159:80"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
         });
@@ -119,7 +125,11 @@ builder.Services.Configure<FormOptions>(o => {
     o.MemoryBufferThreshold = int.MaxValue;
 });
 
-builder.WebHost.UseUrls("http://localhost:5002");
+// Local dev: listen on port 5002. On IIS, the server manages the binding.
+if (builder.Environment.IsDevelopment())
+{
+    builder.WebHost.UseUrls("http://localhost:5002");
+}
 
 
 var app = builder.Build();
@@ -505,6 +515,119 @@ using (var scope = app.Services.CreateScope())
     }
     catch { /* Tables may already exist */ }
 
+    // ── SiteSettings table ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.SiteSettings', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[SiteSettings] (
+                    [SiteSettingsId]              INT            IDENTITY(1,1) NOT NULL,
+                    [SiteTitle]                   NVARCHAR(100)  NULL,
+                    [WelComeMessage]              NVARCHAR(250)  NULL,
+                    [CopyRightText]               NVARCHAR(350)  NULL,
+                    [LogoPath]                    NVARCHAR(500)  NULL,
+                    [FaviconPath]                 NVARCHAR(500)  NULL,
+                    [AppBarColor]                 NVARCHAR(200)  NULL,
+                    [HeaderColor]                 NVARCHAR(50)   NULL,
+                    [FooterColor]                 NVARCHAR(200)  NULL,
+                    [BodyColor]                   NVARCHAR(200)  NULL,
+                    [AllowWelcomeEmail]           BIT            NOT NULL DEFAULT 1,
+                    [AllowFaq]                    BIT            NOT NULL DEFAULT 1,
+                    [AllowRightClick]             BIT            NOT NULL DEFAULT 1,
+                    [ClientUrl]                   NVARCHAR(200)  NULL,
+                    [DefaultEmail]                NVARCHAR(200)  NULL,
+                    [DisplayName]                 NVARCHAR(200)  NULL,
+                    [Password]                    NVARCHAR(200)  NULL,
+                    [Host]                        NVARCHAR(100)  NULL,
+                    [Port]                        INT            NOT NULL DEFAULT 0,
+                    [Version]                     INT            NOT NULL DEFAULT 1,
+                    [HomeHeader1]                 NVARCHAR(MAX)  NULL,
+                    [HomeDetail1]                 NVARCHAR(MAX)  NULL,
+                    [HomePicture]                 NVARCHAR(500)  NULL,
+                    [HomeHeader2]                 NVARCHAR(MAX)  NULL,
+                    [HomeDetail2]                 NVARCHAR(MAX)  NULL,
+                    [HomeBox1Header]              NVARCHAR(MAX)  NULL,
+                    [HomeBox1Detail]              NVARCHAR(MAX)  NULL,
+                    [HomeBox2Header]              NVARCHAR(MAX)  NULL,
+                    [HomeBox2Detail]              NVARCHAR(MAX)  NULL,
+                    [HomeBox3Header]              NVARCHAR(MAX)  NULL,
+                    [HomeBox3Detail]              NVARCHAR(MAX)  NULL,
+                    [HomeBox4Header]              NVARCHAR(MAX)  NULL,
+                    [HomeBox4Detail]              NVARCHAR(MAX)  NULL,
+                    [Feature1Header]              NVARCHAR(MAX)  NULL,
+                    [Feature1Detail]              NVARCHAR(MAX)  NULL,
+                    [Feature1Picture]             NVARCHAR(500)  NULL,
+                    [Feature2Header]              NVARCHAR(MAX)  NULL,
+                    [Feature2Detail]              NVARCHAR(MAX)  NULL,
+                    [Feature2Picture]             NVARCHAR(500)  NULL,
+                    [Feature3Header]              NVARCHAR(MAX)  NULL,
+                    [Feature3Detail]              NVARCHAR(MAX)  NULL,
+                    [Feature3Picture]             NVARCHAR(500)  NULL,
+                    [Feature4Header]              NVARCHAR(MAX)  NULL,
+                    [Feature4Detail]              NVARCHAR(MAX)  NULL,
+                    [Feature4Picture]             NVARCHAR(500)  NULL,
+                    [RegistrationText]            NVARCHAR(MAX)  NULL,
+                    [ContactUsText]               NVARCHAR(MAX)  NULL,
+                    [ContactUsTelephone]          NVARCHAR(MAX)  NULL,
+                    [ContactUsEmail]              NVARCHAR(MAX)  NULL,
+                    [FooterText]                  NVARCHAR(MAX)  NULL,
+                    [FooterFacebook]              NVARCHAR(MAX)  NULL,
+                    [FooterTwitter]               NVARCHAR(MAX)  NULL,
+                    [FooterLinkedin]              NVARCHAR(MAX)  NULL,
+                    [FooterInstagram]             NVARCHAR(MAX)  NULL,
+                    [ForgetPasswordEmailSubject]  NVARCHAR(MAX)  NULL,
+                    [ForgetPasswordEmailHeader]   NVARCHAR(MAX)  NULL,
+                    [ForgetPasswordEmailBody]     NVARCHAR(MAX)  NULL,
+                    [WelcomeEmailSubject]         NVARCHAR(MAX)  NULL,
+                    [WelcomeEmailHeader]          NVARCHAR(MAX)  NULL,
+                    [WelcomeEmailBody]            NVARCHAR(MAX)  NULL,
+                    [IsActive]                    BIT            NOT NULL DEFAULT 1,
+                    [IsMigrationData]             BIT            NOT NULL DEFAULT 0,
+                    [AddedBy]                     INT            NOT NULL DEFAULT 1,
+                    [DateAdded]                   DATETIME2      NOT NULL DEFAULT GETUTCDATE(),
+                    [LastUpdatedDate]             DATETIME2      NULL,
+                    [LastUpdatedBy]               INT            NULL,
+                    CONSTRAINT [PK_SiteSettings] PRIMARY KEY ([SiteSettingsId])
+                );
+            END
+            -- Seed one default row if the table is empty
+            IF NOT EXISTS (SELECT 1 FROM [dbo].[SiteSettings])
+            BEGIN
+                INSERT INTO [dbo].[SiteSettings]
+                    ([SiteTitle],[WelComeMessage],[CopyRightText],[LogoPath],[FaviconPath],
+                     [AppBarColor],[HeaderColor],[FooterColor],[BodyColor],
+                     [AllowWelcomeEmail],[AllowFaq],[AllowRightClick],
+                     [ClientUrl],[DefaultEmail],[DisplayName],[Password],[Host],[Port],[Version],
+                     [IsActive],[IsMigrationData],[AddedBy],[DateAdded])
+                VALUES
+                    (N'Autoshkolla',N'Welcome to Autoshkolla',N'© 2026 Autoshkolla Linda',N'',N'',
+                     N'#455a64',N'#455a64',N'#455a64',N'#f5f5f5',
+                     1,1,1,
+                     N'http://46.225.108.159',N'',N'Autoshkolla',N'',N'',587,1,
+                     1,0,1,GETUTCDATE());
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception ex) { Console.WriteLine($"SiteSettings table setup error: {ex.Message}"); }
+
+    // ── Fix SiteSettings copyright + title for existing rows ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.SiteSettings', N'U') IS NOT NULL
+            BEGIN
+                UPDATE [dbo].[SiteSettings]
+                SET [CopyRightText] = N'© 2026 Autoshkolla Linda',
+                    [SiteTitle] = N'Autoshkolla'
+                WHERE [CopyRightText] IS NULL
+                   OR [CopyRightText] LIKE N'%Vue Admin%'
+                   OR [CopyRightText] LIKE N'%2024%';
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* ignore if table doesn't exist yet */ }
+
     // ── SuperAdmin role + assign admin@vueadmin.com ──
     try
     {
@@ -533,30 +656,75 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex) { Console.WriteLine($"SuperAdmin setup error: {ex.Message}"); }
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// ── Middleware pipeline (order matters!) ──
+
+// 1) Routing must come first
 app.UseRouting();
 
+// 2) CORS — between UseRouting and UseAuthorization
 app.UseCors(AllowSpecificOrigins);
 
+// 3) Static files
 app.UseStaticFiles();
 app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
     RequestPath = new PathString("/Resources")
 });
-app.UseHttpsRedirection();
 
+// 4) Auth
 app.UseAuthentication();
-
 app.UseAuthorization();
 
+// 5) Controllers
 app.MapControllers();
 
+// 6) Protect Swagger with Basic Auth in Production
+if (!app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        if (context.Request.Path.StartsWithSegments("/swagger"))
+        {
+            var authHeader = context.Request.Headers.Authorization.ToString();
+
+            if (string.IsNullOrWhiteSpace(authHeader) ||
+                !authHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Swagger\"";
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+
+            try
+            {
+                var encoded = authHeader["Basic ".Length..].Trim();
+                var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                var parts = decoded.Split(':', 2);
+
+                var user = parts.Length > 0 ? parts[0] : "";
+                var pass = parts.Length > 1 ? parts[1] : "";
+
+                if (user != "Mbehrami" || pass != "Testimi123")
+                {
+                    context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Swagger\"";
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return;
+                }
+            }
+            catch
+            {
+                context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Swagger\"";
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+        }
+
+        await next();
+    });
+}
+
+// 7) Swagger (always registered so it works on the server too)
 app.UseSwagger();
 app.UseSwaggerUI(options => {
     options.SwaggerEndpoint("/swagger/v2/swagger.json", "API v2");

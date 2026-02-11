@@ -27,10 +27,6 @@
                     required
                     >
                     </v-text-field>
-                    <div class="d-flex justify-center">
-                        <v-btn variant="text" text="Admin" class="text-capitalize" @click.stop="adminCred"></v-btn>
-                        <v-btn variant="text" text="User" class="text-capitalize" @click.stop="userCred"></v-btn>
-                    </div>
                     <v-btn
                     :disabled="!signInFormValid"
                     :loading="loading"
@@ -216,19 +212,6 @@ const registerForm=ref({
     password:''
 })
 const appInitialData=JSON.parse(localStorage.getItem('allSettings'))
-
-const adminCred=()=>{
-    signInForm.value={
-        email:'admin@vueadmin.com',
-        password:'admin@2024'
-    }
-}
-const userCred=()=>{
-    signInForm.value={
-        email:'user@vueadmin.com',
-        password:'user@2024'
-    }
-}
 
 //get logo
 const logoSrc=computed(()=>{

@@ -1,0 +1,567 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AdminApi</name>
+    </assembly>
+    <members>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetCategories">
+            <summary>
+            Get Categories List. If table is empty, inserts default categories (A1, A2, A, B, B+E, C1, C) and returns them. Instructor needs this for Candidates list filters.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetActiveInstructors">
+            <summary>
+            Get Active Instructors List
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.CreateCandidate(AdminApi.ViewModels.Candidate.CandidateCreateRequest)">
+            <summary>
+            Create Candidate
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetCandidatesList(System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            Get Candidates List with search and filters.
+            Admin sees all; Instructor sees only candidates where InstructorId = current user.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetCandidateDetails(System.Int32)">
+            <summary>
+            Get Single Candidate by ID with details. Instructor may only access candidates assigned to them.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.UpdateCandidate(System.Int32,AdminApi.ViewModels.Candidate.CandidateCreateRequest)">
+            <summary>
+            Update Candidate
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetPracticalLessons(System.Int32)">
+            <summary>
+            Get practical lessons for a candidate. Admin sees all; Instructor sees only their own.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.AddPracticalLesson(AdminApi.ViewModels.Candidate.AddPracticalLessonRequest)">
+            <summary>
+            Add a practical lesson. Instructor may add only for candidates assigned to them.
+            Lesson duration is fixed at 45 minutes. EndTime is auto-calculated.
+            Overlap check: same instructor or same vehicle on the same date must not overlap.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetLessonVehicles">
+            <summary>
+            Get registered vehicle names for the practical lesson dropdown. Admin and Instructor.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.DownloadApplication(System.Int32)">
+            <summary>
+            Download a pre-filled PDF Application form for a Candidate.
+            Overlays candidate data onto the official "aplikacioni.pdf" template.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetAvailableYears">
+            <summary>
+            Get Available Years for filtering. Instructor sees years only from their assigned candidates.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.InstructorsController.CreateInstructor(AdminApi.ViewModels.Instructor.InstructorCreateRequest)">
+            <summary>Create instructor and auto-create user account (email=login, initial password, role=Instructor).</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.InstructorsController.GetInstructorsList(System.String)">
+            <summary>List instructors. FullName = FirstName + LastName only. Search by First Name, Last Name.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.InstructorsController.GetInstructorDetails(System.Int32)">
+            <summary>Get single instructor by UserId for view/edit.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.InstructorsController.UpdateInstructor(System.Int32,AdminApi.ViewModels.Instructor.InstructorUpdateRequest)">
+            <summary>Update instructor and profile.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.InstructorsController.ToggleInstructorActive(System.Int32)">
+            <summary>Toggle instructor Active/Inactive. Inactive instructors cannot log in.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetSidebarMenu(System.Int32)">
+            <summary>
+            App Side bar menus. Instructor role gets only Candidates (MenuGroupId=3).
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetAllMenu(System.Int32)">
+            <summary>
+            Filter menus by menuGroupId
+            </summary>      
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.MenuAssign(AdminApi.ViewModels.Menu.MenuOperation)">
+            <summary>
+            Assign App Menu
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetMenuList">
+            <summary>
+            Get App Menu List
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetParentMenuList">
+            <summary>
+            Get App Parent Menu List
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetSingleMenu(System.Int32)">
+            <summary>
+            Get Single Menu by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.DeleteSingleMenu(System.Int32)">
+            <summary>
+            Delete Single Menu by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.CreateMenu(AdminApi.Models.Menu.AppMenu)">
+            <summary>
+            Create App Menu
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.UpdateMenu(AdminApi.Models.Menu.AppMenu)">
+            <summary>
+            Update App Menu
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetMenuGroupList">
+            <summary>
+            Get Menu Group List
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetSingleMenuGroup(System.Int32)">
+            <summary>
+            Get Single Menu Group by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.DeleteSingleMenuGroup(System.Int32)">
+            <summary>
+            Delete Single Menu Group by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.CreateMenuGroup(AdminApi.Models.Menu.MenuGroup)">
+            <summary>
+            Create Menu Group
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.UpdateMenuGroup(AdminApi.Models.Menu.MenuGroup)">
+            <summary>
+            Update Menu Group
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.MenuController.GetMenuGroupWiseMenuMappingList">
+            <summary>
+            Get Menu Group wise Menu Mapping List
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetLoginInfo(AdminApi.ViewModels.User.UserInfo)">
+            <summary>
+            Get Log in Detail
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetUserInfoForForgetPassword(System.String)">
+            <summary>
+            Get User Info for Forget password option
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.StudentRegistration(AdminApi.Models.User.Users)">
+            <summary>
+            Student Registration
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.CreateLoginHistory(AdminApi.Models.User.LogHistory)">
+            <summary>
+            Create Log History after login
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.UpdateLoginHistory(System.String)">
+            <summary>
+            Update Login History
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetLogInSummaryByDate(System.Int32)">
+            <summary>
+            Get date wise Login summary
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetLogInSummaryByMonth(System.Int32)">
+            <summary>
+            Get month wise Login summary
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetLogInSummaryByYear(System.Int32)">
+            <summary>
+            Get month wise Login summary
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetBrowserCount(System.Int32)">
+            <summary>
+            Get Browser Count
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetRoleWiseUser">
+            <summary>
+            Get Role wise User Count
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetUserRoleList">
+            <summary>
+            Get Role List
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetSingleRole(System.Int32)">
+            <summary>
+            Get Single Role by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.DeleteSingleRole(System.Int32)">
+            <summary>
+            Delete Single Role by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.CreateUserRole(AdminApi.Models.User.UserRole)">
+            <summary>
+            Create User Role
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.UpdateUserRole(AdminApi.Models.User.UserRole)">
+            <summary>
+            Update User Role
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetUserList">
+            <summary>
+            Get User List
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetSingleUser(System.Int32)">
+            <summary>
+            Get Single User by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetSingleUserByHash(System.String)">
+            <summary>
+            Get Single User by hash
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.DeleteSingleUser(System.Int32)">
+            <summary>
+            Delete Single User by ID
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.CreateUser(AdminApi.Models.User.Users)">
+            <summary>
+            Create User
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.UpdateUser(AdminApi.Models.User.Users)">
+            <summary>
+            Update User
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.UpdateUserProfile(AdminApi.ViewModels.User.UserInfo)">
+            <summary>
+            Update User Profile
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.ChangeUserPassword(AdminApi.ViewModels.User.UserInfo)">
+            <summary>
+            Change User Password
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.UserStatus">
+            <summary>
+            Dashboard User Status. Allowed for Admin, User, and Instructor so Dashboard loads without 403.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.DashboardSummary">
+            <summary>
+            Dashboard summary: total candidates, instructors, active vehicles
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetBrowseList(System.Int32)">
+            <summary>
+            Get Browsing Log
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.GetNotificationList(System.Int32)">
+            <summary>
+            Get Notification List
+            </summary>    
+        </member>
+        <member name="M:AdminApi.Controllers.UsersController.Upload">
+            <summary>
+            Profile picture upload
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.GetVehiclesList(System.String,System.String)">
+            <summary>Get vehicles. Admin can filter by status (all/active/inactive) and search text.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.GetVehicleDetails(System.Int32)">
+            <summary>Get vehicle details by id.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.CreateVehicle(AdminApi.ViewModels.Vehicle.AddVehicleRequest)">
+            <summary>Create a new vehicle.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.UpdateVehicle(System.Int32,AdminApi.ViewModels.Vehicle.AddVehicleRequest)">
+            <summary>Update an existing vehicle.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.ToggleVehicleStatus(System.Int32)">
+            <summary>Toggle vehicle active/inactive (soft delete).</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.GetVehicleFuelList(System.String,System.Nullable{System.Int32},System.String,System.String)">
+            <summary>
+            Get fuel entries. Admin sees ALL; Instructor sees ONLY their own.
+            Supports filters: search, vehicleId, dateFrom (dd.MM.yyyy), dateTo (dd.MM.yyyy).
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.CreateVehicleFuel(AdminApi.ViewModels.Vehicle.AddVehicleFuelRequest)">
+            <summary>
+            Create a new fuel entry. Instructor: StaffUserId is auto-assigned.
+            Admin: StaffUserId comes from the request.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.GetVehiclesDropdown">
+            <summary>Get vehicles dropdown (id + plate). Only active vehicles shown.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.GetStaffDropdown">
+            <summary>Get all users (Admin + Instructor) for Staff dropdown. Admin only.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.GetVehicleServiceList(System.String)">
+            <summary>Get all vehicle service entries.</summary>
+        </member>
+        <member name="T:AdminApi.Migrations.initial">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.initial.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.initial.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.initial.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="P:AdminApi.Models.Candidate.Candidate.DocWithdrawalAmount">
+            <summary>Document Withdrawal Payment (Terheqja e Dokumentave)</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.Candidate.DrivingPaymentAmount">
+            <summary>Driving Payment (Pagesa e vozitjes)</summary>
+        </member>
+        <member name="T:AdminApi.Models.Candidate.DrivingSession">
+            <summary>
+            A driving session (Vozitje) linking a candidate, vehicle, and instructor on a specific date/time.
+            </summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.InstructorUserId">
+            <summary>Instructor who created / is assigned to the session.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.DrivingDate">
+            <summary>Driving date in dd.MM.yyyy format.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.DrivingTime">
+            <summary>Start time HH:mm (e.g. 08:00, 08:15).</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.PaymentAmount">
+            <summary>Payment amount for this session.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.PaymentDate">
+            <summary>Payment date dd.MM.yyyy.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.Status">
+            <summary>Session status: null (not set), Kaloi, Deshtoi, Anuloi.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.Examiner">
+            <summary>Examiner name (Egzamineri) – free text, set during edit.</summary>
+        </member>
+        <member name="T:AdminApi.Models.Candidate.PracticalLesson">
+            <summary>
+            A practical driving lesson linked to a candidate and the instructor who created it.
+            </summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.PracticalLesson.LessonDate">
+            <summary>Format dd.MM.yyyy</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.PracticalLesson.Time">
+            <summary>Start time e.g. 08:00, 08:15</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.PracticalLesson.EndTime">
+            <summary>End time = Start + 45 minutes, e.g. 08:45, 09:00</summary>
+        </member>
+        <member name="T:AdminApi.Models.Report.DailyReportEntry">
+            <summary>
+            A single ledger entry in the Daily Report.
+            EntryType: "Income" (Hyrjet) or "Expense" (Daljet).
+            </summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.EntryDate">
+            <summary>Entry date in dd.MM.yyyy format.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.EntryType">
+            <summary>"Income" or "Expense".</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.SerialNumber">
+            <summary>Serial number within the day (auto-incremented per day+type).</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.FullName">
+            <summary>Full name (from candidate or free text).</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.Amount">
+            <summary>Amount (positive for income/expense, negative for reversal).</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.Description">
+            <summary>Payment reason / description.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.SourceType">
+            <summary>Source type for auto-entries: "CandidateInstallment", "DrivingSession", "Manual", "Reversal".</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.SourceId">
+            <summary>Source record ID (e.g. CandidateInstallment ID or DrivingSession ID).</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportEntry.ReversalOfEntryId">
+            <summary>If this entry is a reversal, references the original entry ID.</summary>
+        </member>
+        <member name="T:AdminApi.Models.Report.DailyReportStatus">
+            <summary>
+            Tracks whether a day's report is Open or Closed.
+            </summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportStatus.ReportDate">
+            <summary>Date in dd.MM.yyyy format.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Report.DailyReportStatus.Status">
+            <summary>"Open" or "Closed".</summary>
+        </member>
+        <member name="T:AdminApi.Models.Schedule.ScheduleEvent">
+            <summary>
+            A schedule event (Orar) linking instructor, candidate and vehicle at a specific date/time slot.
+            </summary>
+        </member>
+        <member name="P:AdminApi.Models.Schedule.ScheduleEvent.EventDate">
+            <summary>Event date in dd.MM.yyyy format.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Schedule.ScheduleEvent.StartTime">
+            <summary>Start time HH:mm (e.g. 08:00).</summary>
+        </member>
+        <member name="P:AdminApi.Models.Schedule.ScheduleEvent.EndTime">
+            <summary>End time HH:mm (e.g. 08:45).</summary>
+        </member>
+        <member name="T:AdminApi.Models.User.InstructorProfile">
+            <summary>
+            Extended profile for users with Instructor role. Linked to Users by UserId.
+            </summary>
+        </member>
+        <member name="P:AdminApi.Models.User.InstructorProfile.ScheduleType">
+            <summary>Full-time / Part-time (orar te plote / honorar)</summary>
+        </member>
+        <member name="P:AdminApi.Models.User.InstructorProfile.LicenseValidityDate">
+            <summary>Format dd.MM.yyyy</summary>
+        </member>
+        <member name="T:AdminApi.Models.Vehicle.VehicleService">
+            <summary>
+            Placeholder model for future Vehicle Services (Serviset e Automjeteve).
+            Fields and business logic to be defined.
+            </summary>
+        </member>
+        <member name="T:AdminApi.ViewModels.Instructor.InstructorListItem">
+            <summary>List view: no Email, no DateOfBirth. FullName = FirstName + LastName only (no ParentName).</summary>
+        </member>
+        <member name="P:AdminApi.ViewModels.Instructor.InstructorListItem.FullName">
+            <summary>Display: FirstName + " " + LastName (no ParentName in list).</summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.SendWelcomeMail(AdminApi.Models.Helper.WelcomeRequest)">
+            <summary>
+            Sent Welcome Email
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.SendPasswordMail(AdminApi.Models.Helper.ForgetPassword)">
+            <summary>
+            Sent Password Email
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.GetSiteSettings">
+            <summary>
+            Get Site Settings
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UpdateGeneralSetting(AdminApi.Models.Others.SiteSettings)">
+            <summary>
+            Update General Settings
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UpdateEmailSetting(AdminApi.Models.Others.SiteSettings)">
+            <summary>
+            Update Email Settings
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UpdateColorSetting(AdminApi.Models.Others.SiteSettings)">
+            <summary>
+            Update Color Settings
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UpdateLandingSetting(AdminApi.Models.Others.SiteSettings)">
+            <summary>
+            Update Landing Settings
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UpdateEmailTextSetting(AdminApi.Models.Others.SiteSettings)">
+            <summary>
+            Update Email Text Settings
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UploadLogo">
+            <summary>
+            Site Logo upload
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UploadFavicon">
+            <summary>
+            Site Favicon upload
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.GetFaqList">
+            <summary>
+            Get FAQ List
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.GetSingleFaq(System.Int32)">
+            <summary>
+            Get Single FAQ
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.DeleteFaq(System.Int32)">
+            <summary>
+            Delete FAQ by Id
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.CreateFaq(AdminApi.Models.Others.Faq)">
+            <summary>
+            Create Faq
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.UpdateFaq(AdminApi.Models.Others.Faq)">
+            <summary>
+            Update Faq
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.GetContacts">
+            <summary>
+            Get Contacts
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.CreateContacts(AdminApi.Models.Others.Contacts)">
+            <summary>
+            Create Contact-us
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.GetErrorLogList">
+            <summary>
+            Get Error Log List
+            </summary>
+        </member>
+        <member name="M:QuizplusApi.Controllers.SettingsController.CreateErrorLog(AdminApi.Models.Others.ErrorLog)">
+            <summary>
+            Create Error Log
+            </summary>
+        </member>
+    </members>
+</doc>
