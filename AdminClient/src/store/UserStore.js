@@ -451,12 +451,12 @@ export const useUserStore = defineStore("userStore", {
           .catch((error) => reject(error));
       });
     },
-    getBrowseList(userId) {
+    getBrowseList(userId, page = 1, pageSize = 10) {
       return new Promise((resolve, reject) => {
         this.loading = true;
-        API.get(
-          import.meta.env.VITE_API_URL + `/api/Users/GetBrowseList/${userId}`
-        )
+        API.get(import.meta.env.VITE_API_URL + `/api/Users/GetBrowseList/${userId}`, {
+          params: { page, pageSize },
+        })
           .then((response) => {
             this.loading = false;
             resolve(response);

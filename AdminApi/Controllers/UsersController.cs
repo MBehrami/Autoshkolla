@@ -718,27 +718,60 @@ namespace AdminApi.Controllers
         ///</summary>
         [AllowAnonymous]     
         [HttpGet("{id}")]        
-        public async Task<ActionResult> GetBrowseList(int id)
+        public async Task<ActionResult> GetBrowseList(int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var objUser=await _context.Users.Where(e=>e.UserId==id).FirstAsync();
+                if (page < 1) page = 1;
+                if (pageSize < 1) pageSize = 10;
+                if (pageSize > 100) pageSize = 100;
 
-                var list=await (from l in _context.LogHistory join u in _context.Users on 
-                    l.UserId equals u.UserId 
-                    select new {u.UserId,u.FullName,u.Email,l.LogInTime,l.LogOutTime,l.Ip,l.Browser,l.BrowserVersion,l.Platform}).ToListAsync();
-
-                if(objUser.UserRoleId!=1)
+                var objUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(e => e.UserId == id);
+                if (objUser == null)
                 {
-                    list=list.Where(q=>q.UserId==id).ToList();
-                }             
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "User not found." });
+                }
 
-                var browseList=list.Select(s=>new Browse{FullName=s.FullName,Email=s.Email,LogInTime=s.LogInTime.ToString(),
-                LogOutTime=s.LogOutTime.ToString(),Ip=s.Ip,Browser=s.Browser,
-                BrowserVersion=s.BrowserVersion,Platform=s.Platform}).OrderByDescending(q=>q.LogInTime);
+                var query = from l in _context.LogHistory.AsNoTracking()
+                            join u in _context.Users.AsNoTracking() on l.UserId equals u.UserId
+                            select new
+                            {
+                                u.UserId,
+                                u.FullName,
+                                u.Email,
+                                l.LogInTime,
+                                l.LogOutTime,
+                                l.Ip,
+                                l.Browser,
+                                l.BrowserVersion,
+                                l.Platform
+                            };
 
-                int totalRecords=browseList.Count();
-                return Ok(new {data=browseList, recordsTotal = totalRecords, recordsFiltered = totalRecords});
+                if (objUser.UserRoleId != 1)
+                {
+                    query = query.Where(q => q.UserId == id);
+                }
+
+                var totalRecords = await query.CountAsync();
+                var pagedList = await query
+                    .OrderByDescending(q => q.LogInTime)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var browseList = pagedList.Select(s => new Browse
+                {
+                    FullName = s.FullName,
+                    Email = s.Email,
+                    LogInTime = s.LogInTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                    LogOutTime = s.LogOutTime.HasValue ? s.LogOutTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : "",
+                    Ip = s.Ip,
+                    Browser = s.Browser,
+                    BrowserVersion = s.BrowserVersion,
+                    Platform = s.Platform
+                });
+
+                return Ok(new { data = browseList, recordsTotal = totalRecords, recordsFiltered = totalRecords, page, pageSize });
             }
             catch (Exception ex)
             {              

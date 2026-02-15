@@ -1,5 +1,5 @@
 <template>
-    <v-navigation-drawer v-model="drawer" class="sidebar-drawer" elevation="1">
+    <v-navigation-drawer v-model="drawer" class="sidebar-drawer" elevation="1" :width="smAndDown ? 280 : 300">
         <template v-if="smAndDown" v-slot:append>
             <div class="d-flex justify-center py-2">
                 <v-btn text="Sign Out" variant="text" prepend-icon="mdi-logout" class="text-capitalize"
@@ -22,23 +22,32 @@
         </v-list>
         <v-divider></v-divider>
         <v-list density="default" class="sidebar-menu-list">
-            <v-list-item v-for="item in menus" :key="item.id" :to="item.route"
-                @click="!(item.childItems && item.childItems.length) && item.route && smAndDown && (drawer = false)"
-                active-class="sidebar-active-item">
-                <v-list-item-title v-if="!(item.childItems && item.childItems.length)" class="pl-3">{{ item.title }}</v-list-item-title>
-                <template v-if="!(item.childItems && item.childItems.length)" v-slot:prepend>
-                    <v-icon class="pl-7">{{ item.icon }}</v-icon>
-                </template>
-
-                <v-list-group :value="item.title" v-if="item.childItems && item.childItems.length > 0">
-                    <template v-slot:activator="{ props }">
-                        <v-list-item v-bind="props" :title="item.title" :prepend-icon="item.icon"
-                            active-class="sidebar-active-item"></v-list-item>
+            <template v-for="item in menus" :key="item.id">
+                <v-list-item v-if="!(item.childItems && item.childItems.length)" :to="item.route"
+                    @click="item.route && smAndDown && (drawer = false)"
+                    active-class="sidebar-active-item">
+                    <v-list-item-title class="sidebar-item-title">{{ item.title }}</v-list-item-title>
+                    <template v-slot:prepend>
+                        <v-icon class="sidebar-item-icon">{{ item.icon }}</v-icon>
                     </template>
-                    <v-list-item v-for="val in item.childItems" :key="val.id" :title="val.title" :value="val.title"
-                        :to="val.route" active-class="sidebar-active-item"></v-list-item>
+                </v-list-item>
+
+                <v-list-group v-else :value="item.title">
+                    <template v-slot:activator="{ props }">
+                        <v-list-item v-bind="props" active-class="sidebar-active-item">
+                            <template v-slot:prepend>
+                                <v-icon class="sidebar-item-icon">{{ item.icon }}</v-icon>
+                            </template>
+                            <v-list-item-title class="sidebar-item-title">{{ item.title }}</v-list-item-title>
+                        </v-list-item>
+                    </template>
+                    <v-list-item v-for="val in item.childItems" :key="val.id" :to="val.route"
+                        @click="val.route && smAndDown && (drawer = false)"
+                        active-class="sidebar-active-item">
+                        <v-list-item-title class="sidebar-item-title">{{ val.title }}</v-list-item-title>
+                    </v-list-item>
                 </v-list-group>
-            </v-list-item>
+            </template>
         </v-list>
     </v-navigation-drawer>
     <v-app-bar elevation="1" class="app-top-bar">
@@ -49,7 +58,7 @@
             <v-btn icon="mdi-lock" size="small" @click.stop="dialogLock = true"></v-btn>
             <v-btn @click.stop="toggleFullScreen" size="small"
                 :icon="props.isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"></v-btn>
-            <v-menu>
+                        <v-menu>
                 <template v-slot:activator="{ props }">
                     <v-btn v-bind="props" size="small">
                         <v-badge :content="notifications.recordsTotal">
@@ -66,8 +75,7 @@
                             OS:{{ item.platform }}</v-list-item-title>
                     </v-list-item>
                 </v-list>
-            </v-menu>
-            <v-menu>
+            </v-menu><v-menu>
                 <template v-slot:activator="{ props }">
                     <v-btn text="Personalize" class="text-capitalize" v-bind="props" size="small">
                         <template v-slot:prepend>
@@ -84,7 +92,7 @@
             <v-btn v-if="mdAndUp" icon="mdi-logout" size="small" @click.stop="dialogSignout = true"></v-btn>
         </template>
     </v-app-bar>
-    <v-dialog v-model="dialogSignout" max-width="320" persistent>
+        <v-dialog v-model="dialogSignout" max-width="320" persistent>
         <v-card rounded="lg">
             <v-card-title class="text-h6 pt-4">Want to leave?</v-card-title>
             <v-card-text class="py-2 text-body-2 text-medium-emphasis">Press Sign Out to leave</v-card-text>
@@ -194,6 +202,7 @@ const toggleFullScreen = () => {
 const profileImage = computed(() => {
     return profileInfo.obj.imagePath == null ? defaultImg : import.meta.env.VITE_API_URL + profileInfo.obj.imagePath
 })
+
 
 // ─── Build sidebar menu ───
 // SuperAdmin: FULL menu (all business + all system pages)
@@ -441,10 +450,28 @@ const signOut = () => {
     color: #37474F !important;
 }
 
+.sidebar-drawer :deep(.v-list-item) {
+    min-height: 44px;
+    align-items: flex-start;
+}
+
+.sidebar-drawer :deep(.v-list-item__prepend) {
+    padding-inline-end: 10px !important;
+}
+
+.sidebar-drawer :deep(.v-list-item__content) {
+    overflow: visible !important;
+}
+
 .sidebar-drawer .v-list-item-title {
     color: #37474F !important;
     font-weight: 500;
     font-size: 0.875rem;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.25 !important;
+    word-break: break-word;
 }
 
 .sidebar-drawer .v-list-item-subtitle {
@@ -480,6 +507,14 @@ const signOut = () => {
     padding: 8px !important;
 }
 
+.sidebar-item-title {
+    padding-left: 0 !important;
+}
+
+.sidebar-item-icon {
+    padding-left: 0 !important;
+}
+
 .sidebar-active-item {
     background: #E0E0E0 !important;
     border-radius: 8px;
@@ -495,7 +530,17 @@ const signOut = () => {
 }
 
 .sidebar-drawer .v-list-group__items .v-list-item {
-    padding-left: 32px !important;
+    padding-left: 20px !important;
+}
+
+.sidebar-drawer :deep(.sidebar-menu-list > .v-list-item),
+.sidebar-drawer :deep(.v-list-group__header) {
+    padding-inline-start: 16px !important;
+    padding-inline-end: 12px !important;
+}
+
+.sidebar-drawer :deep(.v-list-group__header .v-list-item__prepend) {
+    margin-inline-end: 10px !important;
 }
 
 .sidebar-drawer .v-list-item:hover {

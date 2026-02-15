@@ -1,5 +1,8 @@
 <template>
     <div class="instructors-container">
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Instructors</div>
+        </div>
         <v-data-table
             :headers="headers"
             :items="items"
@@ -8,22 +11,16 @@
         >
             <template v-slot:top>
                 <v-toolbar density="comfortable" flat class="instructors-toolbar">
-                    <template v-slot:prepend>
-                        <div class="d-flex flex-row align-center ga-2">
-                            <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="instructors"
-                                name="instructors.xlsx">
-                                <v-btn icon variant="outlined" size="small" color="success" title="Export to Excel">
-                                    <v-icon icon="mdi-file-excel"></v-icon>
-                                </v-btn>
-                            </download-excel>
-                            <v-btn icon variant="outlined" size="small" color="primary" title="Export to Word"
-                                @click.stop="exportWord">
-                                <v-icon icon="mdi-file-word"></v-icon>
+                    <div class="instructors-actions-wrap">
+                        <div class="instructors-export-group">
+                            <v-btn class="instructors-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="instructors"
+                                    name="instructors.xlsx">Excel</download-excel>
                             </v-btn>
+                            <v-btn class="instructors-action-btn text-none" variant="outlined" prepend-icon="mdi-file-word"
+                                @click.stop="exportWord">Word</v-btn>
                         </div>
-                    </template>
-                    <template v-slot:append>
-                        <div class="instructors-filters d-flex flex-wrap align-center ga-4">
+                        <div class="instructors-filters-wrap">
                             <v-text-field
                                 v-model="searchText"
                                 label="Search (First Name, Last Name)"
@@ -37,7 +34,7 @@
                             <v-dialog v-model="dialog" max-width="1000" scrollable>
                                 <template v-slot:activator="{ props: activatorProps }">
                                     <v-btn v-bind="activatorProps" color="primary" variant="elevated"
-                                        class="text-capitalize" prepend-icon="mdi-plus">
+                                        class="instructors-add-btn text-none" prepend-icon="mdi-plus">
                                         Add Instructor
                                     </v-btn>
                                 </template>
@@ -50,7 +47,7 @@
                                 />
                             </v-dialog>
                         </div>
-                    </template>
+                    </div>
                 </v-toolbar>
             </template>
             <template v-slot:item.isActive="{ item }">
@@ -276,9 +273,34 @@ watch(dialog, (val) => {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.instructors-filters {
-    gap: 16px;
-    padding-left: 8px;
+.instructors-actions-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instructors-export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.instructors-action-btn {
+    border-radius: 4px !important;
+}
+
+.instructors-filters-wrap {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.instructors-add-btn {
+    min-height: 40px;
+    border-radius: 4px !important;
 }
 
 .instructors-filter-search {
@@ -307,10 +329,87 @@ watch(dialog, (val) => {
     min-height: 64px !important;
 }
 
+.instructors-toolbar :deep(.v-toolbar__content) {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+.instructors-toolbar :deep(.v-btn),
+.instructors-toolbar :deep(.v-field) {
+    border-radius: 4px !important;
+}
+
+@media (max-width: 1024px) and (min-width: 601px) {
+    .instructors-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .instructors-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .instructors-filter-search {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .instructors-add-btn {
+        width: 100%;
+        grid-column: 1 / -1;
+    }
+}
+
 @media (max-width: 600px) {
     .instructors-container {
         padding: 8px !important;
     }
+
+    .instructors-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .instructors-export-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .instructors-action-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+
+    .instructors-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .instructors-filter-search {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .instructors-add-btn {
+        width: 100%;
+        min-height: 44px;
+    }
+
     .instructors-table :deep(thead th),
     .instructors-table :deep(tbody td) {
         padding: 6px 8px !important;

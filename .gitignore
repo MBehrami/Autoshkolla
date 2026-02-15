@@ -183,3 +183,11 @@ healthchecksdb
 .vscode/sftp.json
 .vscode/tags
 .devcontainer/
+
+# Local .NET SDK/tooling cache
+.dotnet/
+**/.dotnet/
+
+# Environment-specific ASP.NET config
+appsettings.Development.json
+**/appsettings.Development.json

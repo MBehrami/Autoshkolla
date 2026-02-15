@@ -1,5 +1,8 @@
 <template>
     <div class="vehicles-container">
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Vehicle Fuel</div>
+        </div>
         <v-data-table
             :headers="headers"
             :items="items"
@@ -8,21 +11,20 @@
         >
             <template v-slot:top>
                 <v-toolbar density="comfortable" flat class="vehicles-toolbar">
-                    <template v-slot:prepend>
-                        <div class="d-flex flex-row align-center ga-2">
-                            <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
-                                name="vehicle-fuel.xlsx">
-                                <v-btn icon variant="outlined" size="small" color="success">
-                                    <v-icon icon="mdi-file-excel"></v-icon>
-                                </v-btn>
-                            </download-excel>
-                            <v-btn icon variant="outlined" size="small" color="error" @click.stop="exportPdf">
-                                <v-icon icon="mdi-file-pdf"></v-icon>
+                    <div class="vehicles-actions-wrap">
+                        <div class="vehicles-export-group">
+                            <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
+                                    name="vehicle-fuel.xlsx">Excel</download-excel>
                             </v-btn>
+                            <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                                <download-excel :data="items" :fields="headersExcel" type="csv"
+                                    name="vehicle-fuel.csv">CSV</download-excel>
+                            </v-btn>
+                            <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                                @click.stop="exportPdf">PDF</v-btn>
                         </div>
-                    </template>
-                    <template v-slot:append>
-                        <div class="vehicles-filters d-flex flex-wrap align-center ga-4">
+                        <div class="vehicles-filters-wrap">
                             <v-text-field
                                 v-model="searchText"
                                 :label="isInstructor ? 'Search (Plate, Fuel Type)' : 'Search (Plate, Staff, Fuel Type)'"
@@ -85,7 +87,7 @@
                             <v-dialog v-model="dialog" max-width="800" scrollable>
                                 <template v-slot:activator="{ props: activatorProps }">
                                     <v-btn v-bind="activatorProps" color="primary" variant="elevated"
-                                        class="text-capitalize" prepend-icon="mdi-plus">
+                                        class="vehicles-add-btn text-none" prepend-icon="mdi-plus">
                                         Add Fuel Entry
                                     </v-btn>
                                 </template>
@@ -95,7 +97,7 @@
                                 />
                             </v-dialog>
                         </div>
-                    </template>
+                    </div>
                 </v-toolbar>
             </template>
         </v-data-table>
@@ -294,9 +296,34 @@ onMounted(() => {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.vehicles-filters {
-    gap: 16px;
-    padding-left: 8px;
+.vehicles-actions-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vehicles-export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vehicles-action-btn {
+    border-radius: 4px !important;
+}
+
+.vehicles-filters-wrap {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.vehicles-add-btn {
+    min-height: 40px;
+    border-radius: 4px !important;
 }
 
 .fuel-filter-search {
@@ -334,10 +361,93 @@ onMounted(() => {
     min-height: 64px !important;
 }
 
+.vehicles-toolbar :deep(.v-toolbar__content) {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+.vehicles-toolbar :deep(.v-btn),
+.vehicles-toolbar :deep(.v-field) {
+    border-radius: 4px !important;
+}
+
+@media (max-width: 1024px) and (min-width: 601px) {
+    .vehicles-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .vehicles-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .fuel-filter-search,
+    .fuel-filter-vehicle,
+    .fuel-filter-date {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .vehicles-add-btn {
+        width: 100%;
+        grid-column: 1 / -1;
+    }
+}
+
 @media (max-width: 600px) {
     .vehicles-container {
         padding: 8px !important;
     }
+
+    .vehicles-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .vehicles-export-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .vehicles-action-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+
+    .vehicles-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .fuel-filter-search,
+    .fuel-filter-vehicle,
+    .fuel-filter-date {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .vehicles-add-btn {
+        width: 100%;
+        min-height: 44px;
+    }
+
     .vehicles-table :deep(thead th),
     .vehicles-table :deep(tbody td) {
         padding: 6px 8px !important;

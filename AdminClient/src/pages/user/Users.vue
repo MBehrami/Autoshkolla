@@ -1,23 +1,28 @@
 <template>
     <v-container>
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Users</div>
+        </div>
         <v-data-table :headers="headers" :items="items" :loading="loading" class="elevation-2">
             <template v-slot:top>
-                <v-toolbar density="comfortable" flat>
-                    <template v-slot:prepend>
-                        <div class="d-flex flex-row ga-1">
-                            <v-btn class="text-capitalize" variant="outlined"><download-excel :data="items"
-                                    :fields="headersExcel" type="xlsx" worksheet="all-data"
-                                    name="user_excel.xlsx">Excel</download-excel></v-btn>
-                            <v-btn class="text-capitalize" variant="outlined"><download-excel :data="items"
-                                    :fields="headersExcel" type="csv" name="user_csv.xls">Csv</download-excel></v-btn>
-                            <v-btn class="text-capitalize" variant="outlined" @click.stop="exportPdf">Pdf</v-btn>
+                <v-toolbar density="comfortable" flat class="users-toolbar">
+                    <div class="users-actions-wrap">
+                        <div class="users-export-group">
+                            <v-btn class="users-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
+                                    name="user_excel.xlsx">Excel</download-excel>
+                            </v-btn>
+                            <v-btn class="users-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                                <download-excel :data="items" :fields="headersExcel" type="csv"
+                                    name="user_csv.xls">CSV</download-excel>
+                            </v-btn>
+                            <v-btn class="users-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                                @click.stop="exportPdf">PDF</v-btn>
                         </div>
-                    </template>
-                    <template v-slot:append>
                         <v-dialog v-model="dialog" max-width="850">
                             <template v-slot:activator="{ props: activatorProps }">
                                 <v-btn v-bind="activatorProps" text="Add User" color="primary" variant="elevated"
-                                    class="text-capitalize">
+                                    prepend-icon="mdi-plus" class="users-add-btn text-none">
                                 </v-btn>
                             </template>
                             <template v-slot:default="{ isActive }">
@@ -115,7 +120,7 @@
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
-                    </template>
+                    </div>
                 </v-toolbar>
             </template>
             <template v-slot:[`item.actions`]="{ item }">
@@ -341,3 +346,66 @@ const formTitle = computed(() => {
     return editedIndex.value == -1 ? 'Add User' : 'Edit User'
 })
 </script>
+
+<style scoped>
+.users-toolbar {
+    padding-inline: 4px;
+}
+
+.users-actions-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.users-export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.users-action-btn {
+    border-radius: 12px;
+}
+
+.users-add-btn {
+    margin-left: auto;
+    border-radius: 12px;
+    min-height: 40px;
+}
+
+.users-toolbar :deep(.v-btn),
+.users-toolbar :deep(.v-field) {
+    border-radius: 4px !important;
+}
+
+@media (max-width: 600px) {
+    .users-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding-block: 4px;
+    }
+
+    .users-export-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .users-action-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+
+    .users-add-btn {
+        width: 100%;
+        margin-left: 0;
+        min-height: 44px;
+    }
+}
+</style>

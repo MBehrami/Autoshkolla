@@ -292,10 +292,12 @@ export const useSettingStore = defineStore("settingStore", {
           });
       });
     },
-    getAllErrors() {
+    getAllErrors(page = 1, pageSize = 10) {
       return new Promise((resolve, reject) => {
         this.loading = true;
-        API.get(import.meta.env.VITE_API_URL + "/api/Settings/GetErrorLogList")
+        API.get(import.meta.env.VITE_API_URL + "/api/Settings/GetErrorLogList", {
+          params: { page, pageSize },
+        })
           .then((response) => {
             this.loading = false;
             resolve(response);

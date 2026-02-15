@@ -3,12 +3,11 @@
         <!-- ─── Welcome Header ─── -->
         <div class="mb-6">
             <div class="text-h5 font-weight-bold text-grey-darken-3">Dashboard</div>
-            <div class="text-body-2 text-medium-emphasis">Overview of your driving school</div>
         </div>
 
         <!-- ─── Summary Cards ─── -->
-        <v-row>
-            <v-col cols="12" sm="6" md="4">
+        <v-row class="dashboard-summary-row">
+            <v-col class="dashboard-summary-col" cols="12" sm="6" md="4">
                 <v-card class="summary-card" elevation="1" rounded="lg">
                     <v-card-text class="d-flex align-center ga-4 pa-5">
                         <v-avatar color="#E8EAF6" size="56" rounded="lg">
@@ -21,7 +20,7 @@
                     </v-card-text>
                 </v-card>
             </v-col>
-            <v-col cols="12" sm="6" md="4">
+            <v-col class="dashboard-summary-col" cols="12" sm="6" md="4">
                 <v-card class="summary-card" elevation="1" rounded="lg">
                     <v-card-text class="d-flex align-center ga-4 pa-5">
                         <v-avatar color="#E0F2F1" size="56" rounded="lg">
@@ -34,7 +33,7 @@
                     </v-card-text>
                 </v-card>
             </v-col>
-            <v-col cols="12" sm="6" md="4">
+            <v-col class="dashboard-summary-col" cols="12" sm="6" md="4">
                 <v-card class="summary-card" elevation="1" rounded="lg">
                     <v-card-text class="d-flex align-center ga-4 pa-5">
                         <v-avatar color="#ECEFF1" size="56" rounded="lg">
@@ -97,5 +96,18 @@ userStore.getDashboardSummary()
 .summary-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+@media (max-width: 500px) {
+    :deep(.dashboard-summary-row > .dashboard-summary-col) {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        display: flex;
+        justify-content: center;
+    }
+
+    :deep(.dashboard-summary-col .summary-card) {
+        width: min(100%, 360px);
+    }
 }
 </style>

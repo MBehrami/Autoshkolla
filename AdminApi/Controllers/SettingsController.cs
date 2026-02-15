@@ -527,12 +527,19 @@ namespace QuizplusApi.Controllers
         ///</summary>
         [HttpGet]
         [Authorize(Roles="SuperAdmin,Admin")]
-        public async Task<ActionResult> GetErrorLogList()
+        public async Task<ActionResult> GetErrorLogList([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
-            {              
-                var list=await _errorLogRepo.SelectAll();
-                return Ok(list);           
+            {
+                if (page < 1) page = 1;
+                if (pageSize < 1) pageSize = 10;
+                if (pageSize > 100) pageSize = 100;
+
+                var query = _context.ErrorLogs.AsNoTracking().OrderByDescending(e => e.DateAdded);
+                var totalRecords = await query.CountAsync();
+                var list = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                return Ok(new { data = list, recordsTotal = totalRecords, recordsFiltered = totalRecords, page, pageSize });
             }
             catch (Exception ex)
             {              

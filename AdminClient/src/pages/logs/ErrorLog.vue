@@ -1,18 +1,36 @@
 <template>
     <v-container>
-        <v-data-table :headers="headersLog" :items="itemsLog" :loading="loading" class="elevation-2">
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Error Log</div>
+        </div>
+        <v-data-table
+            :headers="headersLog"
+            :items="itemsLog"
+            :loading="loading"
+            :page="page"
+            :items-per-page="pageSize"
+            :items-length="totalItems"
+            :items-per-page-options="pageSizeOptions"
+            class="elevation-2"
+            @update:page="onPageChange"
+            @update:items-per-page="onPageSizeChange"
+        >
             <template v-slot:top>
-                <v-toolbar density="comfortable" flat>
-                    <template v-slot:prepend>
-                        <div class="d-flex flex-row ga-1">
-                            <v-btn class="text-capitalize" variant="outlined"><download-excel :data="itemsLog"
-                                    :fields="headersExcel" type="xlsx" worksheet="all-data"
-                                    name="errors_excel.xlsx">Excel</download-excel></v-btn>
-                            <v-btn class="text-capitalize" variant="outlined"><download-excel :data="itemsLog"
-                                    :fields="headersExcel" type="csv" name="errors_csv.xls">Csv</download-excel></v-btn>
-                            <v-btn class="text-capitalize" variant="outlined" @click.stop="exportPdf">Pdf</v-btn>
+                <v-toolbar density="comfortable" flat class="error-toolbar">
+                    <div class="error-actions-wrap">
+                        <div class="error-export-group">
+                            <v-btn class="error-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                <download-excel :data="itemsLog" :fields="headersExcel" type="xlsx"
+                                    worksheet="all-data" name="errors_excel.xlsx">Excel</download-excel>
+                            </v-btn>
+                            <v-btn class="error-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                                <download-excel :data="itemsLog" :fields="headersExcel" type="csv"
+                                    name="errors_csv.xls">CSV</download-excel>
+                            </v-btn>
+                            <v-btn class="error-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                                @click.stop="exportPdf">PDF</v-btn>
                         </div>
-                    </template>
+                    </div>
                 </v-toolbar>
             </template>
         </v-data-table>
@@ -22,7 +40,7 @@
 <script setup>
 import { useSettingStore } from '@/store/SettingStore';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -44,6 +62,10 @@ const headersExcel = ref({
 })
 const headersPdf = ['Date Added', 'Error Code', 'Error Name', 'URL', 'Message']
 const itemsLog = ref([])
+const page = ref(1)
+const pageSize = ref(10)
+const totalItems = ref(0)
+const pageSizeOptions = [10, 25, 50]
 
 //export to pdf
 const exportPdf = () => {
@@ -58,9 +80,75 @@ const exportPdf = () => {
     doc.save('errors.pdf')
 }
 
-//get all errors
-settingStore.getAllErrors()
-    .then((response) => {
-        itemsLog.value = response.data
-    })
+const loadErrorLog = () => {
+    settingStore.getAllErrors(page.value, pageSize.value)
+        .then((response) => {
+            itemsLog.value = response.data?.data ?? []
+            totalItems.value = response.data?.recordsTotal ?? 0
+            const maxPage = Math.max(1, Math.ceil(totalItems.value / pageSize.value))
+            if (page.value > maxPage) {
+                page.value = maxPage
+            }
+        })
+}
+
+const onPageChange = (newPage) => {
+    if (page.value === newPage) return
+    page.value = newPage
+    loadErrorLog()
+}
+
+const onPageSizeChange = (newPageSize) => {
+    const parsed = Number(newPageSize)
+    const nextPageSize = pageSizeOptions.includes(parsed) ? parsed : 10
+    if (pageSize.value === nextPageSize) return
+    pageSize.value = nextPageSize
+    page.value = 1
+    loadErrorLog()
+}
+
+onMounted(() => {
+    loadErrorLog()
+})
 </script>
+
+<style scoped>
+.error-toolbar {
+    padding-inline: 4px;
+}
+
+.error-actions-wrap {
+    width: 100%;
+}
+
+.error-export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.error-action-btn {
+    border-radius: 12px;
+}
+
+.error-toolbar :deep(.v-btn),
+.error-toolbar :deep(.v-field) {
+    border-radius: 4px !important;
+}
+
+@media (max-width: 600px) {
+    .error-export-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .error-action-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+}
+</style>

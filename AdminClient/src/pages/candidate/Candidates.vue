@@ -1,5 +1,8 @@
 <template>
     <div class="candidates-container">
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Candidates</div>
+        </div>
         <v-data-table
             :headers="headers"
             :items="items"
@@ -8,21 +11,20 @@
         >
             <template v-slot:top>
                 <v-toolbar density="comfortable" flat class="candidates-toolbar">
-                    <template v-slot:prepend>
-                        <div class="d-flex flex-row align-center ga-2">
-                            <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
-                                name="candidates.xlsx">
-                                <v-btn icon variant="outlined" size="small" color="success">
-                                    <v-icon icon="mdi-file-excel"></v-icon>
-                                </v-btn>
-                            </download-excel>
-                            <v-btn icon variant="outlined" size="small" color="error" @click.stop="exportPdf">
-                                <v-icon icon="mdi-file-pdf"></v-icon>
+                    <div class="candidates-actions-wrap">
+                        <div class="candidates-export-group">
+                            <v-btn class="candidates-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
+                                    name="candidates.xlsx">Excel</download-excel>
                             </v-btn>
+                            <v-btn class="candidates-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                                <download-excel :data="items" :fields="headersExcel" type="csv"
+                                    name="candidates.csv">CSV</download-excel>
+                            </v-btn>
+                            <v-btn class="candidates-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                                @click.stop="exportPdf">PDF</v-btn>
                         </div>
-                    </template>
-                    <template v-slot:append>
-                        <div class="candidates-filters d-flex flex-wrap align-center ga-4">
+                        <div class="candidates-filters-wrap">
                             <v-text-field
                                 v-model="searchText"
                                 label="Kërko (Emri, Numri personal)"
@@ -60,7 +62,7 @@
                             <v-dialog v-model="dialog" max-width="1200" scrollable>
                                 <template v-slot:activator="{ props: activatorProps }">
                                     <v-btn v-if="!isInstructor" v-bind="activatorProps" color="primary" variant="elevated"
-                                        class="text-capitalize" prepend-icon="mdi-plus">
+                                        class="candidates-add-btn text-none" prepend-icon="mdi-plus">
                                         Regjistro kandidatë
                                     </v-btn>
                                 </template>
@@ -73,7 +75,7 @@
                                 />
                             </v-dialog>
                         </div>
-                    </template>
+                    </div>
                 </v-toolbar>
             </template>
             <template v-slot:item.actions="{ item }">
@@ -395,9 +397,39 @@ watch(dialog, (newVal) => {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.candidates-filters {
-    gap: 16px;
-    padding-left: 8px;
+.candidates-actions-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.candidates-export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.candidates-action-btn {
+    border-radius: 12px;
+}
+
+.candidates-filters-wrap {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.candidates-add-btn {
+    min-height: 40px;
+    border-radius: 12px;
+}
+
+.candidates-toolbar :deep(.v-btn),
+.candidates-toolbar :deep(.v-field) {
+    border-radius: 4px !important;
 }
 
 .candidates-filter-search {
@@ -434,15 +466,93 @@ watch(dialog, (newVal) => {
     min-height: 64px !important;
 }
 
+.candidates-table :deep(.v-toolbar__content) {
+    height: auto !important;
+    min-height: 0 !important;
+}
+
+@media (max-width: 1024px) and (min-width: 601px) {
+    .candidates-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .candidates-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .candidates-filter-search,
+    .candidates-filter-category,
+    .candidates-filter-year {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .candidates-add-btn {
+        width: 100%;
+        grid-column: 1 / -1;
+        min-height: 44px;
+    }
+}
+
 @media (max-width: 600px) {
     .candidates-container {
         padding: 8px !important;
     }
+
+    .candidates-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .candidates-export-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .candidates-action-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+
+    .candidates-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .candidates-filter-search,
+    .candidates-filter-category,
+    .candidates-filter-year {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .candidates-add-btn {
+        width: 100%;
+        min-height: 44px;
+    }
+
     .candidates-table :deep(thead th),
     .candidates-table :deep(tbody td) {
         padding: 6px 8px !important;
         font-size: 0.75rem !important;
     }
+
     .candidates-table :deep(.v-toolbar) {
         padding: 8px !important;
         flex-wrap: wrap;

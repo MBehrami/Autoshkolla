@@ -1,10 +1,13 @@
 <template>
     <div class="schedules-container">
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Schedules</div>
+        </div>
         <!-- ─── Toolbar ─── -->
-        <v-card elevation="2" rounded="lg" class="mb-4">
+        <v-card elevation="2" rounded="lg" class="mb-4 schedules-header-card">
             <v-toolbar density="comfortable" flat class="schedules-toolbar">
-                <template v-slot:prepend>
-                    <div class="d-flex align-center ga-2">
+                <div class="schedules-actions-wrap">
+                    <div class="schedules-nav-group">
                         <v-btn variant="outlined" size="small" @click="goToday">Today</v-btn>
                         <v-btn icon variant="text" size="small" @click="goPrev">
                             <v-icon icon="mdi-chevron-left"></v-icon>
@@ -12,11 +15,9 @@
                         <v-btn icon variant="text" size="small" @click="goNext">
                             <v-icon icon="mdi-chevron-right"></v-icon>
                         </v-btn>
-                        <span class="text-h6 font-weight-medium ml-2">{{ headerTitle }}</span>
+                        <span class="text-h6 font-weight-medium ml-2 sch-header-title">{{ headerTitle }}</span>
                     </div>
-                </template>
-                <template v-slot:append>
-                    <div class="d-flex flex-wrap align-center ga-3">
+                    <div class="schedules-controls-wrap">
                         <!-- Filters -->
                         <v-select v-if="isAdmin" v-model="filterInstructor" :items="instructorOptions"
                             item-title="fullName" item-value="userId" label="Instructor" variant="outlined"
@@ -27,17 +28,17 @@
                             clearable class="sch-filter" @update:model-value="loadEvents"></v-select>
 
                         <!-- View toggle -->
-                        <v-btn-toggle v-model="viewMode" mandatory density="compact" variant="outlined" color="primary">
+                        <v-btn-toggle v-model="viewMode" mandatory density="compact" variant="outlined" color="primary" class="sch-view-toggle">
                             <v-btn value="day" size="small">Day</v-btn>
                             <v-btn value="week" size="small">Week</v-btn>
                         </v-btn-toggle>
 
-                        <v-btn color="primary" variant="elevated" class="text-capitalize" prepend-icon="mdi-plus"
+                        <v-btn color="primary" variant="elevated" class="text-capitalize sch-add-btn" prepend-icon="mdi-plus"
                             @click="openCreateDialog(null)">
                             Add Event
                         </v-btn>
                     </div>
-                </template>
+                </div>
             </v-toolbar>
         </v-card>
 
@@ -584,9 +585,89 @@ onMounted(() => {
     background: rgba(255, 255, 255, 0.95);
 }
 
+.schedules-header-card {
+    overflow: visible !important;
+}
+
+.schedules-toolbar :deep(.v-toolbar__content) {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    flex-wrap: wrap !important;
+    row-gap: 8px;
+}
+
+.schedules-actions-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.schedules-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.schedules-controls-wrap {
+    margin-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 420px;
+    justify-content: flex-end;
+}
+
+.sch-header-title {
+    white-space: normal;
+    line-height: 1.2;
+}
+
+.sch-add-btn {
+    min-height: 40px;
+}
+
+.schedules-toolbar :deep(.v-btn),
+.schedules-toolbar :deep(.v-field),
+.schedules-toolbar :deep(.v-btn-toggle) {
+    border-radius: 4px !important;
+}
+
 .sch-filter {
     min-width: 160px;
     max-width: 180px;
+}
+
+@media (max-width: 1100px) {
+    .schedules-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .schedules-controls-wrap {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        justify-content: initial;
+    }
+
+    .sch-filter {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .sch-view-toggle,
+    .sch-add-btn {
+        width: 100%;
+    }
 }
 
 /* ─── Calendar grid (shared) ─── */
@@ -741,10 +822,48 @@ onMounted(() => {
         padding: 8px !important;
         flex-wrap: wrap;
     }
+
+    .schedules-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .schedules-nav-group {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, auto));
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sch-header-title {
+        grid-column: 1 / -1;
+        white-space: normal;
+        margin-left: 0 !important;
+    }
+
+    .schedules-controls-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
     .sch-filter {
         min-width: 100% !important;
         max-width: 100% !important;
     }
+
+    .sch-view-toggle,
+    .sch-add-btn {
+        width: 100%;
+    }
+
+    .sch-view-toggle :deep(.v-btn) {
+        flex: 1 1 auto;
+    }
+
     .calendar-card {
         overflow-x: auto !important;
     }

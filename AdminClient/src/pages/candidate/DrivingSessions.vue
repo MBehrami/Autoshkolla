@@ -1,5 +1,8 @@
 <template>
     <div class="vehicles-container">
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Driving Sessions</div>
+        </div>
         <!-- ─── Stats Cards ─── -->
         <v-row class="mb-4">
             <v-col cols="12" sm="4">
@@ -44,9 +47,9 @@
         </v-row>
 
         <!-- ─── Main layout: Calendar + Sessions ─── -->
-        <v-row>
+        <v-row class="ds-main-row">
             <!-- Left: Calendar -->
-            <v-col cols="12" md="4">
+            <v-col cols="12" md="4" class="ds-calendar-col">
                 <v-card elevation="2" rounded="lg">
                     <v-card-title class="d-flex align-center ga-2 pa-4">
                         <v-icon icon="mdi-calendar" color="primary"></v-icon>
@@ -67,7 +70,7 @@
             </v-col>
 
             <!-- Right: Sessions table -->
-            <v-col cols="12" md="8">
+            <v-col cols="12" md="8" class="ds-table-col">
                 <v-data-table
                     :headers="headers"
                     :items="sessions"
@@ -77,21 +80,20 @@
                 >
                     <template v-slot:top>
                         <v-toolbar density="comfortable" flat class="vehicles-toolbar">
-                            <template v-slot:prepend>
-                                <div class="d-flex flex-row align-center ga-2">
-                                    <download-excel :data="sessions" :fields="headersExcel" type="xlsx"
-                                        worksheet="all-data" name="driving-sessions.xlsx">
-                                        <v-btn icon variant="outlined" size="small" color="success">
-                                            <v-icon icon="mdi-file-excel"></v-icon>
-                                        </v-btn>
-                                    </download-excel>
-                                    <v-btn icon variant="outlined" size="small" color="error" @click.stop="exportPdf">
-                                        <v-icon icon="mdi-file-pdf"></v-icon>
+                            <div class="vehicles-actions-wrap">
+                                <div class="vehicles-export-group">
+                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                        <download-excel :data="sessions" :fields="headersExcel" type="xlsx"
+                                            worksheet="all-data" name="driving-sessions.xlsx">Excel</download-excel>
                                     </v-btn>
+                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                                        <download-excel :data="sessions" :fields="headersExcel" type="csv"
+                                            name="driving-sessions.csv">CSV</download-excel>
+                                    </v-btn>
+                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                                        @click.stop="exportPdf">PDF</v-btn>
                                 </div>
-                            </template>
-                            <template v-slot:append>
-                                <div class="d-flex flex-wrap align-center ga-3">
+                                <div class="vehicles-filters-wrap">
                                     <!-- Status filter -->
                                     <v-select
                                         v-model="filterStatus"
@@ -149,14 +151,14 @@
                                     <v-btn
                                         color="primary"
                                         variant="elevated"
-                                        class="text-capitalize"
+                                        class="vehicles-add-btn text-none"
                                         prepend-icon="mdi-plus"
                                         @click="openCreateDialog"
                                     >
                                         Add Session
                                     </v-btn>
                                 </div>
-                            </template>
+                            </div>
                         </v-toolbar>
                     </template>
 
@@ -884,6 +886,41 @@ onMounted(() => {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+.vehicles-actions-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vehicles-export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vehicles-action-btn {
+    border-radius: 4px !important;
+}
+
+.vehicles-filters-wrap {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.vehicles-add-btn {
+    min-height: 40px;
+    border-radius: 4px !important;
+}
+
+.vehicles-toolbar :deep(.v-btn),
+.vehicles-toolbar :deep(.v-field) {
+    border-radius: 4px !important;
+}
+
 .ds-filter-status {
     min-width: 140px;
     max-width: 160px;
@@ -896,6 +933,13 @@ onMounted(() => {
 
 .vehicles-table :deep(.v-data-table__wrapper) {
     width: 100%;
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+.vehicles-table :deep(.v-table__wrapper) {
+    overflow: visible !important;
+    max-height: none !important;
 }
 
 .vehicles-table :deep(thead th) {
@@ -916,18 +960,115 @@ onMounted(() => {
     min-height: 64px !important;
 }
 
+.vehicles-table :deep(.v-toolbar__content) {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+
+.vehicles-table :deep(.v-btn) {
+    border-radius: 4px !important;
+}
+
+@media (max-width: 960px) {
+    .vehicles-container {
+        padding: 0 !important;
+    }
+
+    .ds-main-row > .ds-calendar-col,
+    .ds-main-row > .ds-table-col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+@media (max-width: 1024px) and (min-width: 601px) {
+    .vehicles-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .vehicles-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .ds-filter-status,
+    .ds-filter-date {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .vehicles-add-btn {
+        width: 100%;
+        grid-column: 1 / -1;
+        min-height: 44px;
+    }
+}
+
 @media (max-width: 600px) {
     .vehicles-container {
         padding: 8px !important;
     }
+
+    .ds-main-row > .ds-calendar-col,
+    .ds-main-row > .ds-table-col {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+
+    .vehicles-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .vehicles-export-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .vehicles-action-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+
+    .vehicles-filters-wrap {
+        margin-left: 0;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .ds-filter-status,
+    .ds-filter-date {
+        width: 100%;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .vehicles-add-btn {
+        width: 100%;
+        min-height: 44px;
+    }
+
     .vehicles-toolbar {
         flex-wrap: wrap;
         padding: 8px !important;
-    }
-    .ds-filter-status,
-    .ds-filter-date {
-        min-width: 100% !important;
-        max-width: 100% !important;
     }
 }
 </style>

@@ -1,23 +1,28 @@
 <template>
     <v-container v-if="profileInfo.obj.roleName == 'Admin' || profileInfo.obj.roleName == 'SuperAdmin'">
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Faq</div>
+        </div>
         <v-data-table :headers="headersFaq" :items="itemsFaq" :loading="loading" class="elevation-2">
             <template v-slot:top>
-                <v-toolbar density="comfortable" flat>
-                    <template v-slot:prepend>
-                        <div class="d-flex flex-row ga-1">
-                            <v-btn class="text-capitalize" variant="outlined"><download-excel :data="itemsFaq"
-                                    :fields="headersExcel" type="xlsx" worksheet="all-data"
-                                    name="faq_excel.xlsx">Excel</download-excel></v-btn>
-                            <v-btn class="text-capitalize" variant="outlined"><download-excel :data="itemsFaq"
-                                    :fields="headersExcel" type="csv" name="faq_csv.xls">Csv</download-excel></v-btn>
-                            <v-btn class="text-capitalize" variant="outlined" @click.stop="exportPdf">Pdf</v-btn>
+                <v-toolbar density="comfortable" flat class="faq-toolbar">
+                    <div class="faq-actions-wrap">
+                        <div class="faq-export-group">
+                            <v-btn class="faq-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                <download-excel :data="itemsFaq" :fields="headersExcel" type="xlsx" worksheet="all-data"
+                                    name="faq_excel.xlsx">Excel</download-excel>
+                            </v-btn>
+                            <v-btn class="faq-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                                <download-excel :data="itemsFaq" :fields="headersExcel" type="csv"
+                                    name="faq_csv.xls">CSV</download-excel>
+                            </v-btn>
+                            <v-btn class="faq-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                                @click.stop="exportPdf">PDF</v-btn>
                         </div>
-                    </template>
-                    <template v-slot:append>
                         <v-dialog v-model="dialog" max-width="800">
                             <template v-slot:activator="{ props: activatorProps }">
                                 <v-btn v-bind="activatorProps" text="Add Faq" color="primary" variant="elevated"
-                                    class="text-capitalize"></v-btn>
+                                    prepend-icon="mdi-plus" class="faq-add-btn text-none"></v-btn>
                             </template>
                             <template v-slot:default="{ isActive }">
                                 <v-card :title="formTitle">
@@ -69,7 +74,7 @@
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
-                    </template>
+                    </div>
                 </v-toolbar>
             </template>
             <template v-slot:[`item.actions`]="{ item }">
@@ -81,6 +86,9 @@
         </v-data-table>
     </v-container>
     <v-container v-else>
+        <div class="mb-6">
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Faq</div>
+        </div>
         <v-expansion-panels>
             <v-expansion-panel v-for="item in itemsFaq" :key="item.faqId" :title="item.title" :text="item.description">
             </v-expansion-panel>
@@ -235,3 +243,66 @@ const formTitle = computed(() => {
     return editedIndex.value == -1 ? 'Add Faq' : 'Edit Faq'
 })
 </script>
+
+<style scoped>
+.faq-toolbar {
+    padding-inline: 4px;
+}
+
+.faq-actions-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.faq-export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.faq-action-btn {
+    border-radius: 12px;
+}
+
+.faq-add-btn {
+    margin-left: auto;
+    border-radius: 12px;
+    min-height: 40px;
+}
+
+.faq-toolbar :deep(.v-btn),
+.faq-toolbar :deep(.v-field) {
+    border-radius: 4px !important;
+}
+
+@media (max-width: 600px) {
+    .faq-actions-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding-block: 4px;
+    }
+
+    .faq-export-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .faq-action-btn {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+
+    .faq-add-btn {
+        width: 100%;
+        margin-left: 0;
+        min-height: 44px;
+    }
+}
+</style>
