@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Landing from "@/pages/signIn/Landing.vue";
 import SignIn from "@/pages/signIn/SignIn.vue";
 import PasswordChange from "@/pages/user/PasswordChange.vue";
 import Profile from "@/pages/user/Profile.vue";
@@ -35,13 +34,23 @@ function getRoleName() {
   }
 }
 
+// Helper: check if a valid session token exists
+function isAuthenticated() {
+  try {
+    const profile = JSON.parse(localStorage.getItem("profile") || "{}");
+    return !!profile?.token;
+  } catch {
+    return false;
+  }
+}
+
 const routes = [
-  { path: "/", name: "Landing", component: Landing },
+  { path: "/", redirect: () => (getRoleName() ? "/dashboard" : "/signIn") },
   {
     path: "/signIn",
     name: "SignIn",
     component: SignIn,
-    meta: { title: "Sign In" },
+    meta: { title: "Sign In", public: true },
   },
   { path: "/dashboard", name: "Dashboard", component: Dashboard },
   {
@@ -75,7 +84,7 @@ const routes = [
   },
 
   // ─── General pages ───
-  { path: "/errors", name: "OtherError", component: OtherError },
+  { path: "/errors", name: "OtherError", component: OtherError, meta: { public: true } },
   { path: "/contact", name: "Contact", component: Contact },
   { path: "/faq", name: "Faq", component: Faq },
   { path: "/candidates", name: "Candidates", component: Candidates },
@@ -88,6 +97,7 @@ const routes = [
     path: "/password-reset/:ref",
     name: "ResetPassword",
     component: ResetPassword,
+    meta: { public: true },
   },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound },
 ];
@@ -103,6 +113,16 @@ router.beforeEach((to, from, next) => {
   const role = getRoleName();
   const isSuperAdmin = role === "SuperAdmin";
   const isAdmin = role === "Admin";
+
+  // Redirect signed-in users away from sign-in page
+  if (to.name === "SignIn" && isAuthenticated()) {
+    return next({ name: "Dashboard" });
+  }
+
+  // Redirect unauthenticated users to sign-in for protected routes
+  if (!to.meta?.public && !isAuthenticated()) {
+    return next({ name: "SignIn" });
+  }
 
   // SuperAdmin-only routes
   if (to.meta?.superAdminOnly) {
@@ -122,7 +142,8 @@ router.beforeEach((to, from, next) => {
 });
 
 router.afterEach((to, from, failure) => {
-  document.title = to.name + " | " + appInitialData.siteTitle;
+  const settings = appInitialData ?? JSON.parse(localStorage.getItem("allSettings"));
+  document.title = "Autoshkolla Linda - " + to.name;
 });
 
 export default router;

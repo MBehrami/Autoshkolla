@@ -3,7 +3,7 @@
         <v-form v-model="valid" @submit.prevent="updateProfile">
             <v-row>
                 <v-col cols="12" md="6">
-                    <v-text-field v-model="profileForm.fullName" :rules="nameRules" label="Name" variant="underlined"
+                    <v-text-field v-model="profileForm.fullName" :rules="nameRules" label="Emri" variant="underlined"
                         prepend-icon="mdi-account" clearable required>
                     </v-text-field>
                 </v-col>
@@ -15,7 +15,7 @@
             </v-row>
             <v-row>
                 <v-col cols="12" md="6">
-                    <v-text-field v-model="profileForm.mobile" label="Mobile" variant="underlined"
+                    <v-text-field v-model="profileForm.mobile" label="Telefoni" variant="underlined"
                         prepend-icon="mdi-cellphone" clearable>
                     </v-text-field>
                 </v-col>
@@ -23,7 +23,7 @@
                     <v-menu v-model="birthMenu" :close-on-content-click="false" :nudge-right="40"
                         transition="scale-transition" offset-y min-width="auto">
                         <template v-slot:activator="{ props }">
-                            <v-text-field v-model="profileForm.dateOfBirth" label="Birth Date"
+                            <v-text-field v-model="profileForm.dateOfBirth" label="Data e Lindjes"
                                 prepend-icon="mdi-calendar" readonly v-bind="props" variant="underlined"
                                 clearable></v-text-field>
                         </template>
@@ -34,7 +34,7 @@
             </v-row>
             <v-row>
                 <v-col cols="12" md="6">
-                    <v-file-input accept="image/*" label="Profile Picture" prepend-icon="mdi-camera"
+                    <v-file-input accept="image/*" label="Fotoja e Profilit" prepend-icon="mdi-camera"
                         variant="underlined" @update:model-value="onImageChange" show-size>
                     </v-file-input>
                 </v-col>
@@ -45,7 +45,7 @@
             </v-row>
             <v-row>
                 <v-col cols="12" md="6">
-                    <v-btn :disabled="!valid" :loading="loading" text="Update" type="submit" color="grey-darken-3"
+                    <v-btn :disabled="!valid" :loading="loading" text="Përditëso" type="submit" color="grey-darken-3"
                         class="text-capitalize">
                     </v-btn>
                 </v-col>
@@ -69,12 +69,12 @@ const birthMenu = ref(false)
 const imagePreviewSrc = ref('')
 const valid = ref(false)
 const nameRules = [
-    (v) => !!v || 'Name is required',
-    (v) => (v && v.length >= 3) || 'Name must be more than 3 characters',
+    (v) => !!v || 'Emri është i detyrueshëm',
+    (v) => (v && v.length >= 3) || 'Emri duhet të jetë më i gjatë se 3 karaktere',
 ]
 const emailRules = [
-    (v) => !!v || 'E-mail is required',
-    (v) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+    (v) => !!v || 'Email është i detyrueshëm',
+    (v) => /.+@.+\..+/.test(v) || 'Email duhet të jetë i vlefshëm',
 ]
 const profileForm = ref({
     userId: localStorage.getItem('userId'),

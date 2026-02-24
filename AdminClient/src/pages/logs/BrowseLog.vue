@@ -19,15 +19,15 @@
                 <v-toolbar density="comfortable" flat class="browse-toolbar">
                     <div class="browse-actions-wrap">
                         <div class="browse-export-group">
-                            <v-btn class="browse-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                            <v-btn class="browse-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
                                 <download-excel :data="itemsBrowse" :fields="headersExcel" type="xlsx"
                                     worksheet="all-data" name="browse_excel.xlsx">Excel</download-excel>
                             </v-btn>
-                            <v-btn class="browse-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                            <v-btn class="browse-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
                                 <download-excel :data="itemsBrowse" :fields="headersExcel" type="csv"
                                     name="browse_csv.xls">CSV</download-excel>
                             </v-btn>
-                            <v-btn class="browse-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                            <v-btn class="browse-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
                                 @click.stop="exportPdf">PDF</v-btn>
                         </div>
                     </div>

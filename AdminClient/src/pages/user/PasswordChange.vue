@@ -3,17 +3,17 @@
         <v-form v-model="valid" @submit.prevent="changePassword">
             <v-row>
                 <v-col cols="12" md="6">
-                    <v-text-field v-model="passwordForm.password" :rules="passwordRules" label="Password"
+                    <v-text-field v-model="passwordForm.password" :rules="passwordRules" label="Fjalëkalimi"
                         variant="underlined" prepend-inner-icon="mdi-lock" type="password" required></v-text-field>
                 </v-col>
                 <v-col cols="12" md="6">
-                    <v-text-field v-model="passwordForm.passwordConfirm" :rules="passwordRules" label="Confirm Password"
+                    <v-text-field v-model="passwordForm.passwordConfirm" :rules="passwordRules" label="Konfirmo Fjalëkalimin"
                         variant="underlined" prepend-inner-icon="mdi-lock" type="password" required></v-text-field>
                 </v-col>
             </v-row>
             <v-row>
                 <v-col cols="12" md="6">
-                    <v-btn :disabled="!valid" :loading="loading" text="Change" type="submit" color="grey-darken-3"
+                    <v-btn :disabled="!valid" :loading="loading" text="Ndrysho" type="submit" color="grey-darken-3"
                         class="text-capitalize">
                     </v-btn>
                 </v-col>
@@ -32,8 +32,8 @@ const userStore = useUserStore()
 const settingStore = useSettingStore()
 const valid = ref(false)
 const passwordRules = [
-    (v) => !!v || 'Password is required',
-    (v) => (v && v.length >= 6) || 'Password must be more than 6 characters',
+    (v) => !!v || 'Fjalëkalimi është i detyrueshëm',
+    (v) => (v && v.length >= 6) || 'Fjalëkalimi duhet të jetë më i gjatë se 6 karaktere',
 ]
 const passwordForm = ref({
     password: '',
@@ -43,7 +43,7 @@ const { loading } = storeToRefs(userStore)
 
 const changePassword = () => {
     if (passwordForm.value.password !== passwordForm.value.passwordConfirm) {
-        settingStore.toggleSnackbar({ status: true, msg: 'Password not matched!' })
+        settingStore.toggleSnackbar({ status: true, msg: 'Fjalëkalimi nuk përputhet!' })
     } else {
         const obj = {
             password: passwordForm.value.password,

@@ -19,15 +19,15 @@
                 <v-toolbar density="comfortable" flat class="error-toolbar">
                     <div class="error-actions-wrap">
                         <div class="error-export-group">
-                            <v-btn class="error-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                            <v-btn class="error-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
                                 <download-excel :data="itemsLog" :fields="headersExcel" type="xlsx"
                                     worksheet="all-data" name="errors_excel.xlsx">Excel</download-excel>
                             </v-btn>
-                            <v-btn class="error-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                            <v-btn class="error-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
                                 <download-excel :data="itemsLog" :fields="headersExcel" type="csv"
                                     name="errors_csv.xls">CSV</download-excel>
                             </v-btn>
-                            <v-btn class="error-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                            <v-btn class="error-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
                                 @click.stop="exportPdf">PDF</v-btn>
                         </div>
                     </div>

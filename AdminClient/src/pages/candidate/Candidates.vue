@@ -13,15 +13,15 @@
                 <v-toolbar density="comfortable" flat class="candidates-toolbar">
                     <div class="candidates-actions-wrap">
                         <div class="candidates-export-group">
-                            <v-btn class="candidates-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                            <v-btn class="candidates-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
                                 <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
                                     name="candidates.xlsx">Excel</download-excel>
                             </v-btn>
-                            <v-btn class="candidates-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                            <v-btn class="candidates-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
                                 <download-excel :data="items" :fields="headersExcel" type="csv"
                                     name="candidates.csv">CSV</download-excel>
                             </v-btn>
-                            <v-btn class="candidates-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                            <v-btn class="candidates-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
                                 @click.stop="exportPdf">PDF</v-btn>
                         </div>
                         <div class="candidates-filters-wrap">

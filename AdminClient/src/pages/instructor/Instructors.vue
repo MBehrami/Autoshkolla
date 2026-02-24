@@ -13,11 +13,11 @@
                 <v-toolbar density="comfortable" flat class="instructors-toolbar">
                     <div class="instructors-actions-wrap">
                         <div class="instructors-export-group">
-                            <v-btn class="instructors-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                            <v-btn class="instructors-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
                                 <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="instructors"
                                     name="instructors.xlsx">Excel</download-excel>
                             </v-btn>
-                            <v-btn class="instructors-action-btn text-none" variant="outlined" prepend-icon="mdi-file-word"
+                            <v-btn class="instructors-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-word"
                                 @click.stop="exportWord">Word</v-btn>
                         </div>
                         <div class="instructors-filters-wrap">

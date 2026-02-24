@@ -82,15 +82,15 @@
                         <v-toolbar density="comfortable" flat class="vehicles-toolbar">
                             <div class="vehicles-actions-wrap">
                                 <div class="vehicles-export-group">
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-excel">
+                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
                                         <download-excel :data="sessions" :fields="headersExcel" type="xlsx"
                                             worksheet="all-data" name="driving-sessions.xlsx">Excel</download-excel>
                                     </v-btn>
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-delimited">
+                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
                                         <download-excel :data="sessions" :fields="headersExcel" type="csv"
                                             name="driving-sessions.csv">CSV</download-excel>
                                     </v-btn>
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" prepend-icon="mdi-file-pdf-box"
+                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
                                         @click.stop="exportPdf">PDF</v-btn>
                                 </div>
                                 <div class="vehicles-filters-wrap">

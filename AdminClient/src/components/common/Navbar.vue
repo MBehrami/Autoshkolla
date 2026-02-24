@@ -58,26 +58,9 @@
             <v-btn icon="mdi-lock" size="small" @click.stop="dialogLock = true"></v-btn>
             <v-btn @click.stop="toggleFullScreen" size="small"
                 :icon="props.isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"></v-btn>
-                        <v-menu>
+            <v-menu>
                 <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" size="small">
-                        <v-badge :content="notifications.recordsTotal">
-                            <v-icon icon="mdi-bell" size="large"></v-icon>
-                        </v-badge>
-                    </v-btn>
-                </template>
-                <v-list style="max-height: 300px" class="overflow-y-auto">
-                    <v-list-item v-for="(item, i) in notifications.data" :key="i" :value="item">
-                        <template v-slot:prepend>
-                            <v-icon icon="mdi-arrow-right-box"></v-icon>
-                        </template>
-                        <v-list-item-title>Login Time:{{ item.logInTime }}, IP:{{ item.ip }}, Browser:{{ item.browser }},
-                            OS:{{ item.platform }}</v-list-item-title>
-                    </v-list-item>
-                </v-list>
-            </v-menu><v-menu>
-                <template v-slot:activator="{ props }">
-                    <v-btn text="Personalize" class="text-capitalize" v-bind="props" size="small">
+                    <v-btn text="Cilësimet" class="text-capitalize" v-bind="props" size="small">
                         <template v-slot:prepend>
                             <v-icon icon="mdi-menu-down" size="large"></v-icon>
                         </template>
@@ -94,12 +77,12 @@
     </v-app-bar>
         <v-dialog v-model="dialogSignout" max-width="320" persistent>
         <v-card rounded="lg">
-            <v-card-title class="text-h6 pt-4">Want to leave?</v-card-title>
-            <v-card-text class="py-2 text-body-2 text-medium-emphasis">Press Sign Out to leave</v-card-text>
+            <v-card-title class="text-h6 pt-4">Dëshironi të largoheni?</v-card-title>
+            <v-card-text class="py-2 text-body-2 text-medium-emphasis">Shtypni Dalje për të larguar</v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn variant="text" class="text-capitalize" @click.stop="dialogSignout = false">Stay Here</v-btn>
-                <v-btn variant="flat" color="error" class="text-capitalize" @click.stop="signOut">Sign Out</v-btn>
+                <v-btn variant="text" class="text-capitalize" @click.stop="dialogSignout = false">Qendro këtu</v-btn>
+                <v-btn variant="flat" color="error" class="text-capitalize" @click.stop="signOut">Dalje</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
@@ -135,7 +118,6 @@ const dialogSignout = ref(false)
 const dialogLock = ref(false)
 const drawer = ref(true)
 const menus = ref([])
-const notifications = ref({})
 const router = useRouter()
 const userStore = useUserStore()
 const menuStore = useMenuStore()
@@ -150,13 +132,13 @@ const signInForm = ref({
     password: ''
 })
 const linksAdmin = ref([
-    { text: 'Profile', route: '/profile' },
-    { text: 'Password', route: '/password-change' }
+    { text: 'Profili', route: '/profile' },
+    { text: 'Fjalëkalimi', route: '/password-change' }
 ])
 const linksOthers = ref([
-    { text: 'Profile', route: '/profile' },
-    { text: 'Password', route: '/password-change' },
-    { text: 'Faqs', route: '/faq' }
+    { text: 'Profili', route: '/profile' },
+    { text: 'Fjalëkalimi', route: '/password-change' },
+    { text: 'Pyetjet e Shpeshta', route: '/faq' }
 ])
 const profileInfo = JSON.parse(localStorage.getItem('profile') || '{}')
 
@@ -426,19 +408,11 @@ menuStore.getSidebar(roleId)
         menus.value = getFallbackMenu()
     })
 
-//fetch notifications
-userStore.getNotifications(localStorage.getItem('userId'))
-    .then(res => {
-        if (res.status == 200) {
-            notifications.value = res.data
-        }
-    })
-
 //sign out
 const signOut = () => {
     userStore.updateHistory(localStorage.getItem('logCode'))
     userStore.signOut()
-    router.push({ name: 'Landing' })
+    router.push({ name: 'SignIn' })
 }
 </script>
 
