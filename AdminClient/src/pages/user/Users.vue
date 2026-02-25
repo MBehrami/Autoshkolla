@@ -124,10 +124,16 @@
                 </v-toolbar>
             </template>
             <template v-slot:[`item.actions`]="{ item }">
-                <v-icon size="small" class="mr-1" icon="mdi-pencil" @click="editItem(item)">
-                </v-icon>
-                <v-icon size="small" icon="mdi-delete" @click="deleteItem(item)">
-                </v-icon>
+                <div class="d-flex align-center ga-1">
+                    <v-btn icon variant="tonal" color="secondary" size="36" @click="editItem(item)">
+                        <v-icon size="20">mdi-pencil</v-icon>
+                        <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
+                    </v-btn>
+                    <v-btn icon variant="tonal" color="error" size="36" @click="deleteItem(item)">
+                        <v-icon size="20">mdi-delete</v-icon>
+                        <v-tooltip activator="parent" location="top">Fshi</v-tooltip>
+                    </v-btn>
+                </div>
             </template>
         </v-data-table>
     </v-container>

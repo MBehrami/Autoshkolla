@@ -2,7 +2,7 @@
     <div class="reset-page">
         <v-card min-width="350" class="py-4" elevation="10">
             <v-card-title class="text-center">
-                <div class="d-flex justify-center"><v-img @click="$router.push({ name: 'Landing' })" :src="logo"
+                <div class="d-flex justify-center"><v-img @click="$router.push({ name: 'SignIn' })" :src="logo"
                         max-height="50" max-width="70" class="cursor-pointer"></v-img></div>
                 <div class="text-h6 font-weight-bold">{{ appInfo.siteTitle }}</div>
             </v-card-title>

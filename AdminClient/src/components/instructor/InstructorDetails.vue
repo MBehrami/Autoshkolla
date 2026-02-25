@@ -1,7 +1,7 @@
 <template>
     <v-card>
         <v-card-title class="d-flex justify-space-between align-center">
-            <span>Instructor Details</span>
+            <span>Detajet e instruktorit</span>
             <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
         </v-card-title>
         <v-divider></v-divider>
@@ -11,46 +11,46 @@
         <v-card-text class="pa-4" v-else-if="instructor">
             <v-row>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.firstName" label="First Name" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="instructor.firstName" label="Emri" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.parentName" label="Parent Name" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="instructor.parentName" label="Emri i prindit" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.lastName" label="Last Name" variant="outlined" readonly></v-text-field>
-                </v-col>
-            </v-row>
-            <v-row>
-                <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.dateOfBirth" label="Date of Birth" variant="outlined" readonly></v-text-field>
-                </v-col>
-                <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.personalNumber" label="Personal Number" variant="outlined" readonly></v-text-field>
-                </v-col>
-                <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.phoneNumber" label="Phone" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="instructor.lastName" label="Mbiemri" variant="outlined" readonly></v-text-field>
                 </v-col>
             </v-row>
             <v-row>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.email" label="Email" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="instructor.dateOfBirth" label="Data e lindjes" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.scheduleType" label="Schedule Type" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="instructor.personalNumber" label="Numri personal" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
-                    <v-chip :color="instructor.isActive ? 'success' : 'default'" size="small">{{ instructor.isActive ? 'Active' : 'Inactive' }}</v-chip>
+                    <v-text-field :model-value="instructor.phoneNumber" label="Numri i telefonit" variant="outlined" readonly></v-text-field>
                 </v-col>
             </v-row>
             <v-row>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.licenseNumber" label="License Number" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="instructor.email" label="Emaili" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="instructor.licenseValidityDate" label="License Validity Date" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="instructor.scheduleType" label="Lloji i kontratës" variant="outlined" readonly></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4">
+                    <v-chip :color="instructor.isActive ? 'success' : 'default'" size="small">{{ instructor.isActive ? 'Aktiv' : 'Inactive' }}</v-chip>
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col cols="12" md="4">
+                    <v-text-field :model-value="instructor.licenseNumber" label="Numri i licensës" variant="outlined" readonly></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4">
+                    <v-text-field :model-value="instructor.licenseValidityDate" label="Data e skadimit" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4" v-if="instructor.licensePhotoPath">
-                    <span class="text-caption">License Photo</span>
+                    <span class="text-caption">Foto e licensës</span>
                     <v-img :src="licensePhotoUrl" max-height="120" contain class="mt-1"></v-img>
                 </v-col>
             </v-row>
@@ -58,7 +58,7 @@
         <v-divider></v-divider>
         <v-card-actions class="pa-4">
             <v-spacer></v-spacer>
-            <v-btn text="Close" color="primary" class="text-capitalize" @click="closeDialog"></v-btn>
+            <v-btn text="Mbyll" color="primary" class="text-capitalize" @click="closeDialog"></v-btn>
         </v-card-actions>
     </v-card>
 </template>

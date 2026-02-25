@@ -76,18 +76,15 @@
                 </v-chip>
             </template>
             <template v-slot:item.actions="{ item }">
-                <div class="d-flex align-center ga-2">
-                    <v-btn size="small" variant="tonal" color="secondary" class="text-capitalize" density="comfortable"
-                        prepend-icon="mdi-pencil" @click.stop="editItem(item)">
-                        Edit
+                <div class="d-flex align-center ga-1">
+                    <v-btn icon variant="tonal" color="secondary" size="36" @click.stop="editItem(item)">
+                        <v-icon size="20">mdi-pencil</v-icon>
+                        <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
                     </v-btn>
-                    <v-btn size="small" variant="tonal"
-                        :color="item.isActive ? 'warning' : 'success'"
-                        class="text-capitalize" density="comfortable"
-                        :prepend-icon="item.isActive ? 'mdi-close-circle-outline' : 'mdi-check-circle-outline'"
-                        :loading="togglingId === item.vehicleId"
-                        @click.stop="toggleStatus(item)">
-                        {{ item.isActive ? 'Deactivate' : 'Activate' }}
+                    <v-btn icon variant="tonal" :color="item.isActive ? 'warning' : 'success'" size="36"
+                        :loading="togglingId === item.vehicleId" @click.stop="toggleStatus(item)">
+                        <v-icon size="20">{{ item.isActive ? 'mdi-close-circle-outline' : 'mdi-check-circle-outline' }}</v-icon>
+                        <v-tooltip activator="parent" location="top">{{ item.isActive ? 'Deactivate' : 'Activate' }}</v-tooltip>
                     </v-btn>
                 </div>
             </template>

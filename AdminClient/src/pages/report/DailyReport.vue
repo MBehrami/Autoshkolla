@@ -156,15 +156,17 @@
                             </v-chip>
                         </template>
                         <template v-slot:item.actions="{ item }">
-                            <v-btn v-if="!item.reversalOfEntryId && item.sourceType !== 'Reversal'"
-                                icon variant="text" size="x-small" color="warning"
-                                @click="openReverseDialog(item)" :disabled="dayStatus === 'Closed' && !!selectedDateDisplay">
-                                <v-icon icon="mdi-undo-variant" size="18"></v-icon>
-                                <v-tooltip activator="parent" location="top">Reverse</v-tooltip>
-                            </v-btn>
-                            <v-chip v-if="item.reversalOfEntryId" size="x-small" color="warning" variant="tonal">
-                                Reversed
-                            </v-chip>
+                            <div class="d-flex align-center ga-1">
+                                <v-btn v-if="!item.reversalOfEntryId && item.sourceType !== 'Reversal'"
+                                    icon variant="tonal" size="36" color="warning"
+                                    @click="openReverseDialog(item)" :disabled="dayStatus === 'Closed' && !!selectedDateDisplay">
+                                    <v-icon size="20">mdi-undo-variant</v-icon>
+                                    <v-tooltip activator="parent" location="top">Reverse</v-tooltip>
+                                </v-btn>
+                                <v-chip v-if="item.reversalOfEntryId" size="x-small" color="warning" variant="tonal">
+                                    Reversed
+                                </v-chip>
+                            </div>
                         </template>
                     </v-data-table>
                 </v-window-item>
@@ -188,15 +190,17 @@
                             </v-chip>
                         </template>
                         <template v-slot:item.actions="{ item }">
-                            <v-btn v-if="!item.reversalOfEntryId && item.sourceType !== 'Reversal'"
-                                icon variant="text" size="x-small" color="warning"
-                                @click="openReverseDialog(item)" :disabled="dayStatus === 'Closed' && !!selectedDateDisplay">
-                                <v-icon icon="mdi-undo-variant" size="18"></v-icon>
-                                <v-tooltip activator="parent" location="top">Reverse</v-tooltip>
-                            </v-btn>
-                            <v-chip v-if="item.reversalOfEntryId" size="x-small" color="warning" variant="tonal">
-                                Reversed
-                            </v-chip>
+                            <div class="d-flex align-center ga-1">
+                                <v-btn v-if="!item.reversalOfEntryId && item.sourceType !== 'Reversal'"
+                                    icon variant="tonal" size="36" color="warning"
+                                    @click="openReverseDialog(item)" :disabled="dayStatus === 'Closed' && !!selectedDateDisplay">
+                                    <v-icon size="20">mdi-undo-variant</v-icon>
+                                    <v-tooltip activator="parent" location="top">Reverse</v-tooltip>
+                                </v-btn>
+                                <v-chip v-if="item.reversalOfEntryId" size="x-small" color="warning" variant="tonal">
+                                    Reversed
+                                </v-chip>
+                            </div>
                         </template>
                     </v-data-table>
                 </v-window-item>

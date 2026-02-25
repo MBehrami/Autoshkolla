@@ -11,7 +11,7 @@
             </template>
             <template v-else-if="candidate">
                 <!-- Read-only candidate info -->
-                <h3 class="text-subtitle-1 font-weight-medium mb-3">Candidate information (read-only)</h3>
+                <h3 class="text-subtitle-1 font-weight-medium mb-3">Informatat e kandidatit (read-only)</h3>
                 <v-row dense>
                     <v-col cols="12" md="4">
                         <v-text-field :model-value="candidate.serialNumber" label="Serial Number (Nr. Rendor)" variant="outlined" density="compact" readonly hide-details></v-text-field>

@@ -1,7 +1,7 @@
 <template>
     <div class="candidates-container">
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Candidates</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Kandidatët</div>
         </div>
         <v-data-table
             :headers="headers"

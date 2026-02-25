@@ -1,7 +1,7 @@
 <template>
     <div class="vehicles-container">
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Driving Sessions</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Vozitjet</div>
         </div>
         <!-- ─── Stats Cards ─── -->
         <v-row class="mb-4">
@@ -13,7 +13,7 @@
                         </v-avatar>
                         <div>
                             <div class="text-h5 font-weight-bold">{{ selectedDateDisplay }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Selected Date</div>
+                            <div class="text-body-2 text-medium-emphasis">Data e zgjedhur</div>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -26,7 +26,7 @@
                         </v-avatar>
                         <div>
                             <div class="text-h5 font-weight-bold">{{ stats.totalSessions }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Sessions Scheduled</div>
+                            <div class="text-body-2 text-medium-emphasis">Vozitjet të planifikuara</div>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -39,7 +39,7 @@
                         </v-avatar>
                         <div>
                             <div class="text-h5 font-weight-bold">{{ formatCurrency(stats.totalPayments) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Total Payments</div>
+                            <div class="text-body-2 text-medium-emphasis">Shuma e pagesave</div>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -53,7 +53,7 @@
                 <v-card elevation="2" rounded="lg">
                     <v-card-title class="d-flex align-center ga-2 pa-4">
                         <v-icon icon="mdi-calendar" color="primary"></v-icon>
-                        <span>Calendar</span>
+                        <span>Kalendar</span>
                     </v-card-title>
                     <v-divider></v-divider>
                     <v-date-picker
@@ -64,7 +64,7 @@
                         @update:model-value="handleDateChange"
                     ></v-date-picker>
                     <v-card-text class="text-center text-body-2 text-medium-emphasis py-2">
-                        Click a date to view driving sessions
+                        Kliko një datë për të shikuar vozitjet
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -76,7 +76,7 @@
                     :items="sessions"
                     :loading="loading"
                     class="elevation-2 vehicles-table"
-                    no-data-text="No driving sessions for this date"
+                    no-data-text="Nuk ka vozitje për këtë datë"
                 >
                     <template v-slot:top>
                         <v-toolbar density="comfortable" flat class="vehicles-toolbar">
@@ -100,7 +100,7 @@
                                         :items="statusFilterOptions"
                                         item-title="label"
                                         item-value="value"
-                                        label="Status"
+                                        label="Statusi"
                                         variant="outlined"
                                         density="compact"
                                         hide-details
@@ -113,7 +113,7 @@
                                         <template v-slot:activator="{ props: menuProps }">
                                             <v-text-field
                                                 :model-value="fromDateDisplay"
-                                                label="From date"
+                                                label="Nga data"
                                                 variant="outlined"
                                                 density="compact"
                                                 prepend-inner-icon="mdi-calendar"
@@ -133,7 +133,7 @@
                                         <template v-slot:activator="{ props: menuProps }">
                                             <v-text-field
                                                 :model-value="toDateDisplay"
-                                                label="To date"
+                                                label="Deri në datë"
                                                 variant="outlined"
                                                 density="compact"
                                                 prepend-inner-icon="mdi-calendar"
@@ -155,7 +155,7 @@
                                         prepend-icon="mdi-plus"
                                         @click="openCreateDialog"
                                     >
-                                        Add Session
+                                        Regjistro vozitjen
                                     </v-btn>
                                 </div>
                             </div>
@@ -200,26 +200,13 @@
                     <!-- Actions -->
                     <template v-slot:[`item.actions`]="{ item }">
                         <div class="d-flex align-center ga-1">
-                            <v-btn
-                                icon
-                                variant="text"
-                                size="small"
-                                color="primary"
-                                @click="openEditDialog(item)"
-                            >
-                                <v-icon icon="mdi-pencil-outline" size="18"></v-icon>
-                                <v-tooltip activator="parent" location="top">Edit</v-tooltip>
+                            <v-btn icon variant="tonal" color="primary" size="36" @click="openEditDialog(item)">
+                                <v-icon size="20">mdi-pencil</v-icon>
+                                <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
                             </v-btn>
-                            <v-btn
-                                v-if="isAdmin"
-                                icon
-                                variant="text"
-                                size="small"
-                                color="error"
-                                @click="confirmDelete(item)"
-                            >
-                                <v-icon icon="mdi-delete-outline" size="18"></v-icon>
-                                <v-tooltip activator="parent" location="top">Delete</v-tooltip>
+                            <v-btn v-if="isAdmin" icon variant="tonal" color="error" size="36" @click="confirmDelete(item)">
+                                <v-icon size="20">mdi-delete</v-icon>
+                                <v-tooltip activator="parent" location="top">Fshi</v-tooltip>
                             </v-btn>
                         </div>
                     </template>
@@ -232,7 +219,7 @@
             <v-card rounded="lg">
                 <v-card-title class="d-flex align-center ga-2 pa-4">
                     <v-icon icon="mdi-car-clock" color="primary"></v-icon>
-                    <span>Register Driving Session</span>
+                    <span>Regjistro vozitjen</span>
                 </v-card-title>
                 <v-divider></v-divider>
                 <v-card-text class="pa-6">
@@ -244,7 +231,7 @@
                                     :items="candidateOptions"
                                     item-title="fullName"
                                     item-value="candidateId"
-                                    label="Candidate (Kandidati) *"
+                                    label="Kandidati *"
                                     variant="outlined"
                                     density="compact"
                                     :rules="[v => !!v || 'Required']"
@@ -257,7 +244,7 @@
                                     :items="vehicleOptions"
                                     item-title="label"
                                     item-value="vehicleId"
-                                    label="Vehicle (Automjeti) *"
+                                    label="Automjeti *"
                                     variant="outlined"
                                     density="compact"
                                     :rules="[v => !!v || 'Required']"
@@ -269,7 +256,7 @@
                                     <template v-slot:activator="{ props: menuProps }">
                                         <v-text-field
                                             :model-value="form.drivingDate"
-                                            label="Driving Date (Data e vozitjes) *"
+                                            label="Data e vozitjes *"
                                             variant="outlined"
                                             density="compact"
                                             prepend-inner-icon="mdi-calendar"
@@ -285,7 +272,7 @@
                                 <v-select
                                     v-model="form.drivingTime"
                                     :items="timeSlots"
-                                    label="Driving Time (Ora e vozitjes) *"
+                                    label="Ora e vozitjes *"
                                     variant="outlined"
                                     density="compact"
                                     :rules="[v => !!v || 'Required']"
@@ -295,7 +282,7 @@
                             <v-col cols="12" md="6">
                                 <v-text-field
                                     v-model.number="form.paymentAmount"
-                                    label="Payment Amount (Shuma e pages)"
+                                    label="Shuma e pagesës"
                                     variant="outlined"
                                     density="compact"
                                     type="number"
@@ -308,7 +295,7 @@
                                     <template v-slot:activator="{ props: menuProps }">
                                         <v-text-field
                                             :model-value="form.paymentDate"
-                                            label="Payment Date (Data e pages)"
+                                            label="Data e pagesës"
                                             variant="outlined"
                                             density="compact"
                                             prepend-inner-icon="mdi-calendar"
@@ -330,9 +317,9 @@
                 <v-divider></v-divider>
                 <v-card-actions class="pa-4">
                     <v-spacer></v-spacer>
-                    <v-btn variant="text" @click="dialog = false">Cancel</v-btn>
+                    <v-btn variant="text" @click="dialog = false">Anulo</v-btn>
                     <v-btn color="primary" variant="elevated" :loading="saving" @click="saveSession">
-                        Save
+                        Ruaj
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -343,26 +330,26 @@
             <v-card rounded="lg">
                 <v-card-title class="d-flex align-center ga-2 pa-4">
                     <v-icon icon="mdi-pencil" color="primary"></v-icon>
-                    <span>Edit Driving Session</span>
+                    <span>Ndrysho vozitjen</span>
                 </v-card-title>
                 <v-divider></v-divider>
                 <v-card-text class="pa-6">
                     <!-- Read-only info -->
                     <v-row class="mb-2">
                         <v-col cols="6">
-                            <div class="text-body-2 text-medium-emphasis">Candidate</div>
+                            <div class="text-body-2 text-medium-emphasis">Kandidati</div>
                             <div class="font-weight-medium">{{ editTarget?.candidateName }}</div>
                         </v-col>
                         <v-col cols="6">
-                            <div class="text-body-2 text-medium-emphasis">Date / Time</div>
+                            <div class="text-body-2 text-medium-emphasis">Data / Ora</div>
                             <div class="font-weight-medium">{{ editTarget?.drivingDate }} {{ editTarget?.drivingTime }}</div>
                         </v-col>
                         <v-col cols="6">
-                            <div class="text-body-2 text-medium-emphasis">Vehicle</div>
+                            <div class="text-body-2 text-medium-emphasis">Automjeti</div>
                             <div class="font-weight-medium">{{ editTarget?.vehicleDisplay }}</div>
                         </v-col>
                         <v-col cols="6">
-                            <div class="text-body-2 text-medium-emphasis">Payment</div>
+                            <div class="text-body-2 text-medium-emphasis">Pagesa</div>
                             <div class="font-weight-medium">{{ formatCurrency(editTarget?.paymentAmount) }}</div>
                         </v-col>
                     </v-row>
@@ -375,7 +362,7 @@
                                     :items="statusOptions"
                                     item-title="label"
                                     item-value="value"
-                                    label="Status"
+                                    label="Statusi"
                                     variant="outlined"
                                     density="compact"
                                     clearable
@@ -385,7 +372,7 @@
                             <v-col cols="12">
                                 <v-text-field
                                     v-model="editForm.examiner"
-                                    label="Examiner (Egzamineri)"
+                                    label="Egzamineri"
                                     variant="outlined"
                                     density="compact"
                                     prepend-inner-icon="mdi-account-tie"
@@ -400,9 +387,9 @@
                 <v-divider></v-divider>
                 <v-card-actions class="pa-4">
                     <v-spacer></v-spacer>
-                    <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
+                    <v-btn variant="text" @click="editDialog = false">Anulo</v-btn>
                     <v-btn color="primary" variant="elevated" :loading="editSaving" @click="saveEdit">
-                        Update
+                        Ndrysho
                     </v-btn>
                 </v-card-actions>
             </v-card>
@@ -411,12 +398,12 @@
         <!-- Delete confirm -->
         <v-dialog v-model="deleteDialog" max-width="400">
             <v-card rounded="lg">
-                <v-card-title>Confirm Delete</v-card-title>
-                <v-card-text>Are you sure you want to delete this driving session?</v-card-text>
+                <v-card-title>Konfirmo fshirjen</v-card-title>
+                <v-card-text>Jeni të sigurt që dëshironi të fshini këtë vozitje?</v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-                    <v-btn color="error" variant="elevated" :loading="deleting" @click="doDelete">Delete</v-btn>
+                    <v-btn color="error" variant="elevated" :loading="deleting" @click="doDelete">Fshi</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -561,14 +548,14 @@ function clearToDate() {
 // ─── Sessions table ───
 const headers = [
     { title: '#', key: 'index', width: '50px', sortable: false },
-    { title: 'Date', key: 'drivingDate', width: '110px' },
-    { title: 'Time', key: 'drivingTime', width: '100px' },
-    { title: 'Candidate', key: 'candidateName' },
-    { title: 'Vehicle', key: 'vehicleDisplay' },
-    { title: 'Payment', key: 'paymentAmount', width: '100px' },
-    { title: 'Status', key: 'status', width: '110px' },
-    { title: 'Examiner', key: 'examiner', width: '130px' },
-    { title: 'Actions', key: 'actions', sortable: false, width: '100px' },
+    { title: 'Data', key: 'drivingDate', width: '110px' },
+    { title: 'Ora', key: 'drivingTime', width: '100px' },
+    { title: 'Kandidati', key: 'candidateName' },
+    { title: 'Automjeti', key: 'vehicleDisplay' },
+    { title: 'Pagesa', key: 'paymentAmount', width: '100px' },
+    { title: 'Statusi', key: 'status', width: '110px' },
+    { title: 'Egzamineri', key: 'examiner', width: '130px' },
+    { title: 'Veprimet', key: 'actions', sortable: false, width: '100px' },
 ];
 
 const headersExcel = {

@@ -1,18 +1,18 @@
 <template>
     <v-card>
         <v-card-title class="d-flex justify-space-between align-center sticky-header">
-            <span>{{ isEdit ? 'Edit Instructor' : 'Add Instructor' }}</span>
+            <span>{{ isEdit ? 'Ndrysho instruktorin' : 'Regjistro instruktorin' }}</span>
             <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="instructor-form-body">
             <v-form v-model="valid" ref="formRef" @submit.prevent="saveInstructor">
-                <h3 class="form-section-title">Personal information</h3>
+                <h3 class="form-section-title">Të dhënat personale</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.firstName"
-                            label="First Name"
+                            label="Emri"
                             :rules="[rules.required]"
                             variant="outlined"
                             density="comfortable"
@@ -24,7 +24,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.parentName"
-                            label="Parent Name"
+                            label="Emri i prindit"
                             variant="outlined"
                             clearable
                         ></v-text-field>
@@ -32,7 +32,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.lastName"
-                            label="Last Name"
+                            label="Mbiemri"
                             :rules="[rules.required]"
                             variant="outlined"
                             clearable
@@ -47,7 +47,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     :model-value="dobDisplay"
-                                    label="Date of Birth (dd.MM.yyyy)"
+                                    label="Data e lindjes (dd.MM.yyyy)"
                                     variant="outlined"
                                     density="comfortable"
                                     prepend-inner-icon="mdi-calendar"
@@ -70,7 +70,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.personalNumber"
-                            label="Personal Number (max 10 digits)"
+                            label="Numri personal"
                             :rules="[rules.required, rules.personalNumber]"
                             variant="outlined"
                             clearable
@@ -80,19 +80,19 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.phoneNumber"
-                            label="Phone Number"
+                            label="Numri i telefonit"
                             variant="outlined"
                             clearable
                         ></v-text-field>
                     </v-col>
                 </v-row>
 
-                <h3 class="form-section-title">Account & schedule</h3>
+                <h3 class="form-section-title">Llogaria & orari</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.email"
-                            label="Email (used for login)"
+                            label="Emaili (përdorur për hyrjen)"
                             :rules="[rules.required]"
                             variant="outlined"
                             type="email"
@@ -104,7 +104,7 @@
                     <v-col cols="12" md="4" v-if="!isEdit">
                         <v-text-field
                             v-model="form.initialPassword"
-                            label="Initial Password"
+                            label="Fjalëkalimi fillestar"
                             :rules="isEdit ? [] : [rules.required, rules.password]"
                             variant="outlined"
                             type="password"
@@ -116,7 +116,7 @@
                         <v-select
                             v-model="form.scheduleType"
                             :items="scheduleOptions"
-                            label="Schedule Type"
+                            label="Lloji i kontratës"
                             variant="outlined"
                             clearable
                         ></v-select>
@@ -128,7 +128,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.licenseNumber"
-                            label="License Number"
+                            label="Numri i licensës"
                             variant="outlined"
                             clearable
                         ></v-text-field>
@@ -139,7 +139,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     :model-value="licenseValidityDisplay"
-                                    label="License Validity (dd.MM.yyyy)"
+                                    label="Data e skadimit (dd.MM.yyyy)"
                                     variant="outlined"
                                     density="comfortable"
                                     prepend-inner-icon="mdi-calendar"
@@ -159,13 +159,13 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             :model-value="form.licensePhotoPath ? 'File selected' : ''"
-                            label="License Photo"
+                            label="Foto e licensës"
                             variant="outlined"
                             readonly
                             hint="Upload via Settings or use path"
                         ></v-text-field>
                         <input type="file" ref="licenseFileRef" accept="image/*" class="d-none" @change="onLicenseFileChange" />
-                        <v-btn size="small" variant="outlined" class="mt-1" @click="triggerLicenseUpload">Choose file</v-btn>
+                        <v-btn size="small" variant="outlined" class="mt-1" @click="triggerLicenseUpload">Ngarko dokumentin</v-btn>
                     </v-col>
                 </v-row>
             </v-form>
@@ -173,8 +173,8 @@
         <v-divider></v-divider>
         <v-card-actions class="sticky-footer pa-4">
             <v-spacer></v-spacer>
-            <v-btn text="Cancel" color="primary" class="text-capitalize" @click="closeDialog"></v-btn>
-            <v-btn :disabled="!valid" :loading="loading" text="Save" color="grey-darken-4" class="text-capitalize" @click="saveInstructor"></v-btn>
+            <v-btn text="Anulo" color="primary" class="text-capitalize" @click="closeDialog"></v-btn>
+            <v-btn :disabled="!valid" :loading="loading" text="Ruaj" color="grey-darken-4" class="text-capitalize" @click="saveInstructor"></v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -201,7 +201,7 @@ const { loading } = storeToRefs(instructorStore)
 const valid = ref(false)
 const formRef = ref(null)
 const licenseFileRef = ref(null)
-const scheduleOptions = ['Full-time', 'Part-time']
+const scheduleOptions = ['Orar të plotë', 'Honorar']
 
 const dobMenu = ref(false)
 const dobModel = ref(null)

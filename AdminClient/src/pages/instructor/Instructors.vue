@@ -1,7 +1,7 @@
 <template>
     <div class="instructors-container">
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Instructors</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Instruktorët</div>
         </div>
         <v-data-table
             :headers="headers"
@@ -23,7 +23,7 @@
                         <div class="instructors-filters-wrap">
                             <v-text-field
                                 v-model="searchText"
-                                label="Search (First Name, Last Name)"
+                                label="Kërko (Emri, Mbiemri)"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -35,7 +35,7 @@
                                 <template v-slot:activator="{ props: activatorProps }">
                                     <v-btn v-bind="activatorProps" color="primary" variant="elevated"
                                         class="instructors-add-btn text-none" prepend-icon="mdi-plus">
-                                        Add Instructor
+                                        Regjistro Instruktor
                                     </v-btn>
                                 </template>
                                 <InstructorForm
@@ -56,25 +56,19 @@
                 </v-chip>
             </template>
             <template v-slot:item.actions="{ item }">
-                <div class="d-flex align-center flex-wrap ga-2">
-                    <v-btn size="small" variant="tonal" color="primary" class="text-capitalize" density="comfortable"
-                        prepend-icon="mdi-eye" @click.stop="viewItem(item)">
-                        View
+                <div class="d-flex align-center ga-1">
+                    <v-btn icon variant="tonal" color="primary" size="36" @click.stop="viewItem(item)">
+                        <v-icon size="20">mdi-eye</v-icon>
+                        <v-tooltip activator="parent" location="top">Shiko</v-tooltip>
                     </v-btn>
-                    <v-btn size="small" variant="tonal" color="secondary" class="text-capitalize" density="comfortable"
-                        prepend-icon="mdi-pencil" @click.stop="editItem(item)">
-                        Edit
+                    <v-btn icon variant="tonal" color="secondary" size="36" @click.stop="editItem(item)">
+                        <v-icon size="20">mdi-pencil</v-icon>
+                        <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
                     </v-btn>
-                    <v-tooltip :text="item.isActive ? 'Set Inactive' : 'Set Active'">
-                        <template v-slot:activator="{ props: tipProps }">
-                            <v-btn v-bind="tipProps" size="small" variant="tonal"
-                                :color="item.isActive ? 'error' : 'success'" class="text-capitalize" density="comfortable"
-                                :prepend-icon="item.isActive ? 'mdi-account-off' : 'mdi-account-check'"
-                                @click.stop="toggleActive(item)">
-                                {{ item.isActive ? 'Deactivate' : 'Activate' }}
-                            </v-btn>
-                        </template>
-                    </v-tooltip>
+                    <v-btn icon variant="tonal" :color="item.isActive ? 'error' : 'success'" size="36" @click.stop="toggleActive(item)">
+                        <v-icon size="20">{{ item.isActive ? 'mdi-account-off' : 'mdi-account-check' }}</v-icon>
+                        <v-tooltip activator="parent" location="top">{{ item.isActive ? 'Deactivate' : 'Activate' }}</v-tooltip>
+                    </v-btn>
                 </div>
             </template>
         </v-data-table>
@@ -98,22 +92,22 @@ const settingStore = useSettingStore()
 const { loading } = storeToRefs(instructorStore)
 
 const headers = ref([
-    { title: 'Full Name', key: 'fullName' },
-    { title: 'Phone', key: 'phoneNumber' },
-    { title: 'Schedule', key: 'scheduleType' },
-    { title: 'License No.', key: 'licenseNumber' },
-    { title: 'License Valid', key: 'licenseValidityDate' },
-    { title: 'Status', key: 'isActive' },
-    { title: 'Actions', key: 'actions', sortable: false }
+    { title: 'Emri i plotë', key: 'fullName' },
+    { title: 'Numri i telefonit', key: 'phoneNumber' },
+    { title: 'Lloji i kontratës', key: 'scheduleType' },
+    { title: 'Numri i licensës', key: 'licenseNumber' },
+    { title: 'Data e skadimit', key: 'licenseValidityDate' },
+    { title: 'Statusi', key: 'isActive' },
+    { title: 'Veprimet', key: 'actions', sortable: false }
 ])
 
 const headersExcel = {
-    'Full Name': 'fullName',
-    'Phone': 'phoneNumber',
-    'Schedule': 'scheduleType',
-    'License No.': 'licenseNumber',
-    'License Valid': 'licenseValidityDate',
-    'Status': 'statusLabel'
+    'Emri i plotë': 'fullName',
+    'Numri i telefonit': 'phoneNumber',
+    'Tipi i orarit': 'scheduleType',
+    'Numri i licensës': 'licenseNumber',
+    'Data e skadimit': 'licenseValidityDate',
+    'Statusi': 'statusLabel'
 }
 
 const items = ref([])
@@ -201,7 +195,7 @@ const toggleActive = (item) => {
 }
 
 function exportWord() {
-    const cols = ['Full Name', 'Phone', 'Schedule', 'License No.', 'License Valid', 'Status']
+    const cols = ['Emri i plotë', 'Numri i telefonit', 'Tipi i orarit', 'Numri i licensës', 'Data e skadimit', 'Statusi']
     const rows = items.value.map((r) => [
         r.fullName || '',
         r.phoneNumber || '',
