@@ -107,7 +107,7 @@ const router = createRouter({
   routes,
 });
 
-const appInitialData = JSON.parse(localStorage.getItem("allSettings"));
+const appInitialData = JSON.parse(localStorage.getItem("allSettings")) || {};
 
 router.beforeEach((to, from, next) => {
   const role = getRoleName();
@@ -143,7 +143,22 @@ router.beforeEach((to, from, next) => {
 
 router.afterEach((to, from, failure) => {
   const settings = appInitialData ?? JSON.parse(localStorage.getItem("allSettings"));
-  document.title = "Autoshkolla Linda - " + to.name;
+
+  // Page title: use site title from settings or fall back to default
+  const siteTitle = settings?.siteTitle || "Autoshkolla Linda";
+  document.title = `${siteTitle} - ${to.name}`;
+
+  // Dynamic favicon: update to API-uploaded favicon when available, else keep static
+  const faviconEl = document.getElementById("favicon");
+  if (faviconEl) {
+    if (settings?.faviconPath) {
+      faviconEl.type = "image/x-icon";
+      faviconEl.href = import.meta.env.VITE_API_URL + settings.faviconPath;
+    } else {
+      faviconEl.type = "image/svg+xml";
+      faviconEl.href = "/favicon.svg";
+    }
+  }
 });
 
 export default router;

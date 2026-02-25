@@ -2,9 +2,9 @@
     <div class="login-page">
         <v-card elevation="10" rounded="shaped" min-width="380" min-height="450">
             <v-card-title class="text-center">
-                <div class="d-flex justify-center"><v-img @click="switchToLanding" :src="logoSrc" max-height="50" max-width="70" class="cursor-pointer"></v-img></div>                
-                <div class="text-h6 font-weight-bold">{{ appInitialData.siteTitle }}</div>
-                <div class="text-subtitle-2 text-grey-darken-1">{{ appInitialData.welComeMessage }}</div>
+                <div class="d-flex justify-center my-5"><v-img @click="switchToLanding" :src="logoSrc" max-width="150" class="cursor-pointer"></v-img></div>                
+                <!-- <div class="text-h6 font-weight-bold">{{ appInitialData.siteTitle }}</div> -->
+                <div class="text-subtitle-2 text-grey-darken-1">Sistemi i menaxhimit</div>
             </v-card-title>
             <v-card-text>
                 <v-form v-model="signInFormValid" @submit.prevent="submitSignInForm">
@@ -20,7 +20,7 @@
                     <v-text-field
                     v-model="signInForm.password"
                     :rules="passwordRules"
-                    label="Password"
+                    label="Fjalëkalimi"
                     variant="underlined"
                     append-inner-icon="mdi-lock"
                     type="password"
@@ -32,7 +32,7 @@
                     :loading="loading"
                     block
                     rounded
-                    text="Sign In"
+                    text="Hyr"
                     type="submit"
                     color="grey-darken-3"
                     class="text-capitalize mt-4"
@@ -42,7 +42,7 @@
             </v-card-text>
             <v-card-actions>
                 <v-row justify="center">
-                    <v-btn @click="forget=true" variant="text" text="Forget Password" class="text-capitalize"></v-btn>
+                    <v-btn @click="forget=true" variant="text" text="Keni harruar fjalëkalimin?" class="text-capitalize"></v-btn>
                 </v-row>               
             </v-card-actions>
 
@@ -55,7 +55,7 @@
                 >
                     <v-card-title class="text-center">
                         <div class="d-flex justify-center"><v-img @click="switchToLanding" :src="logoSrc" max-height="50" max-width="70" class="cursor-pointer"></v-img></div>                
-                        <div class="text-h6 font-weight-bold">Forget Password</div>
+                        <div class="text-h6 font-weight-bold">Rivendos Fjalëkalimin</div>
                     </v-card-title>
                     <v-form v-model="forgetPasswordFormValid" @submit.prevent="submitForgetPasswordForm">
                         <v-card-text>
@@ -72,7 +72,7 @@
                         <v-card-actions class="pt-0">
                             <v-btn
                             variant="text"
-                            text="Close"
+                            text="Mbyll"
                             color="grey-darken-3"
                             class="text-capitalize"
                             @click="forget=false"
@@ -82,7 +82,7 @@
                             <v-btn
                             :disabled="!forgetPasswordFormValid"
                             variant="text"
-                            text="Send Password"
+                            text="Dërgo Fjalëkalimin"
                             type="submit"
                             color="grey-darken-3"
                             class="text-capitalize"
@@ -103,8 +103,6 @@ import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/UserStore';
 import { useSettingStore } from '@/store/SettingStore';
 import { ref } from 'vue';
-import logo from '@/assets/vue-admin-logo.png'
-import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 const browser=detect()
@@ -115,12 +113,12 @@ const signInFormValid=ref(false)
 const forgetPasswordFormValid=ref(false)
 const forget=ref(false)
 const passwordRules = [
-    (v) => !!v || 'Password is required',
-    (v) => (v && v.length >= 6) || 'Password must be more than 6 characters',
+    (v) => !!v || 'Fjalëkalimi është i detyrueshëm',
+    (v) => (v && v.length >= 6) || 'Fjalëkalimi duhet të ketë më shumë se 6 karaktere',
 ]
 const emailRules = [
-    (v) => !!v || 'E-mail is required',
-    (v) => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+    (v) => !!v || 'Email-i është i detyrueshëm',
+    (v) => /.+@.+\..+/.test(v) || 'Email-i duhet të jetë i vlefshëm',
 ]
 const router=useRouter()
 const forgetEmail=ref('')
@@ -128,12 +126,10 @@ const signInForm=ref({
     email:'',
     password:''
 })
-const appInitialData=JSON.parse(localStorage.getItem('allSettings'))
+const appInitialData=JSON.parse(localStorage.getItem('allSettings')) || {}
 
 //get logo
-const logoSrc=computed(()=>{
-    return appInitialData.logoPath==''? logo :import.meta.env.VITE_API_URL+appInitialData.logoPath
-})
+const logoSrc='/linda_logo.png'
 
 //Logo click — already on sign-in, nothing to do
 const switchToLanding=()=>{
@@ -143,7 +139,7 @@ const switchToLanding=()=>{
 //password forget submit
 const submitForgetPasswordForm=()=>{
     if(appInitialData.defaultEmail=='' || appInitialData.password=='' || appInitialData.host=='' || appInitialData.port==null){
-        settingStore.toggleSnackbar({status:true,msg:'Email settings not done yet! Do that then send email from here.'})
+        settingStore.toggleSnackbar({status:true,msg:'Cilësimet e email-it nuk janë konfiguruar ende! Konfiguroni ato dhe pastaj dërgoni email nga këtu.'})
     }else{
         userStore.userInfoForForgetPassword(forgetEmail.value)
         .then((response)=>{
@@ -160,7 +156,7 @@ const submitForgetPasswordForm=()=>{
                     if(response.status==200){
                         settingStore.toggleSnackbar({status:true,msg:response.data.responseMsg})
                     }else{
-                        settingStore.toggleSnackbar({status:true,msg:"Can't send email now! please try later."})
+                        settingStore.toggleSnackbar({status:true,msg:"Nuk mund të dërgohet email-i tani! Ju lutem provoni më vonë."})
                     }                  
                 })
             }else if(response.status==202){
@@ -202,7 +198,11 @@ const login=()=>{
         }
     })
     .catch(error=>{
-        console.log('error',error)
+        const msg = error?.response?.data?.responseMsg
+          || (error?.message === 'Network Error'
+            ? 'Serveri nuk është i arritshëm. Ju lutem kontrolloni lidhjen tuaj.'
+            : 'Hyrja dështoi. Ju lutem provoni përsëri.')
+        settingStore.toggleSnackbar({ status: true, msg })
     })
 }
 </script>

@@ -22,16 +22,22 @@ import { useUserStore } from './store/UserStore';
 import { useSettingStore } from './store/SettingStore';
 import { useRouter } from 'vue-router'
 import { computed, onErrorCaptured, onMounted, onUnmounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 const fullscreenElement = ref(null)
 const fullscreenStatus = ref(false)
 const userStore = useUserStore()
 const settingStore = useSettingStore()
 const router = useRouter()
+const route = useRoute()
 
-//navbar visibility check
+// Dashboard layout (navbar, sidebar, footer) should NEVER show on public pages
 const isVisible = computed({
-  get: () => userStore.visible,
+  get: () => {
+    // Hide layout on any public route (sign-in, password-reset, error pages)
+    if (route.meta?.public) return false
+    return userStore.visible
+  },
   set: (newVal) => userStore.setVisibility(newVal)
 })
 
@@ -72,25 +78,71 @@ onErrorCaptured((err) => {
   console.log('onErrorCaptured', err)
 })
 
-//http errors – log and redirect only for unexpected server errors (5xx / network),
-//but re-throw 4xx so callers (.catch) can handle validation / auth errors gracefully
+// Guard flag to prevent recursive interceptor loops when the API is unreachable
+let isLoggingError = false
+
 API.interceptors.response.use(
   (response) => response,
   (err) => {
     const status = err?.response?.status || err?.request?.status || 0
     localStorage.setItem('http_error', status)
-    const objErrorLog = {
-      status: status,
-      statusText: err?.response?.statusText || err?.request?.statusText,
-      url: err?.response?.config?.url || err?.request?.responseURL,
-      message: err.message,
-      addedBy: localStorage.getItem('userId') || 0
+
+    // ── 401 Unauthorized — clear session, redirect to sign-in (no full-page reload) ──
+    if (status === 401) {
+      localStorage.removeItem('profile')
+      localStorage.removeItem('userId')
+      localStorage.removeItem('logCode')
+      localStorage.removeItem('visible')
+      userStore.visible = false
+      // Only redirect if not already on sign-in to avoid loops
+      if (router.currentRoute.value.name !== 'SignIn') {
+        router.replace({ name: 'SignIn' })
+      }
+      return Promise.reject(err)
     }
-    // Only redirect for 5xx / network errors; let 400/401/403/404 be handled by callers
-    if (status >= 500 || status === 0) {
-      settingStore.createErrorLog(objErrorLog)
+
+    // ── Network error (status 0) — API/database unreachable ──
+    if (status === 0) {
+      // Don't try to log to an unreachable API — just show a notification
+      settingStore.toggleSnackbar({
+        status: true,
+        msg: 'Server is unreachable. Please check your connection and try again.'
+      })
+      // Clear session and hide dashboard layout, then go to sign-in
+      localStorage.removeItem('profile')
+      localStorage.removeItem('userId')
+      localStorage.removeItem('logCode')
+      localStorage.removeItem('visible')
+      userStore.visible = false
+      if (router.currentRoute.value.name !== 'SignIn') {
+        router.replace({ name: 'SignIn' })
+      }
+      return Promise.reject(err)
+    }
+
+    // ── 5xx server errors — try to log once, then redirect ──
+    if (status >= 500) {
+      const objErrorLog = {
+        status: status,
+        statusText: err?.response?.statusText || err?.request?.statusText,
+        url: err?.response?.config?.url || err?.request?.responseURL,
+        message: err.message,
+        addedBy: localStorage.getItem('userId') || 0
+      }
+      // Guard: only attempt one error log at a time to prevent recursive calls
+      if (!isLoggingError) {
+        isLoggingError = true
+        settingStore.createErrorLog(objErrorLog)
+          .catch(() => { /* API may be down — silently ignore */ })
+          .finally(() => { isLoggingError = false })
+      }
+      settingStore.toggleSnackbar({
+        status: true,
+        msg: 'A server error occurred. Please try again later.'
+      })
       router.push({ name: 'OtherError' })
     }
+
     return Promise.reject(err)
   }
 )

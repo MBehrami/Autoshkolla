@@ -11,17 +11,7 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-API.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("profile");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("logCode");
-      window.location.replace("/signIn");
-    }
-    return Promise.reject(error);
-  }
-);
+// 401 handling is done in App.vue's global interceptor to avoid
+// full-page reloads that cause infinite refresh loops.
 
 export default API;
