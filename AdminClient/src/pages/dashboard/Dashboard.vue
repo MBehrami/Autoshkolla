@@ -2,7 +2,7 @@
     <v-container fluid class="dashboard-container pa-4 pa-md-6">
         <!-- ─── Welcome Header ─── -->
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Dashboard</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Paneli</div>
         </div>
 
         <!-- ─── Summary Cards ─── -->
@@ -15,7 +15,7 @@
                         </v-avatar>
                         <div>
                             <div class="text-h4 font-weight-bold text-grey-darken-3">{{ summary.totalCandidates }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Total Candidates</div>
+                            <div class="text-body-2 text-medium-emphasis">Gjithsej Kandidatë</div>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -28,7 +28,7 @@
                         </v-avatar>
                         <div>
                             <div class="text-h4 font-weight-bold text-grey-darken-3">{{ summary.totalInstructors }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Total Instructors</div>
+                            <div class="text-body-2 text-medium-emphasis">Gjithsej Instruktorë</div>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -41,7 +41,7 @@
                         </v-avatar>
                         <div>
                             <div class="text-h4 font-weight-bold text-grey-darken-3">{{ summary.activeVehicles }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Active Vehicles</div>
+                            <div class="text-body-2 text-medium-emphasis">Automjete Aktive</div>
                         </div>
                     </v-card-text>
                 </v-card>

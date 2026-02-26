@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Error Log</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Regjistri i Gabimeve</div>
         </div>
         <v-data-table
             :headers="headersLog"
@@ -47,20 +47,20 @@ import autoTable from 'jspdf-autotable';
 const settingStore = useSettingStore()
 const { loading } = storeToRefs(settingStore)
 const headersLog = ref([
-    { title: 'Date-Time', key: 'dateAdded' },
-    { title: 'Error Code', key: 'status' },
-    { title: 'Error Name', key: 'statusText' },
+    { title: 'Data-Ora', key: 'dateAdded' },
+    { title: 'Kodi i Gabimit', key: 'status' },
+    { title: 'Emri i Gabimit', key: 'statusText' },
     { title: 'URL', key: 'url' },
-    { title: 'Message', key: 'message' },
+    { title: 'Mesazhi', key: 'message' },
 ])
 const headersExcel = ref({
-    'Date Added': 'dateAdded',
-    'Error Code': 'status',
-    'Error Name': 'statusText',
+    'Data e Shtuar': 'dateAdded',
+    'Kodi i Gabimit': 'status',
+    'Emri i Gabimit': 'statusText',
     'URL': 'url',
-    'Message': 'message'
+    'Mesazhi': 'message'
 })
-const headersPdf = ['Date Added', 'Error Code', 'Error Name', 'URL', 'Message']
+const headersPdf = ['Data e Shtuar', 'Kodi i Gabimit', 'Emri i Gabimit', 'URL', 'Mesazhi']
 const itemsLog = ref([])
 const page = ref(1)
 const pageSize = ref(10)
@@ -72,7 +72,7 @@ const exportPdf = () => {
     const doc = new jsPDF({
         orientation: 'landscape'
     })
-    doc.text('Error Log', 14, 10)
+    doc.text('Regjistri i Gabimeve', 14, 10)
     autoTable(doc, {
         head: [headersPdf],
         body: itemsLog.value.map((row) => [row.dateAdded, row.status, row.statusText, row.url, row.message])

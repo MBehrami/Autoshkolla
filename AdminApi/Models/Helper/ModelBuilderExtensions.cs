@@ -241,34 +241,6 @@ namespace AdminApi.Models.Helper
                     },                   
                     new AppMenu
                     {
-                        MenuID=11,
-                        ParentID=0,
-                        MenuTitle="FAQ",
-                        URL="/faq",
-                        IsSubMenu=0,
-                        SortOrder=5,
-                        IconClass="mdi-frequently-asked-questions",
-                        IsActive=false,
-                        DateAdded=DateTime.Now,
-                        IsMigrationData=true,
-                        AddedBy=1                 
-                    },                   
-                    new AppMenu
-                    {
-                        MenuID=12,
-                        ParentID=0,
-                        MenuTitle="Contact",
-                        URL="/contact",
-                        IsSubMenu=0,
-                        SortOrder=6,
-                        IconClass="mdi-contacts",
-                        IsActive=false,
-                        DateAdded=DateTime.Now,
-                        IsMigrationData=true,
-                        AddedBy=1                 
-                    },                   
-                    new AppMenu
-                    {
                         MenuID=13,
                         ParentID=0,
                         MenuTitle="App Settings",
@@ -512,32 +484,6 @@ namespace AdminApi.Models.Helper
                         WelcomeEmailHeader="Welcome Header",
                         WelcomeEmailBody="Welcome Body",
                         Version=1,
-                        IsActive=true,
-                        DateAdded=DateTime.Now,                       
-                        AddedBy=1,                       
-                        IsMigrationData=true
-                    });
-            });
-
-            modelBuilder.Entity<Faq>(b=>{
-                b.HasKey(e=>e.FaqId);  
-                b.Property(b=>b.FaqId).HasIdentityOptions(startValue:3);              
-                b.HasData(
-                    new Faq
-                    {
-                        FaqId=1,
-                        Title="What are the purposes of this app?",
-                        Description="Vue Admin is a single page admin template developed by Vue with .Net core 8 API. It’s covered most common features that you need to start a project.",                                             
-                        IsActive=true,
-                        DateAdded=DateTime.Now,                       
-                        AddedBy=1,                       
-                        IsMigrationData=true
-                    },
-                    new Faq
-                    {
-                        FaqId=2,
-                        Title="Why this app differs from others?",
-                        Description="The most amazing part of this template is, you have five popular Relational database connectivity options here. You have flexibility to choose Sql server, Mysql, Sqlite, PostgreSql and Oracle 12c+.",                                             
                         IsActive=true,
                         DateAdded=DateTime.Now,                       
                         AddedBy=1,                       

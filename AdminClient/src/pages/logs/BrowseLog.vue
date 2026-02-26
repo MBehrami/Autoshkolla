@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Browse Log</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Regjistri i Shfletimit</div>
         </div>
         <v-data-table
             :headers="headersBrowse"
@@ -47,26 +47,26 @@ import autoTable from 'jspdf-autotable';
 const userStore = useUserStore()
 const { loading } = storeToRefs(userStore)
 const headersBrowse = ref([
-    { title: 'Name', key: 'fullName' },
+    { title: 'Emri', key: 'fullName' },
     { title: 'Email', key: 'email' },
-    { title: 'LogIn Time', key: 'logInTime' },
-    { title: 'LogOut Time', key: 'logOutTime' },
+    { title: 'Koha e Hyrjes', key: 'logInTime' },
+    { title: 'Koha e Daljes', key: 'logOutTime' },
     { title: 'IP', key: 'ip' },
-    { title: 'Browser', key: 'browser' },
-    { title: 'Browser Version', key: 'browserVersion' },
-    { title: 'OS', key: 'platform' },
+    { title: 'Shfletuesi', key: 'browser' },
+    { title: 'Versioni i Shfletuesit', key: 'browserVersion' },
+    { title: 'Sistemi Operues', key: 'platform' },
 ])
 const headersExcel = ref({
-    'Name': 'fullName',
+    'Emri': 'fullName',
     'Email': 'email',
-    'Log In Time': 'logInTime',
-    'Log Out Time': 'logOutTime',
+    'Koha e Hyrjes': 'logInTime',
+    'Koha e Daljes': 'logOutTime',
     'IP': 'ip',
-    'Browser': 'browser',
-    'Browser Version': 'browserVersion',
-    'OS': 'platform'
+    'Shfletuesi': 'browser',
+    'Versioni i Shfletuesit': 'browserVersion',
+    'Sistemi Operues': 'platform'
 })
-const headersPdf = ['Name', 'Email', 'Log In Time', 'Log Out Time', 'IP', 'Browser', 'Browser Version', 'OS']
+const headersPdf = ['Emri', 'Email', 'Koha e Hyrjes', 'Koha e Daljes', 'IP', 'Shfletuesi', 'Versioni i Shfletuesit', 'Sistemi Operues']
 const itemsBrowse = ref([])
 const page = ref(1)
 const pageSize = ref(10)
@@ -78,7 +78,7 @@ const exportPdf = () => {
     const doc = new jsPDF({
         orientation: 'landscape'
     })
-    doc.text('Browsing History', 14, 10)
+    doc.text('Historiku i Shfletimit', 14, 10)
     autoTable(doc, {
         head: [headersPdf],
         body: itemsBrowse.value.map((row) => [row.fullName, row.email, row.logInTime, row.logOutTime, row.ip, row.browser, row.browserVersion, row.platform])

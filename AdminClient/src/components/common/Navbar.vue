@@ -137,8 +137,7 @@ const linksAdmin = ref([
 ])
 const linksOthers = ref([
     { text: 'Profili', route: '/profile' },
-    { text: 'Fjalëkalimi', route: '/password-change' },
-    { text: 'Pyetjet e Shpeshta', route: '/faq' }
+    { text: 'Fjalëkalimi', route: '/password-change' }
 ])
 const profileInfo = JSON.parse(localStorage.getItem('profile') || '{}')
 
