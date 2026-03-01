@@ -43,7 +43,11 @@ builder.Services.AddCors(options=>
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "http://46.225.108.159",
-                "http://46.225.108.159:80"
+                "https://46.225.108.159",
+                "http://www.dmsautoshkollalinda.com",
+                "https://www.dmsautoshkollalinda.com",
+                "http://dmsautoshkollalinda.com",
+                "https://dmsautoshkollalinda.com"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -604,7 +608,7 @@ using (var scope = app.Services.CreateScope())
                     (N'Autoshkolla',N'Welcome to Autoshkolla',N'© 2026 Autoshkolla Linda',N'',N'',
                      N'#455a64',N'#455a64',N'#455a64',N'#f5f5f5',
                      1,1,1,
-                     N'http://46.225.108.159',N'',N'Autoshkolla',N'',N'',587,1,
+                     N'https://www.dmsautoshkollalinda.com',N'',N'Autoshkolla',N'',N'',587,1,
                      1,0,1,GETUTCDATE());
             END
         ").GetAwaiter().GetResult();

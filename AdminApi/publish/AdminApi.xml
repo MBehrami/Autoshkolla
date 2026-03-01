@@ -278,7 +278,7 @@
             Dashboard summary: total candidates, instructors, active vehicles
             </summary>
         </member>
-        <member name="M:AdminApi.Controllers.UsersController.GetBrowseList(System.Int32)">
+        <member name="M:AdminApi.Controllers.UsersController.GetBrowseList(System.Int32,System.Int32,System.Int32)">
             <summary>
             Get Browsing Log
             </summary>
@@ -553,7 +553,7 @@
             Create Contact-us
             </summary>
         </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.GetErrorLogList">
+        <member name="M:QuizplusApi.Controllers.SettingsController.GetErrorLogList(System.Int32,System.Int32)">
             <summary>
             Get Error Log List
             </summary>
