@@ -1,7 +1,7 @@
 <template>
     <v-container>
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Menus</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Të gjitha menytë</div>
         </div>
         <v-data-table :headers="headers" :items="items" :loading="loading" class="elevation-2">
             <template v-slot:top>
@@ -21,7 +21,7 @@
                         </div>
                         <v-dialog v-model="dialog" max-width="800">
                             <template v-slot:activator="{ props: activatorProps }">
-                                <v-btn v-bind="activatorProps" text="Add Menu" color="primary" variant="elevated"
+                                <v-btn v-bind="activatorProps" text="Shto Menu" color="primary" variant="elevated"
                                     prepend-icon="mdi-plus" class="menu-add-btn text-none"></v-btn>
                             </template>
                             <template v-slot:default="{ isActive }">
@@ -30,14 +30,14 @@
                                         <v-card-text>
                                             <v-row>
                                                 <v-col cols="12" md="4">
-                                                    <v-text-field v-model="menuForm.menuTitle" label="Name"
+                                                    <v-text-field v-model="menuForm.menuTitle" label="Emri"
                                                         :rules="[rules.required]" variant="underlined" clearable
                                                         required>
                                                     </v-text-field>
                                                 </v-col>
                                                 <v-col cols="12" md="4">
                                                     <v-select v-model="parentMenuSelect" :items="itemsParentMenu"
-                                                        item-title="text" item-value="id" label="Parent"
+                                                        item-title="text" item-value="id" label="Menyja prind"
                                                         variant="underlined" :rules="[rules.required]"
                                                         @update:model-value="chkOption" return-object clearable
                                                         required>
@@ -51,13 +51,13 @@
                                             </v-row>
                                             <v-row v-if="visible">
                                                 <v-col cols="12" md="4">
-                                                    <v-text-field v-model="menuForm.sortOrder" label="Order"
+                                                    <v-text-field v-model="menuForm.sortOrder" label="Renditja"
                                                         :rules="[rules.required]" variant="underlined" type="number"
                                                         clearable required>
                                                     </v-text-field>
                                                 </v-col>
                                                 <v-col cols="12" md="4">
-                                                    <v-text-field v-model="menuForm.iconClass" label="Icon Class"
+                                                    <v-text-field v-model="menuForm.iconClass" label="Klasa e Ikonës"
                                                         variant="underlined" :rules="[rules.required]" clearable
                                                         required>
                                                     </v-text-field>
@@ -66,10 +66,10 @@
                                         </v-card-text>
                                         <v-card-actions>
                                             <v-row justify="end">
-                                                <v-btn text="Cancel" color="primary" class="text-capitalize"
+                                                <v-btn text="Anulo" color="primary" class="text-capitalize"
                                                     @click="isActive.value = false">
                                                 </v-btn>
-                                                <v-btn :disabled="!valid" :loading="loading" text="Save" type="submit"
+                                                <v-btn :disabled="!valid" :loading="loading" text="Ruaj" type="submit"
                                                     color="grey-darken-4" class="text-capitalize">
                                                 </v-btn>
                                             </v-row>
@@ -80,13 +80,13 @@
                         </v-dialog>
                         <v-dialog v-model="dialogDelete" max-width="330">
                             <v-card>
-                                <v-card-title>Are you sure to delete this item?</v-card-title>
+                                <v-card-title class="text-wrap">A jeni i sigurt që dëshironi të fshini këtë të dhënë ?</v-card-title>
                                 <v-card-actions>
                                     <v-row justify="end" class="pr-4">
-                                        <v-btn text="Cancel" color="primary" class="text-capitalize"
+                                        <v-btn text="Anulo" color="primary" class="text-capitalize"
                                             @click="dialogDelete = false">
                                         </v-btn>
-                                        <v-btn :loading="loading" text="Delete" color="grey-darken-4"
+                                        <v-btn :loading="loading" text="Fshi" color="grey-darken-4"
                                             class="text-capitalize" @click="deleteConform">
                                         </v-btn>
                                     </v-row>
@@ -134,24 +134,24 @@ const menuStore = useMenuStore()
 const settingStore = useSettingStore()
 const { loading } = storeToRefs(menuStore)
 const headers = ref([
-    { title: 'Title', key: 'menuTitle' },
+    { title: 'Titulli', key: 'menuTitle' },
     { title: 'URL', key: 'url' },
-    { title: 'Is Sub Menu?', key: 'isSubMenu' },
-    { title: 'Order', key: 'sortOrder' },
-    { title: 'Icon Class', key: 'iconClass' },
-    { title: 'Parent Menu', key: 'parentMenuName' },
-    { title: 'Actions', key: 'actions', sortable: false }
+    { title: 'Është Nën-Meny?', key: 'isSubMenu' },
+    { title: 'Renditja', key: 'sortOrder' },
+    { title: 'Klasa e Ikonës', key: 'iconClass' },
+    { title: 'Menyja Prind', key: 'parentMenuName' },
+    { title: 'Veprimet', key: 'actions', sortable: false }
 ])
 const headersExcel = ref({
     'Id': 'menuID',
-    'Title': 'menuTitle',
+    'Titulli': 'menuTitle',
     'URL': 'url',
-    'Is Sub Menu?': 'isSubMenu',
-    'Menu Order': 'sortOrder',
-    'Icon Class': 'iconClass',
-    'Parent Menu': 'parentMenuName',
+    'Është Nën-Meny?': 'isSubMenu',
+    'Renditja e Menusë': 'sortOrder',
+    'Klasa e Ikonës': 'iconClass',
+    'Menyja Prind': 'parentMenuName',
 })
-const headersPdf = ['Id', 'Title', 'URL', 'Is Sub Menu?', 'Menu Order', 'Icon Class', 'Parent Menu']
+const headersPdf = ['Id', 'Titulli', 'URL', 'Është Nën-Meny?', 'Renditja e Menusë', 'Klasa e Ikonës', 'Menyja Prind']
 const items = ref([])
 const itemsParentMenu = ref([])
 const parentMenuSelect = ref(null)
@@ -161,8 +161,8 @@ const valid = ref(false)
 const visible = ref(false)
 const editedIndex = ref(-1)
 const rules = {
-    required: (v) => !!v || 'Required',
-    lengthChk: (v) => (v && v.length >= 3) || 'Name must be greater than or equal to 3 characters'
+    required: (v) => !!v || 'E detyrueshme',
+    lengthChk: (v) => (v && v.length >= 3) || 'Emri duhet të jetë më i madh ose i barabartë me 3 karaktere'
 }
 const menuForm = ref({
     menuID: '',
@@ -178,7 +178,7 @@ const exportPdf = () => {
     const doc = new jsPDF({
         orientation: 'landscape'
     })
-    doc.text('Menu', 14, 10)
+    doc.text('Menus', 14, 10)
     autoTable(doc, {
         head: [headersPdf],
         body: items.value.map((row) => [row.menuID, row.menuTitle, row.url, row.isSubMenu, row.sortOrder, row.iconClass, row.parentMenuName])
@@ -201,9 +201,9 @@ const chkOption = () => {
 //Sub Menu text format
 const subMenuText = (item) => {
     if (item.isSubMenu == 0) {
-        return 'no'
+        return 'jo'
     } else {
-        return 'yes'
+        return 'po'
     }
 }
 
@@ -219,7 +219,7 @@ const OrderText = (item) => {
 //Parent Menu text format
 const parentMenuText = (item) => {
     if (item.parentMenuName == null) {
-        return 'Root'
+        return 'Meny bazë'
     } else {
         return item.parentMenuName
     }
@@ -347,7 +347,7 @@ watch(dialogDelete, () => {
 
 //get form title
 const formTitle = computed(() => {
-    return editedIndex.value == -1 ? 'Add Menu' : 'Edit Menu'
+    return editedIndex.value == -1 ? 'Shto meny' : 'Ndrysho meny'
 })
 </script>
 

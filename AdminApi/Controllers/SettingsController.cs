@@ -19,21 +19,15 @@ namespace QuizplusApi.Controllers
     public class SettingsController:ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly ISqlRepository<Faq> _faqRepo;
-        private readonly ISqlRepository<Contacts> _contactRepo;
         private readonly ISqlRepository<ErrorLog> _errorLogRepo;
         private readonly IMailService _mailService;
 
         public SettingsController(AppDbContext context,
-                                ISqlRepository<Faq> faqRepo,
-                                ISqlRepository<Contacts> contactRepo,
                                 ISqlRepository<ErrorLog> errorLogRepo,
                                 IMailService mailService
                                 )
         {
             _context=context;
-            _faqRepo=faqRepo;
-            _contactRepo=contactRepo;
             _errorLogRepo=errorLogRepo;
             _mailService=mailService;
         }
@@ -373,155 +367,6 @@ namespace QuizplusApi.Controllers
                 return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });               
             }
         }
-        ///<summary>
-        ///Get FAQ List
-        ///</summary>
-        [HttpGet]
-        [Authorize(Roles="SuperAdmin,Admin,User")]
-        public async Task<ActionResult> GetFaqList()
-        {
-            try
-            {              
-                var faqList=await _faqRepo.SelectAll();
-                return Ok(faqList);           
-            }
-            catch (Exception ex)
-            {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
-            }
-        }
-
-        ///<summary>
-        ///Get Single FAQ
-        ///</summary>
-        [HttpGet("{id}")]
-        [Authorize(Roles="SuperAdmin,Admin,User")]
-        public async Task<ActionResult> GetSingleFaq(int id)
-        {
-            try
-            {              
-                var singleFaq=await _faqRepo.SelectById(id);
-                return Ok(singleFaq);           
-            }
-            catch (Exception ex)
-            {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
-            }
-        }
-
-        ///<summary>
-        ///Delete FAQ by Id
-        ///</summary>
-        [HttpDelete("{id}")]
-        [Authorize(Roles="SuperAdmin,Admin")]
-        public async Task<ActionResult> DeleteFaq(int id)
-        {
-            try
-            {      
-                await _faqRepo.Delete(id);
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Deleted" });                                             
-            }
-            catch (Exception ex)
-            {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
-            }
-        }
-
-        ///<summary>
-        ///Create Faq
-        ///</summary>
-        [Authorize(Roles="SuperAdmin,Admin")]
-        [HttpPost]       
-        public async Task<ActionResult> CreateFaq(Faq model)
-        {
-            try
-            {                  
-                var objCheck=await _context.Faqs.SingleOrDefaultAsync(opt=>opt.Title.ToLower()==model.Title.ToLower());
-                if(objCheck==null)
-                {
-                    model.DateAdded=DateTime.Now;
-                    model.IsActive=true;
-                    await _faqRepo.Insert(model);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                  
-                }
-                else
-                {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Faq" });
-                }                    
-            }
-            catch (Exception ex)
-            {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
-            }
-        }
-
-        ///<summary>
-        ///Update Faq
-        ///</summary>
-        [Authorize(Roles="SuperAdmin,Admin")]
-        [HttpPatch]       
-        public async Task<ActionResult> UpdateFaq(Faq model)
-        {
-            try
-            {
-                var objFaq=await _context.Faqs.SingleAsync(opt=>opt.FaqId==model.FaqId);
-                var objCheck=await _context.Faqs.SingleOrDefaultAsync(opt=>opt.Title.ToLower()==model.Title.ToLower());
-
-                if(objCheck!=null && objCheck.Title.ToLower()!=objFaq.Title.ToLower())
-                {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Faq" });
-                }
-                else
-                {
-                    objFaq.Title=model.Title;
-                    objFaq.Description=model.Description;
-                    objFaq.LastUpdatedBy=model.LastUpdatedBy;
-                    objFaq.LastUpdatedDate=DateTime.Now;
-                    await _context.SaveChangesAsync();
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });
-                }                                             
-            }
-            catch (Exception ex)
-            {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
-            }
-        }
-        ///<summary>
-        ///Get Contacts
-        ///</summary>
-        [HttpGet]
-        [Authorize(Roles="SuperAdmin,Admin")]
-        public async Task<ActionResult> GetContacts()
-        {
-            try
-            {              
-                var list=await _contactRepo.SelectAll();
-                return Ok(list);           
-            }
-            catch (Exception ex)
-            {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
-            }
-        }
-        ///<summary>
-        ///Create Contact-us
-        ///</summary>
-        [AllowAnonymous]
-        [HttpPost]       
-        public async Task<ActionResult> CreateContacts(Contacts model)
-        {
-            try
-            {                  
-                model.DateAdded=DateTime.Now;
-                await _contactRepo.Insert(model);
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Submitted" });                    
-            }
-            catch (Exception ex)
-            {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
-            }
-        }
-
         ///<summary>
         ///Get Error Log List
         ///</summary>

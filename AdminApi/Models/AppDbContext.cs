@@ -21,14 +21,12 @@ namespace AdminApi.Models
             : base(options)
         {
         }
-        public virtual DbSet<Contacts> Contacts { get; set; }
         public virtual DbSet<Users> Users { get; set; }
         public virtual DbSet<UserRole> UserRole { get; set; }
         public virtual DbSet<LogHistory> LogHistory { get; set; }
         public virtual DbSet<AppMenu> Menu { get; set; }
         public virtual DbSet<MenuGroup> MenuGroup { get; set; }
         public virtual DbSet<MenuGroupWiseMenuMapping> MenuGroupWiseMenuMapping { get; set; }
-        public virtual DbSet<Faq> Faqs { get; set; }
         public virtual DbSet<ErrorLog> ErrorLogs { get; set; }
         public virtual DbSet<SiteSettings> SiteSettings { get; set; }
         public virtual DbSet<CandidateModel.Category> Categories { get; set; }

@@ -8,8 +8,6 @@ import NotFound from "@/pages/error/NotFound.vue";
 import OtherError from "@/pages/error/OtherError.vue";
 import ErrorLog from "@/pages/logs/ErrorLog.vue";
 import BrowseLog from "@/pages/logs/BrowseLog.vue";
-import Contact from "@/pages/user/Contact.vue";
-import Faq from "@/pages/others/Faq.vue";
 import Users from "@/pages/user/Users.vue";
 import UserRole from "@/pages/user/UserRole.vue";
 import Menus from "@/pages/menu/Menus.vue";
@@ -85,8 +83,6 @@ const routes = [
 
   // ─── General pages ───
   { path: "/errors", name: "OtherError", component: OtherError, meta: { public: true } },
-  { path: "/contact", name: "Contact", component: Contact },
-  { path: "/faq", name: "Faq", component: Faq },
   { path: "/candidates", name: "Candidates", component: Candidates },
   { path: "/instructors", name: "Instructors", component: Instructors },
   { path: "/vehicles", name: "Vehicles", component: Vehicles },
