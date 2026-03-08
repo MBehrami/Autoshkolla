@@ -1,7 +1,7 @@
 <template>
     <div class="vehicles-container">
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Vehicle Fuel</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Derivatet e automjeteve</div>
         </div>
         <v-data-table
             :headers="headers"
@@ -27,7 +27,7 @@
                         <div class="vehicles-filters-wrap">
                             <v-text-field
                                 v-model="searchText"
-                                :label="isInstructor ? 'Search (Plate, Fuel Type)' : 'Search (Plate, Staff, Fuel Type)'"
+                                :label="isInstructor ? 'Kërko (Tabela, Lloji i derivatit)' : 'Kërko (Tabela, Staff, Lloji i derivatit)'"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -40,7 +40,7 @@
                                 :items="vehicleOptions"
                                 item-title="label"
                                 item-value="vehicleId"
-                                label="Vehicle"
+                                label="Automjeti"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -52,7 +52,7 @@
                                 <template v-slot:activator="{ props: menuProps }">
                                     <v-text-field
                                         :model-value="fromDateDisplay"
-                                        label="From date"
+                                        label="Data e fillimit"
                                         variant="outlined"
                                         density="compact"
                                         prepend-inner-icon="mdi-calendar"
@@ -70,7 +70,7 @@
                                 <template v-slot:activator="{ props: menuProps }">
                                     <v-text-field
                                         :model-value="toDateDisplay"
-                                        label="To date"
+                                        label="Data e përfundimit"
                                         variant="outlined"
                                         density="compact"
                                         prepend-inner-icon="mdi-calendar"
@@ -88,7 +88,7 @@
                                 <template v-slot:activator="{ props: activatorProps }">
                                     <v-btn v-bind="activatorProps" color="primary" variant="elevated"
                                         class="vehicles-add-btn text-none" prepend-icon="mdi-plus">
-                                        Add Fuel Entry
+                                        Regjistro derivatet
                                     </v-btn>
                                 </template>
                                 <VehicleFuelForm
@@ -127,17 +127,17 @@ const isInstructor = computed(() => {
 });
 
 const headersAdmin = [
-    { title: 'Fill Date', key: 'fillDate' },
-    { title: 'Vehicle', key: 'vehicleDisplay' },
-    { title: 'Fuel Amount', key: 'fuelAmount' },
-    { title: 'Fuel Type', key: 'fuelType' },
-    { title: 'Staff', key: 'staffName' },
+    { title: 'Data e fillimit', key: 'fillDate' },
+    { title: 'Automjeti', key: 'vehicleDisplay' },
+    { title: 'Shuma e derivatit', key: 'fuelAmount' },
+    { title: 'Lloji i derivatit', key: 'fuelType' },
+    { title: 'Stafi', key: 'staffName' },
 ];
 const headersInstructor = [
-    { title: 'Fill Date', key: 'fillDate' },
-    { title: 'Vehicle', key: 'vehicleDisplay' },
-    { title: 'Fuel Amount', key: 'fuelAmount' },
-    { title: 'Fuel Type', key: 'fuelType' },
+    { title: 'Data e fillimit', key: 'fillDate' },
+    { title: 'Automjeti', key: 'vehicleDisplay' },
+    { title: 'Shuma e derivatit', key: 'fuelAmount' },
+    { title: 'Lloji i derivatit', key: 'fuelType' },
 ];
 const headers = computed(() => isInstructor.value ? headersInstructor : headersAdmin);
 

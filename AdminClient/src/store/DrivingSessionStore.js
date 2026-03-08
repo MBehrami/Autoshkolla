@@ -90,5 +90,14 @@ export const useDrivingSessionStore = defineStore("drivingSessionStore", {
           .catch((error) => reject(error));
       });
     },
+
+    getWaitingList() {
+      return new Promise((resolve, reject) => {
+        this.loading = true;
+        API.get(import.meta.env.VITE_API_URL + "/api/DrivingSessions/GetWaitingList")
+          .then((response) => { this.loading = false; resolve(response); })
+          .catch((error) => { this.loading = false; reject(error); });
+      });
+    },
   },
 });

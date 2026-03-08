@@ -426,11 +426,12 @@ using (var scope = app.Services.CreateScope())
             BEGIN
                 CREATE TABLE [dbo].[DrivingSessions] (
                     [DrivingSessionId] INT IDENTITY(1,1) NOT NULL,
-                    [CandidateId] INT NOT NULL,
+                    [CandidateId] INT NULL,
+                    [ManualCandidateName] NVARCHAR(200) NULL,
                     [VehicleId] INT NOT NULL,
                     [InstructorUserId] INT NULL,
-                    [DrivingDate] NVARCHAR(20) NOT NULL,
-                    [DrivingTime] NVARCHAR(10) NOT NULL,
+                    [DrivingDate] NVARCHAR(20) NULL,
+                    [DrivingTime] NVARCHAR(10) NULL,
                     [PaymentAmount] DECIMAL(18,2) NOT NULL DEFAULT 0,
                     [PaymentDate] NVARCHAR(20) NULL,
                     [AddedBy] INT NOT NULL,
@@ -450,6 +451,26 @@ using (var scope = app.Services.CreateScope())
             IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DrivingSessions' AND COLUMN_NAME = 'Examiner')
             BEGIN
                 ALTER TABLE [dbo].[DrivingSessions] ADD [Examiner] NVARCHAR(100) NULL;
+            END
+            -- Make CandidateId nullable for manual-entry candidates
+            IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DrivingSessions' AND COLUMN_NAME = 'CandidateId' AND IS_NULLABLE = 'NO')
+            BEGIN
+                ALTER TABLE [dbo].[DrivingSessions] DROP CONSTRAINT IF EXISTS [FK_DrivingSessions_Candidates];
+                ALTER TABLE [dbo].[DrivingSessions] ALTER COLUMN [CandidateId] INT NULL;
+                ALTER TABLE [dbo].[DrivingSessions] ADD CONSTRAINT [FK_DrivingSessions_Candidates] FOREIGN KEY ([CandidateId]) REFERENCES [dbo].[Candidates]([CandidateId]);
+            END
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DrivingSessions' AND COLUMN_NAME = 'ManualCandidateName')
+            BEGIN
+                ALTER TABLE [dbo].[DrivingSessions] ADD [ManualCandidateName] NVARCHAR(200) NULL;
+            END
+            -- Make DrivingDate and DrivingTime nullable for waiting-list entries
+            IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DrivingSessions' AND COLUMN_NAME = 'DrivingDate' AND IS_NULLABLE = 'NO')
+            BEGIN
+                ALTER TABLE [dbo].[DrivingSessions] ALTER COLUMN [DrivingDate] NVARCHAR(20) NULL;
+            END
+            IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'DrivingSessions' AND COLUMN_NAME = 'DrivingTime' AND IS_NULLABLE = 'NO')
+            BEGIN
+                ALTER TABLE [dbo].[DrivingSessions] ALTER COLUMN [DrivingTime] NVARCHAR(10) NULL;
             END
         ").GetAwaiter().GetResult();
     }

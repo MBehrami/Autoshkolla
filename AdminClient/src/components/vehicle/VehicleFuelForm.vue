@@ -1,20 +1,20 @@
 <template>
     <v-card>
         <v-card-title class="d-flex justify-space-between align-center sticky-header">
-            <span>Add Fuel Entry</span>
+            <span>Regjistro derivatet e automjetit</span>
             <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="fuel-form-body">
             <v-form v-model="valid" ref="formRef" @submit.prevent="saveFuel">
-                <h3 class="form-section-title">Fuel information (Derivatet)</h3>
+                <h3 class="form-section-title">Informatat e derivatëve</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="6">
                         <v-menu v-model="fillDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     :model-value="fillDateDisplay"
-                                    label="Fill Date (Data e mbushjes)"
+                                    label="Data e furnizimit"
                                     :rules="[rules.required]"
                                     variant="outlined"
                                     density="comfortable"
@@ -35,7 +35,7 @@
                             :items="vehicles"
                             item-title="label"
                             item-value="vehicleId"
-                            label="Vehicle (Automjeti)"
+                            label="Automjeti"
                             :rules="[rules.required]"
                             variant="outlined"
                             density="comfortable"
@@ -48,7 +48,7 @@
                     <v-col cols="12" :md="isInstructor ? 6 : 4">
                         <v-text-field
                             v-model.number="form.fuelAmount"
-                            label="Fuel Amount (Shuma e derivates)"
+                            label="Shuma e derivatit"
                             :rules="[rules.required, rules.positive]"
                             type="number"
                             variant="outlined"
@@ -61,7 +61,7 @@
                         <v-select
                             v-model="form.fuelType"
                             :items="fuelTypes"
-                            label="Fuel Type (Lloji i derivatit)"
+                            label="Lloji i derivatit"
                             :rules="[rules.required]"
                             variant="outlined"
                             density="comfortable"
@@ -75,7 +75,7 @@
                             :items="staffList"
                             item-title="label"
                             item-value="userId"
-                            label="Staff (Stafi)"
+                            label="Stafi"
                             :rules="[rules.required]"
                             variant="outlined"
                             density="comfortable"
@@ -87,9 +87,9 @@
 
                 <v-divider class="my-4"></v-divider>
                 <div class="d-flex justify-end ga-3">
-                    <v-btn variant="text" class="text-capitalize" @click="closeDialog">Cancel</v-btn>
+                    <v-btn variant="text" class="text-capitalize" @click="closeDialog">Anulo</v-btn>
                     <v-btn type="submit" color="primary" variant="elevated" class="text-capitalize" :loading="saving" :disabled="!valid">
-                        Save
+                        Ruaj
                     </v-btn>
                 </div>
             </v-form>

@@ -1,18 +1,18 @@
 <template>
     <v-card>
         <v-card-title class="d-flex justify-space-between align-center sticky-header">
-            <span>{{ isEdit ? 'Edit Vehicle' : 'Add Vehicle' }}</span>
+            <span>{{ isEdit ? 'Ndrysho të dhënat e automjetit' : 'Regjistro automjetin' }}</span>
             <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text class="vehicle-form-body">
             <v-form v-model="valid" ref="formRef" @submit.prevent="saveVehicle">
-                <h3 class="form-section-title">Vehicle information</h3>
+                <h3 class="form-section-title">Të dhënat e automjetit</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.plateNumber"
-                            label="Plate Number (Nr. i Tabelave)"
+                            label="Numri i tabelave"
                             :rules="[rules.required]"
                             variant="outlined"
                             density="comfortable"
@@ -24,7 +24,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.chassisNumber"
-                            label="Chassis Number (Nr. i Shasis)"
+                            label="Numri i shasis"
                             variant="outlined"
                             density="comfortable"
                             hide-details="auto"
@@ -34,7 +34,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.color"
-                            label="Color (Ngjyra)"
+                            label="Ngjyra"
                             variant="outlined"
                             density="comfortable"
                             hide-details="auto"
@@ -46,7 +46,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.type"
-                            label="Type (Tipi)"
+                            label="Tipi"
                             variant="outlined"
                             density="comfortable"
                             hide-details="auto"
@@ -56,7 +56,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.brand"
-                            label="Brand (Marka)"
+                            label="Marka"
                             variant="outlined"
                             density="comfortable"
                             hide-details="auto"
@@ -66,7 +66,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="form.certificateNumber"
-                            label="Certificate Number (Nr. i Atestit)"
+                            label="Numri i Atestit"
                             variant="outlined"
                             density="comfortable"
                             hide-details="auto"
@@ -80,7 +80,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     :model-value="regDateDisplay"
-                                    label="Registration Date (Data e regjistrimit)"
+                                    label="Data e regjistrimit"
                                     variant="outlined"
                                     density="comfortable"
                                     prepend-inner-icon="mdi-calendar"
@@ -99,7 +99,7 @@
                             <template v-slot:activator="{ props: menuProps }">
                                 <v-text-field
                                     :model-value="expDateDisplay"
-                                    label="Expiry Date (Data e skadimit)"
+                                    label="Data e skadimit"
                                     variant="outlined"
                                     density="comfortable"
                                     prepend-inner-icon="mdi-calendar"
@@ -117,9 +117,9 @@
 
                 <v-divider class="my-4"></v-divider>
                 <div class="d-flex justify-end ga-3">
-                    <v-btn variant="text" class="text-capitalize" @click="closeDialog">Cancel</v-btn>
+                    <v-btn variant="text" class="text-capitalize" @click="closeDialog">Anulo</v-btn>
                     <v-btn type="submit" color="primary" variant="elevated" class="text-capitalize" :loading="saving" :disabled="!valid">
-                        {{ isEdit ? 'Update' : 'Save' }}
+                        {{ isEdit ? 'Përditëso' : 'Regjistro' }}
                     </v-btn>
                 </div>
             </v-form>

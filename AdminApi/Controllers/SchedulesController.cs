@@ -97,7 +97,8 @@ namespace AdminApi.Controllers
 
                 // ── Driving Sessions (read-only events for the calendar) ──
                 var drivingSessions = await (from s in _context.DrivingSessions
-                                             join c in _context.Candidates on s.CandidateId equals c.CandidateId
+                                             join c in _context.Candidates on s.CandidateId equals c.CandidateId into cg
+                                             from c in cg.DefaultIfEmpty()
                                              join v in _context.Vehicles on s.VehicleId equals v.VehicleId
                                              select new
                                              {
@@ -106,7 +107,7 @@ namespace AdminApi.Controllers
                                                  s.DrivingTime,
                                                  s.InstructorUserId,
                                                  s.CandidateId,
-                                                 CandidateName = c.FirstName + " " + c.LastName,
+                                                 CandidateName = c != null ? (c.FirstName + " " + c.LastName) : s.ManualCandidateName,
                                                  s.VehicleId,
                                                  VehiclePlate = v.PlateNumber,
                                                  VehicleBrand = v.Brand,
@@ -114,7 +115,7 @@ namespace AdminApi.Controllers
                                                  s.PaymentAmount
                                              }).ToListAsync();
 
-                var dsFiltered = drivingSessions.AsEnumerable();
+                var dsFiltered = drivingSessions.Where(e => !string.IsNullOrEmpty(e.DrivingDate) && !string.IsNullOrEmpty(e.DrivingTime)).AsEnumerable();
                 if (instructorId > 0)
                     dsFiltered = dsFiltered.Where(e => e.InstructorUserId == instructorId);
                 if (vehicleId > 0)
@@ -154,7 +155,7 @@ namespace AdminApi.Controllers
                         endTime,
                         instructorUserId = s.InstructorUserId ?? 0,
                         instructorName = (string?)null,
-                        candidateId = isInstructor ? 0 : s.CandidateId,
+                        candidateId = isInstructor ? 0 : (s.CandidateId ?? 0),
                         candidateName = isInstructor ? "Booked / Exam Slot" : s.CandidateName,
                         vehicleId = s.VehicleId,
                         vehiclePlate = s.VehiclePlate,

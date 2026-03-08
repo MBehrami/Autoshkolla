@@ -138,8 +138,8 @@ const headersAdmin = [
     { title: 'Kategoria', key: 'categoryName' },
     { title: 'Instruktori', key: 'instructorName' },
     { title: 'Lloji i vetures', key: 'vehicleType' },
-    { title: 'Orët praktike', key: 'practicalHours' },
-    { title: 'Pagesa e shërbimit', key: 'totalServiceAmount' },
+    { title: 'Orët praktike', key: 'practicalHoursDisplay' },
+    { title: 'Pagesa e shërbimit', key: 'servicePaymentDisplay' },
     { title: 'Veprimet', key: 'actions', sortable: false }
 ]
 
@@ -167,8 +167,8 @@ const headersExcelAdmin = {
     'Kategoria': 'categoryName',
     'Instruktori': 'instructorName',
     'Lloji i vetures': 'vehicleType',
-    'Orët praktike': 'practicalHours',
-    'Pagesa e shërbimit': 'totalServiceAmount',
+    'Orët praktike': 'practicalHoursDisplay',
+    'Pagesa e shërbimit': 'servicePaymentDisplay',
 }
 
 const headersExcelInstructor = {
@@ -193,7 +193,7 @@ const categories = ref([])
 const years = ref([])
 const searchText = ref('')
 const selectedCategory = ref(null)
-const selectedYear = ref(null)
+const selectedYear = ref(new Date().getFullYear())
 const dialog = ref(false)
 const viewDialog = ref(false)
 const viewingCandidateId = ref(null)
@@ -226,15 +226,18 @@ const exportPdf = () => {
         if (isInstructor.value) {
             return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.vehicleType, row.practicalLessonCount, row.completedHours, row.remainingHours]
         }
-        return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHours, row.totalServiceAmount]
+        return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHoursDisplay, row.servicePaymentDisplay]
     })
     autoTable(doc, { head: [pdfHeaders], body: bodyRows })
     doc.save('candidates.pdf')
 }
 
-// Normalize one row: camelCase keys + id for v-data-table (default item-value is "id")
 function normalizeCandidate(row) {
     if (!row || typeof row !== 'object') return null
+    const practicalHours = row.practicalHours ?? row.PracticalHours ?? 0
+    const completedHours = row.completedHours ?? row.CompletedHours ?? 0
+    const totalServiceAmount = row.totalServiceAmount ?? row.TotalServiceAmount ?? 0
+    const totalPaidAmount = row.totalPaidAmount ?? row.TotalPaidAmount ?? 0
     return {
         id: row.candidateId ?? row.CandidateId,
         candidateId: row.candidateId ?? row.CandidateId,
@@ -245,10 +248,13 @@ function normalizeCandidate(row) {
         categoryName: row.categoryName ?? row.CategoryName ?? '',
         instructorName: row.instructorName ?? row.InstructorName ?? '',
         vehicleType: row.vehicleType ?? row.VehicleType ?? '',
-        practicalHours: row.practicalHours ?? row.PracticalHours ?? 0,
-        totalServiceAmount: row.totalServiceAmount ?? row.TotalServiceAmount ?? 0,
+        practicalHours,
+        totalServiceAmount,
+        totalPaidAmount,
+        practicalHoursDisplay: `${practicalHours} / ${completedHours}`,
+        servicePaymentDisplay: `${totalServiceAmount} / ${totalPaidAmount}`,
         practicalLessonCount: row.practicalLessonCount ?? row.PracticalLessonCount ?? 0,
-        completedHours: row.completedHours ?? row.CompletedHours ?? 0,
+        completedHours,
         remainingHours: row.remainingHours ?? row.RemainingHours ?? 0
     }
 }
@@ -348,7 +354,7 @@ const handleSaved = () => {
     editedCandidateId.value = null
     searchText.value = ''
     selectedCategory.value = null
-    selectedYear.value = null
+    selectedYear.value = new Date().getFullYear()
     loadCandidates()
 }
 

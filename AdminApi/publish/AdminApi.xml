@@ -352,14 +352,20 @@
             A driving session (Vozitje) linking a candidate, vehicle, and instructor on a specific date/time.
             </summary>
         </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.CandidateId">
+            <summary>Nullable for manual-entry candidates not in the database.</summary>
+        </member>
+        <member name="P:AdminApi.Models.Candidate.DrivingSession.ManualCandidateName">
+            <summary>Name typed manually when candidate is not in the system.</summary>
+        </member>
         <member name="P:AdminApi.Models.Candidate.DrivingSession.InstructorUserId">
             <summary>Instructor who created / is assigned to the session.</summary>
         </member>
         <member name="P:AdminApi.Models.Candidate.DrivingSession.DrivingDate">
-            <summary>Driving date in dd.MM.yyyy format.</summary>
+            <summary>Driving date in dd.MM.yyyy format. Null when on the waiting list.</summary>
         </member>
         <member name="P:AdminApi.Models.Candidate.DrivingSession.DrivingTime">
-            <summary>Start time HH:mm (e.g. 08:00, 08:15).</summary>
+            <summary>Start time HH:mm (e.g. 08:00, 08:15). Null when on the waiting list.</summary>
         </member>
         <member name="P:AdminApi.Models.Candidate.DrivingSession.PaymentAmount">
             <summary>Payment amount for this session.</summary>
@@ -462,6 +468,9 @@
             Fields and business logic to be defined.
             </summary>
         </member>
+        <member name="P:AdminApi.ViewModels.Candidate.AddDrivingSessionRequest.ManualCandidateName">
+            <summary>First + Last name typed manually when the candidate is not in the system.</summary>
+        </member>
         <member name="T:AdminApi.ViewModels.Instructor.InstructorListItem">
             <summary>List view: no Email, no DateOfBirth. FullName = FirstName + LastName only (no ParentName).</summary>
         </member>
@@ -516,41 +525,6 @@
         <member name="M:QuizplusApi.Controllers.SettingsController.UploadFavicon">
             <summary>
             Site Favicon upload
-            </summary>
-        </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.GetFaqList">
-            <summary>
-            Get FAQ List
-            </summary>
-        </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.GetSingleFaq(System.Int32)">
-            <summary>
-            Get Single FAQ
-            </summary>
-        </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.DeleteFaq(System.Int32)">
-            <summary>
-            Delete FAQ by Id
-            </summary>
-        </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.CreateFaq(AdminApi.Models.Others.Faq)">
-            <summary>
-            Create Faq
-            </summary>
-        </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.UpdateFaq(AdminApi.Models.Others.Faq)">
-            <summary>
-            Update Faq
-            </summary>
-        </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.GetContacts">
-            <summary>
-            Get Contacts
-            </summary>
-        </member>
-        <member name="M:QuizplusApi.Controllers.SettingsController.CreateContacts(AdminApi.Models.Others.Contacts)">
-            <summary>
-            Create Contact-us
             </summary>
         </member>
         <member name="M:QuizplusApi.Controllers.SettingsController.GetErrorLogList(System.Int32,System.Int32)">

@@ -64,14 +64,16 @@ namespace AdminApi.Controllers
                     query = query.Where(s => s.Status == status);
 
                 var sessions = await (from s in query
-                                      join c in _context.Candidates on s.CandidateId equals c.CandidateId
+                                      join c in _context.Candidates on s.CandidateId equals c.CandidateId into cg
+                                      from c in cg.DefaultIfEmpty()
                                       join v in _context.Vehicles on s.VehicleId equals v.VehicleId
                                       orderby s.DrivingTime
                                       select new
                                       {
                                           s.DrivingSessionId,
                                           s.CandidateId,
-                                          CandidateName = c.FirstName + " " + c.LastName,
+                                          CandidateName = c != null ? (c.FirstName + " " + c.LastName) : s.ManualCandidateName,
+                                          s.ManualCandidateName,
                                           s.VehicleId,
                                           VehiclePlate = v.PlateNumber,
                                           VehicleBrand = v.Brand,
@@ -115,14 +117,16 @@ namespace AdminApi.Controllers
                     query = query.Where(s => s.Status == status);
 
                 var allSessions = await (from s in query
-                                         join c in _context.Candidates on s.CandidateId equals c.CandidateId
+                                         join c in _context.Candidates on s.CandidateId equals c.CandidateId into cg
+                                         from c in cg.DefaultIfEmpty()
                                          join v in _context.Vehicles on s.VehicleId equals v.VehicleId
                                          orderby s.DrivingDate, s.DrivingTime
                                          select new
                                          {
                                              s.DrivingSessionId,
                                              s.CandidateId,
-                                             CandidateName = c.FirstName + " " + c.LastName,
+                                             CandidateName = c != null ? (c.FirstName + " " + c.LastName) : s.ManualCandidateName,
+                                             s.ManualCandidateName,
                                              s.VehicleId,
                                              VehiclePlate = v.PlateNumber,
                                              VehicleBrand = v.Brand,
@@ -240,28 +244,35 @@ namespace AdminApi.Controllers
         {
             try
             {
-                if (request.CandidateId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate is required." });
+                bool isManual = request.CandidateId == null || request.CandidateId <= 0;
+                if (isManual && string.IsNullOrWhiteSpace(request.ManualCandidateName))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate or manual name is required." });
                 if (request.VehicleId <= 0)
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Vehicle is required." });
-                if (string.IsNullOrWhiteSpace(request.DrivingDate))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Driving date is required." });
-                if (string.IsNullOrWhiteSpace(request.DrivingTime))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Driving time is required." });
 
-                if (!Regex.IsMatch(request.DrivingDate.Trim(), @"^\d{2}\.\d{2}\.\d{4}$"))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format. Use dd.MM.yyyy." });
-                if (!DateTime.TryParseExact(request.DrivingDate.Trim(), "dd.MM.yyyy",
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date." });
+                // Date and time are optional — omitting them places the session on the waiting list
+                if (!string.IsNullOrWhiteSpace(request.DrivingDate))
+                {
+                    if (!Regex.IsMatch(request.DrivingDate.Trim(), @"^\d{2}\.\d{2}\.\d{4}$"))
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format. Use dd.MM.yyyy." });
+                    if (!DateTime.TryParseExact(request.DrivingDate.Trim(), "dd.MM.yyyy",
+                            CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date." });
+                }
+                if (!string.IsNullOrWhiteSpace(request.DrivingTime))
+                {
+                    string time = request.DrivingTime.Trim();
+                    if (!AllowedTimeSlots.Contains(time))
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Invalid time slot: {time}. Allowed: 08:00 – 15:00 in 15-min intervals." });
+                }
 
-                string time = request.DrivingTime.Trim();
-                if (!AllowedTimeSlots.Contains(time))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Invalid time slot: {time}. Allowed: 08:00 – 15:00 in 15-min intervals." });
-
-                var candidate = await _context.Candidates.FindAsync(request.CandidateId);
-                if (candidate == null)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate not found." });
+                Models.Candidate.Candidate? candidate = null;
+                if (!isManual)
+                {
+                    candidate = await _context.Candidates.FindAsync(request.CandidateId!.Value);
+                    if (candidate == null)
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate not found." });
+                }
 
                 var vehicle = await _context.Vehicles.FindAsync(request.VehicleId);
                 if (vehicle == null || !vehicle.IsActive)
@@ -278,13 +289,18 @@ namespace AdminApi.Controllers
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
                 var role = User.FindFirst("role")?.Value ?? "";
 
+                string displayName = isManual
+                    ? request.ManualCandidateName!.Trim()
+                    : (candidate!.FirstName + " " + candidate.LastName);
+
                 var session = new DrivingSession
                 {
-                    CandidateId = request.CandidateId,
+                    CandidateId = isManual ? null : request.CandidateId,
+                    ManualCandidateName = isManual ? request.ManualCandidateName!.Trim() : null,
                     VehicleId = request.VehicleId,
                     InstructorUserId = role == "Instructor" ? currentUserId : (int?)null,
-                    DrivingDate = request.DrivingDate.Trim(),
-                    DrivingTime = request.DrivingTime.Trim(),
+                    DrivingDate = string.IsNullOrWhiteSpace(request.DrivingDate) ? null : request.DrivingDate.Trim(),
+                    DrivingTime = string.IsNullOrWhiteSpace(request.DrivingTime) ? null : request.DrivingTime.Trim(),
                     PaymentAmount = request.PaymentAmount,
                     PaymentDate = string.IsNullOrWhiteSpace(request.PaymentDate) ? null : request.PaymentDate.Trim(),
                     Status = null,
@@ -295,21 +311,20 @@ namespace AdminApi.Controllers
 
                 await _sessionRepo.Insert(session);
 
-                // Auto-create income entry in Daily Report if payment > 0
                 if (session.PaymentAmount > 0)
                 {
                     try
                     {
                         string reportDate = !string.IsNullOrWhiteSpace(session.PaymentDate)
                             ? session.PaymentDate
-                            : session.DrivingDate;
+                            : (!string.IsNullOrWhiteSpace(session.DrivingDate) ? session.DrivingDate : DateTime.UtcNow.ToString("dd.MM.yyyy"));
                         await DailyReportsController.CreateAutoEntry(
                             _context,
                             reportDate,
                             "Income",
-                            candidate.FirstName + " " + candidate.LastName,
+                            displayName,
                             session.PaymentAmount,
-                            $"Driving session payment - {session.DrivingDate} {session.DrivingTime}",
+                            $"Driving session payment - {session.DrivingDate ?? "TBD"} {session.DrivingTime ?? ""}".Trim(),
                             "DrivingSession",
                             session.DrivingSessionId,
                             currentUserId
@@ -325,7 +340,8 @@ namespace AdminApi.Controllers
                 {
                     session.DrivingSessionId,
                     session.CandidateId,
-                    CandidateName = candidate.FirstName + " " + candidate.LastName,
+                    CandidateName = displayName,
+                    session.ManualCandidateName,
                     session.VehicleId,
                     VehiclePlate = vehicle.PlateNumber,
                     VehicleBrand = vehicle.Brand,
@@ -361,6 +377,37 @@ namespace AdminApi.Controllers
                 var session = await _context.DrivingSessions.FindAsync(id);
                 if (session == null)
                     return NotFound(new Confirmation { Status = "error", ResponseMsg = "Session not found." });
+
+                // DrivingDate / DrivingTime (assign from waiting list)
+                if (request.DrivingDate != null)
+                {
+                    string dd = request.DrivingDate.Trim();
+                    if (dd.Length > 0)
+                    {
+                        if (!Regex.IsMatch(dd, @"^\d{2}\.\d{2}\.\d{4}$") ||
+                            !DateTime.TryParseExact(dd, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format. Use dd.MM.yyyy." });
+                        session.DrivingDate = dd;
+                    }
+                    else
+                    {
+                        session.DrivingDate = null;
+                    }
+                }
+                if (request.DrivingTime != null)
+                {
+                    string dt = request.DrivingTime.Trim();
+                    if (dt.Length > 0)
+                    {
+                        if (!AllowedTimeSlots.Contains(dt))
+                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Invalid time slot: {dt}." });
+                        session.DrivingTime = dt;
+                    }
+                    else
+                    {
+                        session.DrivingTime = null;
+                    }
+                }
 
                 // Validate status if provided
                 if (!string.IsNullOrWhiteSpace(request.Status))
@@ -403,15 +450,17 @@ namespace AdminApi.Controllers
                     {
                         string reportDate = !string.IsNullOrWhiteSpace(session.PaymentDate)
                             ? session.PaymentDate
-                            : session.DrivingDate;
-                        string candidateName = (candidate?.FirstName ?? "") + " " + (candidate?.LastName ?? "");
+                            : (!string.IsNullOrWhiteSpace(session.DrivingDate) ? session.DrivingDate : DateTime.UtcNow.ToString("dd.MM.yyyy"));
+                        string candidateName = candidate != null
+                            ? ((candidate.FirstName ?? "") + " " + (candidate.LastName ?? ""))
+                            : (session.ManualCandidateName ?? "");
                         await DailyReportsController.UpsertAutoEntry(
                             _context,
                             reportDate,
                             "Income",
                             candidateName,
                             session.PaymentAmount,
-                            $"Driving session payment - {session.DrivingDate} {session.DrivingTime}",
+                            $"Driving session payment - {session.DrivingDate ?? "TBD"} {session.DrivingTime ?? ""}".Trim(),
                             "DrivingSession",
                             session.DrivingSessionId,
                             currentUserId
@@ -423,11 +472,16 @@ namespace AdminApi.Controllers
                     }
                 }
 
+                string displayNameUpdate = candidate != null
+                    ? ((candidate.FirstName ?? "") + " " + (candidate.LastName ?? ""))
+                    : (session.ManualCandidateName ?? "");
+
                 var result = new
                 {
                     session.DrivingSessionId,
                     session.CandidateId,
-                    CandidateName = (candidate?.FirstName ?? "") + " " + (candidate?.LastName ?? ""),
+                    CandidateName = displayNameUpdate,
+                    session.ManualCandidateName,
                     session.VehicleId,
                     VehiclePlate = vehicle?.PlateNumber ?? "",
                     VehicleBrand = vehicle?.Brand ?? "",
@@ -447,6 +501,49 @@ namespace AdminApi.Controllers
             {
                 _logger.LogError(ex, "UpdateDrivingSession failed");
                 return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        //  GET  api/DrivingSessions/GetWaitingList
+        //  Sessions that have no DrivingDate or no DrivingTime assigned yet
+        // ─────────────────────────────────────────────────────────────
+        [HttpGet]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult> GetWaitingList()
+        {
+            try
+            {
+                var list = await (from s in _context.DrivingSessions
+                                  where s.DrivingDate == null || s.DrivingDate == ""
+                                     || s.DrivingTime == null || s.DrivingTime == ""
+                                  join c in _context.Candidates on s.CandidateId equals c.CandidateId into cg
+                                  from c in cg.DefaultIfEmpty()
+                                  join v in _context.Vehicles on s.VehicleId equals v.VehicleId
+                                  orderby s.DateAdded descending
+                                  select new
+                                  {
+                                      s.DrivingSessionId,
+                                      s.CandidateId,
+                                      CandidateName = c != null ? (c.FirstName + " " + c.LastName) : s.ManualCandidateName,
+                                      s.ManualCandidateName,
+                                      s.VehicleId,
+                                      VehiclePlate = v.PlateNumber,
+                                      VehicleBrand = v.Brand,
+                                      s.DrivingDate,
+                                      s.DrivingTime,
+                                      s.PaymentAmount,
+                                      s.PaymentDate,
+                                      s.Status,
+                                      s.DateAdded
+                                  }).ToListAsync();
+
+                return Ok(new { data = list, total = list.Count });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetWaitingList failed");
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
             }
         }
 

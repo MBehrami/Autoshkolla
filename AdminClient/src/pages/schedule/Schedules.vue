@@ -1,14 +1,14 @@
 <template>
     <div class="schedules-container">
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Schedules</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Oraret</div>
         </div>
         <!-- ─── Toolbar ─── -->
         <v-card elevation="2" rounded="lg" class="mb-4 schedules-header-card">
             <v-toolbar density="comfortable" flat class="schedules-toolbar">
                 <div class="schedules-actions-wrap">
                     <div class="schedules-nav-group">
-                        <v-btn variant="outlined" size="small" @click="goToday">Today</v-btn>
+                        <v-btn variant="outlined" size="small" @click="goToday">Sot</v-btn>
                         <v-btn icon variant="text" size="small" @click="goPrev">
                             <v-icon icon="mdi-chevron-left"></v-icon>
                         </v-btn>
@@ -20,22 +20,22 @@
                     <div class="schedules-controls-wrap">
                         <!-- Filters -->
                         <v-select v-if="isAdmin" v-model="filterInstructor" :items="instructorOptions"
-                            item-title="fullName" item-value="userId" label="Instructor" variant="outlined"
+                            item-title="fullName" item-value="userId" label="Instruktorët" variant="outlined"
                             density="compact" hide-details clearable class="sch-filter"
                             @update:model-value="loadEvents"></v-select>
                         <v-select v-model="filterVehicle" :items="vehicleOptions" item-title="label"
-                            item-value="vehicleId" label="Vehicle" variant="outlined" density="compact" hide-details
+                            item-value="vehicleId" label="Automjeti" variant="outlined" density="compact" hide-details
                             clearable class="sch-filter" @update:model-value="loadEvents"></v-select>
 
                         <!-- View toggle -->
                         <v-btn-toggle v-model="viewMode" mandatory density="compact" variant="outlined" color="primary" class="sch-view-toggle">
-                            <v-btn value="day" size="small">Day</v-btn>
-                            <v-btn value="week" size="small">Week</v-btn>
+                            <v-btn value="day" size="small">Dita</v-btn>
+                            <v-btn value="week" size="small">Javë</v-btn>
                         </v-btn-toggle>
 
                         <v-btn color="primary" variant="elevated" class="text-capitalize sch-add-btn" prepend-icon="mdi-plus"
                             @click="openCreateDialog(null)">
-                            Add Event
+                            Shto orë
                         </v-btn>
                     </div>
                 </div>
@@ -45,10 +45,10 @@
         <!-- ─── Legend ─── -->
         <div class="d-flex ga-4 mb-3 flex-wrap">
             <v-chip size="small" color="primary" variant="tonal">
-                <v-icon start icon="mdi-circle" size="10"></v-icon>Schedule
+                <v-icon start icon="mdi-circle" size="10"></v-icon>Orët praktike
             </v-chip>
             <v-chip size="small" color="orange" variant="tonal">
-                <v-icon start icon="mdi-circle" size="10"></v-icon>{{ isAdmin ? 'Driving Session' : 'Booked / Exam Slot' }}
+                <v-icon start icon="mdi-circle" size="10"></v-icon>{{ isAdmin ? 'Vozitjet' : 'Booked / Exam Slot' }}
             </v-chip>
         </div>
 
@@ -164,7 +164,7 @@
             <v-card rounded="lg">
                 <v-card-title class="d-flex align-center ga-2 pa-4">
                     <v-icon icon="mdi-calendar-plus" color="primary"></v-icon>
-                    <span>{{ editingId ? 'Edit Event' : 'New Schedule Event' }}</span>
+                    <span>{{ editingId ? 'Ndrysho orarin' : 'Regjistro orarin' }}</span>
                 </v-card-title>
                 <v-divider></v-divider>
                 <v-card-text class="pa-6">
@@ -173,7 +173,7 @@
                             <v-col cols="12" md="6">
                                 <v-menu v-model="fDateMenu" :close-on-content-click="false" location="bottom" min-width="auto">
                                     <template v-slot:activator="{ props: mp }">
-                                        <v-text-field :model-value="form.eventDate" label="Date *" variant="outlined"
+                                        <v-text-field :model-value="form.eventDate" label="Data" variant="outlined"
                                             density="compact" prepend-inner-icon="mdi-calendar" readonly
                                             :rules="[v => !!v || 'Required']" v-bind="mp"></v-text-field>
                                     </template>
@@ -181,34 +181,34 @@
                                 </v-menu>
                             </v-col>
                             <v-col cols="6" md="3">
-                                <v-select v-model="form.startTime" :items="timeSlots" label="Start *" variant="outlined"
+                                <v-select v-model="form.startTime" :items="timeSlots" label="Fillimi" variant="outlined"
                                     density="compact" :rules="[v => !!v || 'Required']"
                                     prepend-inner-icon="mdi-clock-start"></v-select>
                             </v-col>
                             <v-col cols="6" md="3">
-                                <v-select v-model="form.endTime" :items="timeSlots" label="End *" variant="outlined"
+                                <v-select v-model="form.endTime" :items="timeSlots" label="Përfundimi" variant="outlined"
                                     density="compact" :rules="[v => !!v || 'Required']"
                                     prepend-inner-icon="mdi-clock-end"></v-select>
                             </v-col>
                             <v-col cols="12" md="6" v-if="isAdmin">
                                 <v-select v-model="form.instructorUserId" :items="instructorOptions"
-                                    item-title="fullName" item-value="userId" label="Instructor *" variant="outlined"
+                                    item-title="fullName" item-value="userId" label="Instruktori" variant="outlined"
                                     density="compact" :rules="[v => !!v || 'Required']"
                                     prepend-inner-icon="mdi-account-tie"></v-select>
                             </v-col>
                             <v-col cols="12" :md="isAdmin ? 6 : 12">
                                 <v-autocomplete v-model="form.candidateId" :items="candidateOptions"
-                                    item-title="fullName" item-value="candidateId" label="Candidate *" variant="outlined"
+                                    item-title="fullName" item-value="candidateId" label="Kandidati" variant="outlined"
                                     density="compact" :rules="[v => !!v || 'Required']"
                                     prepend-inner-icon="mdi-account"></v-autocomplete>
                             </v-col>
                             <v-col cols="12" md="6">
                                 <v-select v-model="form.vehicleId" :items="vehicleOptions" item-title="label"
-                                    item-value="vehicleId" label="Vehicle *" variant="outlined" density="compact"
+                                    item-value="vehicleId" label="Automjeti" variant="outlined" density="compact"
                                     :rules="[v => !!v || 'Required']" prepend-inner-icon="mdi-car"></v-select>
                             </v-col>
                             <v-col cols="12" md="6">
-                                <v-text-field v-model="form.notes" label="Notes" variant="outlined" density="compact"
+                                <v-text-field v-model="form.notes" label="Shënime" variant="outlined" density="compact"
                                     prepend-inner-icon="mdi-note-text-outline"></v-text-field>
                             </v-col>
                         </v-row>
@@ -219,9 +219,9 @@
                 <v-divider></v-divider>
                 <v-card-actions class="pa-4">
                     <v-spacer></v-spacer>
-                    <v-btn variant="text" @click="formDialog = false">Cancel</v-btn>
+                    <v-btn variant="text" @click="formDialog = false">Anulo</v-btn>
                     <v-btn color="primary" variant="elevated" :loading="saving" @click="saveEvent">
-                        {{ editingId ? 'Update' : 'Save' }}
+                        {{ editingId ? 'Përditëso' : 'Ruaj' }}
                     </v-btn>
                 </v-card-actions>
             </v-card>

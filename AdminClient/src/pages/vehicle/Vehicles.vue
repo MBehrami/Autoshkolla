@@ -1,7 +1,7 @@
 <template>
     <div class="vehicles-container">
         <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Vehicles</div>
+            <div class="text-h5 font-weight-bold text-grey-darken-3">Automjetet</div>
         </div>
         <v-data-table
             :headers="headers"
@@ -27,7 +27,7 @@
                         <div class="vehicles-filters-wrap">
                             <v-text-field
                                 v-model="searchText"
-                                label="Search (Plate, Brand, Type)"
+                                label="Kërko (Tabelat ose Modelin)"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -40,7 +40,7 @@
                                 :items="statusOptions"
                                 item-title="label"
                                 item-value="value"
-                                label="Status"
+                                label="Statusi"
                                 variant="outlined"
                                 density="compact"
                                 hide-details
@@ -51,7 +51,7 @@
                                 <template v-slot:activator="{ props: activatorProps }">
                                     <v-btn v-bind="activatorProps" color="primary" variant="elevated"
                                         class="vehicles-add-btn text-none" prepend-icon="mdi-plus">
-                                        Add Vehicle
+                                        Regjistro Automjet
                                     </v-btn>
                                 </template>
                                 <VehicleForm
@@ -107,16 +107,15 @@ const settingStore = useSettingStore();
 const { loading } = storeToRefs(vehicleStore);
 
 const headers = [
-    { title: 'Plate Number', key: 'plateNumber' },
-    { title: 'Chassis Number', key: 'chassisNumber' },
-    { title: 'Color', key: 'color' },
-    { title: 'Type', key: 'type' },
-    { title: 'Brand', key: 'brand' },
-    { title: 'Registration Date', key: 'registrationDate' },
-    { title: 'Expiry Date', key: 'expiryDate' },
-    { title: 'Certificate Nr.', key: 'certificateNumber' },
-    { title: 'Status', key: 'statusDisplay', sortable: false },
-    { title: 'Actions', key: 'actions', sortable: false }
+    { title: 'Tabela', key: 'plateNumber' },
+    { title: 'Modeli', key: 'type' },
+    { title: 'Marka', key: 'brand' },
+    { title: 'Data e Regjistrimit', key: 'registrationDate' },
+    { title: 'Data e Skadimit', key: 'expiryDate' },
+    { title: 'Ngjyra', key: 'color' },
+    { title: 'Atesti Nr.', key: 'certificateNumber' },
+    { title: 'Statusi', key: 'statusDisplay', sortable: false },
+    { title: 'Veprimet', key: 'actions', sortable: false }
 ];
 
 const headersExcel = {
