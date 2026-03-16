@@ -21,6 +21,8 @@ import VehicleServices from "@/pages/vehicle/VehicleServices.vue";
 import DrivingSessions from "@/pages/candidate/DrivingSessions.vue";
 import Schedules from "@/pages/schedule/Schedules.vue";
 import DailyReport from "@/pages/report/DailyReport.vue";
+import CandidateView from "@/pages/candidate/CandidateView.vue";
+import CandidateEdit from "@/pages/candidate/CandidateEdit.vue";
 
 // Helper: get current user's role name from stored profile
 function getRoleName() {
@@ -84,6 +86,8 @@ const routes = [
   // ─── General pages ───
   { path: "/errors", name: "OtherError", component: OtherError, meta: { public: true } },
   { path: "/candidates", name: "Candidates", component: Candidates },
+  { path: "/candidates/:id", name: "CandidateView", component: CandidateView, props: true },
+  { path: "/candidates/:id/edit", name: "CandidateEdit", component: CandidateEdit, props: true },
   { path: "/instructors", name: "Instructors", component: Instructors },
   { path: "/vehicles", name: "Vehicles", component: Vehicles },
   { path: "/vehicle-fuel", name: "VehicleFuel", component: VehicleFuel },

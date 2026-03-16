@@ -1,5 +1,8 @@
 <template>
-    <div class="vehicles-container">
+    <div class="page-container">
+        <div class="page-header mb-4">
+            <div class="page-title">Raporti Ditor</div>
+        </div>
         <!-- ─── Stats Cards ─── -->
         <v-row class="mb-4">
             <v-col cols="12" sm="3">
@@ -591,12 +594,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.vehicles-container {
-    padding: 16px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
 .stat-card {
     transition: transform 0.15s ease;
 }
@@ -617,9 +614,6 @@ onMounted(() => {
 }
 
 @media (max-width: 600px) {
-    .vehicles-container {
-        padding: 8px !important;
-    }
     .ledger-table :deep(thead th),
     .ledger-table :deep(td) {
         padding: 6px 8px !important;

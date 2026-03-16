@@ -1,53 +1,123 @@
 <template>
-    <v-container fluid class="dashboard-container pa-4 pa-md-6">
-        <!-- ─── Welcome Header ─── -->
-        <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Paneli</div>
+    <div class="page-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">Dashboard</div>
+            <div class="page-subtitle">Mirë se vini! Këtu keni një pasqyrë të shpejtë të aktivitetit.</div>
         </div>
 
-        <!-- ─── Summary Cards ─── -->
-        <v-row class="dashboard-summary-row">
-            <v-col class="dashboard-summary-col" cols="12" sm="6" md="4">
-                <v-card class="summary-card" elevation="1" rounded="lg">
+        <!-- Summary Cards -->
+        <v-row>
+            <v-col cols="12" sm="6" lg="4">
+                <v-card class="stat-card">
                     <v-card-text class="d-flex align-center ga-4 pa-5">
-                        <v-avatar color="#E8EAF6" size="56" rounded="lg">
-                            <v-icon icon="mdi-account-school" color="#3949AB" size="28"></v-icon>
-                        </v-avatar>
-                        <div>
-                            <div class="text-h4 font-weight-bold text-grey-darken-3">{{ summary.totalCandidates }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Gjithsej Kandidatë</div>
+                        <div class="stat-icon stat-icon--blue">
+                            <v-icon icon="mdi-account-school" size="26"></v-icon>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ summary.totalCandidates }}</div>
+                            <div class="stat-label">Gjithsej Kandidatë</div>
+                        </div>
+                        <v-spacer></v-spacer>
+                        <v-chip v-if="summary.totalCandidates > 0" color="primary" variant="tonal" size="small" class="stat-badge">
+                            <v-icon start size="14">mdi-trending-up</v-icon>
+                            Aktiv
+                        </v-chip>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+
+            <v-col cols="12" sm="6" lg="4">
+                <v-card class="stat-card">
+                    <v-card-text class="d-flex align-center ga-4 pa-5">
+                        <div class="stat-icon stat-icon--teal">
+                            <v-icon icon="mdi-account-tie" size="26"></v-icon>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ summary.totalInstructors }}</div>
+                            <div class="stat-label">Gjithsej Instruktorë</div>
+                        </div>
+                        <v-spacer></v-spacer>
+                        <v-chip v-if="summary.totalInstructors > 0" color="success" variant="tonal" size="small" class="stat-badge">
+                            <v-icon start size="14">mdi-check-circle</v-icon>
+                            Aktiv
+                        </v-chip>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+
+            <v-col cols="12" sm="6" lg="4">
+                <v-card class="stat-card">
+                    <v-card-text class="d-flex align-center ga-4 pa-5">
+                        <div class="stat-icon stat-icon--slate">
+                            <v-icon icon="mdi-car" size="26"></v-icon>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ summary.activeVehicles }}</div>
+                            <div class="stat-label">Automjete Aktive</div>
+                        </div>
+                        <v-spacer></v-spacer>
+                        <v-chip v-if="summary.activeVehicles > 0" color="secondary" variant="tonal" size="small" class="stat-badge">
+                            <v-icon start size="14">mdi-check-circle</v-icon>
+                            Aktiv
+                        </v-chip>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+        </v-row>
+
+        <!-- Quick Links -->
+        <v-row class="mt-2">
+            <v-col cols="12" md="6">
+                <v-card>
+                    <v-card-text class="pa-5">
+                        <div class="d-flex align-center mb-4">
+                            <v-icon icon="mdi-lightning-bolt" color="primary" class="mr-2"></v-icon>
+                            <span class="text-subtitle-1 font-weight-bold" style="color: var(--slate-800);">Veprime të shpejta</span>
+                        </div>
+                        <div class="quick-links">
+                            <v-btn variant="tonal" color="primary" class="text-none quick-link-btn" prepend-icon="mdi-account-plus" to="/candidates">
+                                Kandidatët
+                            </v-btn>
+                            <v-btn variant="tonal" color="success" class="text-none quick-link-btn" prepend-icon="mdi-calendar-clock" to="/schedules">
+                                Oraret
+                            </v-btn>
+                            <v-btn variant="tonal" color="warning" class="text-none quick-link-btn" prepend-icon="mdi-car-clock" to="/driving-sessions">
+                                Vozitjet
+                            </v-btn>
+                            <v-btn variant="tonal" color="info" class="text-none quick-link-btn" prepend-icon="mdi-file-document-outline" to="/daily-report">
+                                Raporti
+                            </v-btn>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
-            <v-col class="dashboard-summary-col" cols="12" sm="6" md="4">
-                <v-card class="summary-card" elevation="1" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4 pa-5">
-                        <v-avatar color="#E0F2F1" size="56" rounded="lg">
-                            <v-icon icon="mdi-account-tie" color="#00796B" size="28"></v-icon>
-                        </v-avatar>
-                        <div>
-                            <div class="text-h4 font-weight-bold text-grey-darken-3">{{ summary.totalInstructors }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Gjithsej Instruktorë</div>
+            <v-col cols="12" md="6">
+                <v-card class="h-100">
+                    <v-card-text class="pa-5">
+                        <div class="d-flex align-center mb-4">
+                            <v-icon icon="mdi-information-outline" color="secondary" class="mr-2"></v-icon>
+                            <span class="text-subtitle-1 font-weight-bold" style="color: var(--slate-800);">Informacion</span>
                         </div>
-                    </v-card-text>
-                </v-card>
-            </v-col>
-            <v-col class="dashboard-summary-col" cols="12" sm="6" md="4">
-                <v-card class="summary-card" elevation="1" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4 pa-5">
-                        <v-avatar color="#ECEFF1" size="56" rounded="lg">
-                            <v-icon icon="mdi-car" color="#455A64" size="28"></v-icon>
-                        </v-avatar>
-                        <div>
-                            <div class="text-h4 font-weight-bold text-grey-darken-3">{{ summary.activeVehicles }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Automjete Aktive</div>
+                        <div class="info-items">
+                            <div class="info-item">
+                                <v-icon icon="mdi-calendar" size="18" color="primary" class="mr-3"></v-icon>
+                                <span class="text-body-2" style="color: var(--slate-600);">Data e sotme: <strong style="color: var(--slate-800);">{{ todayDate }}</strong></span>
+                            </div>
+                            <div class="info-item">
+                                <v-icon icon="mdi-account-circle" size="18" color="primary" class="mr-3"></v-icon>
+                                <span class="text-body-2" style="color: var(--slate-600);">Përdoruesi: <strong style="color: var(--slate-800);">{{ profileName }}</strong></span>
+                            </div>
+                            <div class="info-item">
+                                <v-icon icon="mdi-shield-account" size="18" color="primary" class="mr-3"></v-icon>
+                                <span class="text-body-2" style="color: var(--slate-600);">Roli: <strong style="color: var(--slate-800);">{{ profileRole }}</strong></span>
+                            </div>
                         </div>
                     </v-card-text>
                 </v-card>
             </v-col>
         </v-row>
-    </v-container>
+    </div>
 </template>
 
 <script setup>
@@ -64,7 +134,17 @@ const summary = ref({
     activeVehicles: 0
 })
 
-// Get business summary (candidates, instructors, vehicles)
+const profileInfo = JSON.parse(localStorage.getItem('profile') || '{}')
+const profileName = profileInfo?.obj?.fullName || ''
+const profileRole = profileInfo?.obj?.roleName || ''
+
+const todayDate = new Date().toLocaleDateString('sq-AL', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+})
+
 userStore.getDashboardSummary()
     .then((res) => {
         const d = res?.data
@@ -83,31 +163,100 @@ userStore.getDashboardSummary()
 </script>
 
 <style scoped>
-.dashboard-container {
-    max-width: 1200px;
-    margin: 0 auto;
+.stat-card {
+    border: 1px solid var(--slate-200);
+    transition: all 0.2s ease;
 }
 
-.summary-card {
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.summary-card:hover {
+.stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
-@media (max-width: 500px) {
-    :deep(.dashboard-summary-row > .dashboard-summary-col) {
-        flex: 0 0 100% !important;
-        max-width: 100% !important;
-        display: flex;
-        justify-content: center;
+.stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon--blue {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.stat-icon--blue .v-icon { color: #2563eb; }
+
+.stat-icon--teal {
+    background: #f0fdfa;
+    color: #0d9488;
+}
+
+.stat-icon--teal .v-icon { color: #0d9488; }
+
+.stat-icon--slate {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.stat-icon--slate .v-icon { color: #475569; }
+
+.stat-info {
+    min-width: 0;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--slate-800);
+    line-height: 1.1;
+}
+
+.stat-label {
+    font-size: 0.8125rem;
+    color: var(--slate-500);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.stat-badge {
+    font-weight: 600;
+}
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.quick-link-btn {
+    justify-content: flex-start;
+    padding: 10px 16px !important;
+    height: auto !important;
+    min-height: 44px !important;
+}
+
+.info-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 600px) {
+    .quick-links {
+        grid-template-columns: 1fr;
     }
 
-    :deep(.dashboard-summary-col .summary-card) {
-        width: min(100%, 360px);
+    .stat-value {
+        font-size: 1.5rem;
     }
 }
 </style>

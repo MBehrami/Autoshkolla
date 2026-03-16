@@ -12,10 +12,6 @@
                                 <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
                                     name="user_excel.xlsx">Excel</download-excel>
                             </v-btn>
-                            <v-btn class="users-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
-                                <download-excel :data="items" :fields="headersExcel" type="csv"
-                                    name="user_csv.xls">CSV</download-excel>
-                            </v-btn>
                             <v-btn class="users-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
                                 @click.stop="exportPdf">PDF</v-btn>
                         </div>

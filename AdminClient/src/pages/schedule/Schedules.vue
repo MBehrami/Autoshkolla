@@ -1,7 +1,7 @@
 <template>
-    <div class="schedules-container">
-        <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Oraret</div>
+    <div class="page-container">
+        <div class="page-header mb-6">
+            <div class="page-title">Oraret</div>
         </div>
         <!-- ─── Toolbar ─── -->
         <v-card elevation="2" rounded="lg" class="mb-4 schedules-header-card">
@@ -571,13 +571,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.schedules-container {
-    width: 100%;
-    padding: 16px 20px;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
-    min-height: 100%;
-}
-
 .schedules-toolbar {
     padding: 12px 20px !important;
     min-height: 56px !important;
@@ -815,9 +808,6 @@ onMounted(() => {
 
 /* ─── Mobile responsiveness ─── */
 @media (max-width: 600px) {
-    .schedules-container {
-        padding: 8px !important;
-    }
     .schedules-toolbar {
         padding: 8px !important;
         flex-wrap: wrap;

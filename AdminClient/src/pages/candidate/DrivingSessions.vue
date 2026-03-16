@@ -1,7 +1,7 @@
 <template>
-    <div class="vehicles-container">
-        <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Vozitjet</div>
+    <div class="page-container">
+        <div class="page-header mb-6">
+            <div class="page-title">Vozitjet</div>
         </div>
         <!-- ─── Stats Cards ─── -->
         <v-row class="mb-4">
@@ -71,142 +71,127 @@
 
             <!-- Right: Sessions table -->
             <v-col cols="12" md="8" class="ds-table-col">
-                <v-data-table
-                    :headers="headers"
-                    :items="sessions"
-                    :loading="loading"
-                    class="elevation-2 vehicles-table"
-                    no-data-text="Nuk ka vozitje për këtë datë"
-                >
-                    <template v-slot:top>
-                        <v-toolbar density="comfortable" flat class="vehicles-toolbar">
-                            <div class="vehicles-actions-wrap">
-                                <div class="vehicles-export-group">
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
-                                        <download-excel :data="sessions" :fields="headersExcel" type="xlsx"
-                                            worksheet="all-data" name="driving-sessions.xlsx">Excel</download-excel>
-                                    </v-btn>
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
-                                        @click.stop="exportPdf">PDF</v-btn>
-                                </div>
-                                <div class="vehicles-filters-wrap">
-                                    <!-- Status filter -->
-                                    <v-select
-                                        v-model="filterStatus"
-                                        :items="statusFilterOptions"
-                                        item-title="label"
-                                        item-value="value"
-                                        label="Statusi"
-                                        variant="outlined"
-                                        density="compact"
-                                        hide-details
-                                        class="ds-filter-status"
-                                        @update:model-value="loadSessions"
-                                    ></v-select>
-
-                                    <!-- Date range: From -->
-                                    <v-menu v-model="fromDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
-                                        <template v-slot:activator="{ props: menuProps }">
-                                            <v-text-field
-                                                :model-value="fromDateDisplay"
-                                                label="Nga data"
-                                                variant="outlined"
-                                                density="compact"
-                                                prepend-inner-icon="mdi-calendar"
-                                                readonly
-                                                hide-details
-                                                clearable
-                                                class="ds-filter-date"
-                                                v-bind="menuProps"
-                                                @click:clear="clearFromDate"
-                                            ></v-text-field>
-                                        </template>
-                                        <v-date-picker v-model="fromDateModel" color="primary" @update:model-value="handleFromDate"></v-date-picker>
-                                    </v-menu>
-
-                                    <!-- Date range: To -->
-                                    <v-menu v-model="toDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
-                                        <template v-slot:activator="{ props: menuProps }">
-                                            <v-text-field
-                                                :model-value="toDateDisplay"
-                                                label="Deri në datë"
-                                                variant="outlined"
-                                                density="compact"
-                                                prepend-inner-icon="mdi-calendar"
-                                                readonly
-                                                hide-details
-                                                clearable
-                                                class="ds-filter-date"
-                                                v-bind="menuProps"
-                                                @click:clear="clearToDate"
-                                            ></v-text-field>
-                                        </template>
-                                        <v-date-picker v-model="toDateModel" color="primary" @update:model-value="handleToDate"></v-date-picker>
-                                    </v-menu>
-
-                                    <v-btn
-                                        color="primary"
-                                        variant="elevated"
-                                        class="vehicles-add-btn text-none"
-                                        prepend-icon="mdi-plus"
-                                        @click="openCreateDialog"
-                                    >
-                                        Regjistro vozitjen
-                                    </v-btn>
-                                </div>
-                            </div>
-                        </v-toolbar>
-                    </template>
-
-                    <!-- Time slot with badge -->
-                    <template v-slot:[`item.drivingTime`]="{ item }">
-                        <v-chip size="small" color="primary" variant="tonal">
-                            <v-icon start icon="mdi-clock-outline" size="14"></v-icon>
-                            {{ item.drivingTime }}
-                        </v-chip>
-                    </template>
-
-                    <!-- Payment amount -->
-                    <template v-slot:[`item.paymentAmount`]="{ item }">
-                        {{ formatCurrency(item.paymentAmount) }}
-                    </template>
-
-                    <!-- Vehicle display -->
-                    <template v-slot:[`item.vehicleDisplay`]="{ item }">
-                        <v-chip size="small" variant="outlined" color="grey-darken-1">
-                            <v-icon start icon="mdi-car" size="14"></v-icon>
-                            {{ item.vehicleDisplay }}
-                        </v-chip>
-                    </template>
-
-                    <!-- Status chip -->
-                    <template v-slot:[`item.status`]="{ item }">
-                        <v-chip v-if="item.status" size="small" :color="statusColor(item.status)" variant="tonal">
-                            {{ item.status }}
-                        </v-chip>
-                        <span v-else class="text-medium-emphasis text-body-2">—</span>
-                    </template>
-
-                    <!-- Examiner -->
-                    <template v-slot:[`item.examiner`]="{ item }">
-                        <span v-if="item.examiner">{{ item.examiner }}</span>
-                        <span v-else class="text-medium-emphasis text-body-2">—</span>
-                    </template>
-
-                    <!-- Actions -->
-                    <template v-slot:[`item.actions`]="{ item }">
-                        <div class="d-flex align-center ga-1">
-                            <v-btn icon variant="tonal" color="primary" size="36" @click="openEditDialog(item)">
-                                <v-icon size="20">mdi-pencil</v-icon>
-                                <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
+                <v-card class="table-card">
+                    <div class="filter-bar">
+                        <div class="export-group">
+                            <v-btn variant="tonal" color="success" size="small" class="text-none" prepend-icon="mdi-file-excel">
+                                <download-excel :data="sessions" :fields="headersExcel" type="xlsx"
+                                    worksheet="all-data" name="driving-sessions.xlsx">Excel</download-excel>
                             </v-btn>
-                            <v-btn v-if="isAdmin" icon variant="tonal" color="error" size="36" @click="confirmDelete(item)">
-                                <v-icon size="20">mdi-delete</v-icon>
-                                <v-tooltip activator="parent" location="top">Fshi</v-tooltip>
+                            <v-btn variant="tonal" color="error" size="small" class="text-none" prepend-icon="mdi-file-pdf-box"
+                                @click.stop="exportPdf">PDF</v-btn>
+                        </div>
+                        <v-spacer></v-spacer>
+                        <div class="filter-inputs">
+                            <v-select
+                                v-model="filterStatus"
+                                :items="statusFilterOptions"
+                                item-title="label"
+                                item-value="value"
+                                label="Statusi"
+                                clearable
+                                class="filter-field filter-field--status"
+                                @update:model-value="loadSessions"
+                            ></v-select>
+                            <v-menu v-model="fromDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                <template v-slot:activator="{ props: menuProps }">
+                                    <v-text-field
+                                        :model-value="fromDateDisplay"
+                                        label="Nga data"
+                                        prepend-inner-icon="mdi-calendar"
+                                        readonly
+                                        clearable
+                                        class="filter-field filter-field--date"
+                                        v-bind="menuProps"
+                                        @click:clear="clearFromDate"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="fromDateModel" color="primary" @update:model-value="handleFromDate"></v-date-picker>
+                            </v-menu>
+                            <v-menu v-model="toDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                <template v-slot:activator="{ props: menuProps }">
+                                    <v-text-field
+                                        :model-value="toDateDisplay"
+                                        label="Deri në datë"
+                                        prepend-inner-icon="mdi-calendar"
+                                        readonly
+                                        clearable
+                                        class="filter-field filter-field--date"
+                                        v-bind="menuProps"
+                                        @click:clear="clearToDate"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="toDateModel" color="primary" @update:model-value="handleToDate"></v-date-picker>
+                            </v-menu>
+                            <v-btn
+                                color="primary"
+                                variant="flat"
+                                class="text-none"
+                                prepend-icon="mdi-plus"
+                                size="small"
+                                @click="openCreateDialog"
+                            >
+                                Regjistro vozitjen
                             </v-btn>
                         </div>
-                    </template>
-                </v-data-table>
+                    </div>
+
+                    <v-data-table
+                        :headers="headers"
+                        :items="sessions"
+                        :loading="loading"
+                        no-data-text="Nuk ka vozitje për këtë datë"
+                    >
+                        <!-- Time slot with badge -->
+                        <template v-slot:[`item.drivingTime`]="{ item }">
+                            <v-chip size="small" color="primary" variant="tonal">
+                                <v-icon start icon="mdi-clock-outline" size="14"></v-icon>
+                                {{ item.drivingTime }}
+                            </v-chip>
+                        </template>
+
+                        <!-- Payment amount -->
+                        <template v-slot:[`item.paymentAmount`]="{ item }">
+                            {{ formatCurrency(item.paymentAmount) }}
+                        </template>
+
+                        <!-- Vehicle display -->
+                        <template v-slot:[`item.vehicleDisplay`]="{ item }">
+                            <v-chip size="small" variant="outlined" color="grey-darken-1">
+                                <v-icon start icon="mdi-car" size="14"></v-icon>
+                                {{ item.vehicleDisplay }}
+                            </v-chip>
+                        </template>
+
+                        <!-- Status chip -->
+                        <template v-slot:[`item.status`]="{ item }">
+                            <v-chip v-if="item.status" size="small" :color="statusColor(item.status)" variant="tonal">
+                                {{ item.status }}
+                            </v-chip>
+                            <span v-else class="text-medium-emphasis text-body-2">—</span>
+                        </template>
+
+                        <!-- Examiner -->
+                        <template v-slot:[`item.examiner`]="{ item }">
+                            <span v-if="item.examiner">{{ item.examiner }}</span>
+                            <span v-else class="text-medium-emphasis text-body-2">—</span>
+                        </template>
+
+                        <!-- Actions -->
+                        <template v-slot:[`item.actions`]="{ item }">
+                            <div class="d-flex align-center ga-1">
+                                <v-btn icon variant="text" color="primary" class="action-btn" @click="openEditDialog(item)">
+                                    <v-icon size="18">mdi-pencil-outline</v-icon>
+                                    <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
+                                </v-btn>
+                                <v-btn v-if="isAdmin" icon variant="text" color="error" class="action-btn" @click="confirmDelete(item)">
+                                    <v-icon size="18">mdi-delete-outline</v-icon>
+                                    <v-tooltip activator="parent" location="top">Fshi</v-tooltip>
+                                </v-btn>
+                            </div>
+                        </template>
+                    </v-data-table>
+                </v-card>
             </v-col>
         </v-row>
 
@@ -993,14 +978,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.vehicles-container {
-    width: 100%;
-    padding: 16px 20px;
-    margin: 0;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
-    min-height: 100%;
-}
-
 .stat-card {
     border-radius: 12px;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -1019,102 +996,21 @@ onMounted(() => {
     width: 100%;
 }
 
-.vehicles-table {
-    width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.vehicles-toolbar {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.vehicles-actions-wrap {
-    width: 100%;
+.filter-inputs {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.vehicles-export-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.vehicles-action-btn {
-    border-radius: 4px !important;
-}
-
-.vehicles-filters-wrap {
-    margin-left: auto;
-    display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
 }
 
-.vehicles-add-btn {
-    min-height: 40px;
-    border-radius: 4px !important;
-}
-
-.vehicles-toolbar :deep(.v-btn),
-.vehicles-toolbar :deep(.v-field) {
-    border-radius: 4px !important;
-}
-
-.ds-filter-status {
+.filter-field--status {
     min-width: 140px;
     max-width: 160px;
 }
 
-.ds-filter-date {
+.filter-field--date {
     min-width: 140px;
     max-width: 160px;
-}
-
-.vehicles-table :deep(.v-data-table__wrapper) {
-    width: 100%;
-    overflow: visible !important;
-    max-height: none !important;
-}
-
-.vehicles-table :deep(.v-table__wrapper) {
-    overflow: visible !important;
-    max-height: none !important;
-}
-
-.vehicles-table :deep(thead th) {
-    font-weight: 600;
-    font-size: 13px;
-    padding: 14px 16px !important;
-    background: #f5f5f5;
-    color: #424242;
-}
-
-.vehicles-table :deep(tbody td) {
-    padding: 12px 16px !important;
-    font-size: 14px;
-}
-
-.vehicles-table :deep(.v-toolbar) {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-}
-
-.vehicles-table :deep(.v-toolbar__content) {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-}
-
-.vehicles-table :deep(.v-btn) {
-    border-radius: 4px !important;
 }
 
 .waiting-table :deep(thead th) {
@@ -1131,10 +1027,6 @@ onMounted(() => {
 }
 
 @media (max-width: 960px) {
-    .vehicles-container {
-        padding: 0 !important;
-    }
-
     .ds-main-row > .ds-calendar-col,
     .ds-main-row > .ds-table-col {
         flex: 0 0 100% !important;
@@ -1142,93 +1034,46 @@ onMounted(() => {
         padding-left: 0 !important;
         padding-right: 0 !important;
     }
-}
 
-@media (max-width: 1024px) and (min-width: 601px) {
-    .vehicles-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .filter-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .filter-inputs {
         width: 100%;
     }
 
-    .vehicles-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .ds-filter-status,
-    .ds-filter-date {
-        width: 100%;
+    .filter-field--status,
+    .filter-field--date {
         min-width: 0;
         max-width: 100%;
-    }
-
-    .vehicles-add-btn {
-        width: 100%;
-        grid-column: 1 / -1;
-        min-height: 44px;
+        flex: 1;
     }
 }
 
 @media (max-width: 600px) {
-    .vehicles-container {
-        padding: 8px !important;
-    }
-
     .ds-main-row > .ds-calendar-col,
     .ds-main-row > .ds-table-col {
         padding-left: 4px !important;
         padding-right: 4px !important;
     }
 
-    .vehicles-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .filter-inputs {
+        flex-direction: column;
+    }
+
+    .filter-field--status,
+    .filter-field--date {
         width: 100%;
     }
 
-    .vehicles-export-group {
+    .export-group {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
     }
 
-    .vehicles-action-btn {
-        width: 100%;
-        min-width: 0;
-        min-height: 40px;
-        padding-inline: 8px;
-    }
-
-    .vehicles-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .ds-filter-status,
-    .ds-filter-date {
-        width: 100%;
-        min-width: 0 !important;
-        max-width: 100% !important;
-    }
-
-    .vehicles-add-btn {
-        width: 100%;
-        min-height: 44px;
-    }
-
-    .vehicles-toolbar {
-        flex-wrap: wrap;
-        padding: 8px !important;
+    .export-group .v-btn {
+        flex: 1;
     }
 }
 </style>

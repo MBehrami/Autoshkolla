@@ -1,100 +1,130 @@
 <template>
     <div class="login-page">
-        <v-card elevation="10" rounded="shaped" min-width="380" min-height="450">
-            <v-card-title class="text-center">
-                <div class="d-flex justify-center my-5"><v-img @click="switchToLanding" :src="logoSrc" max-width="150" class="cursor-pointer"></v-img></div>                
-                <!-- <div class="text-h6 font-weight-bold">{{ appInitialData.siteTitle }}</div> -->
-                <div class="text-subtitle-2 text-grey-darken-1">Sistemi i menaxhimit</div>
-            </v-card-title>
-            <v-card-text>
-                <v-form v-model="signInFormValid" @submit.prevent="submitSignInForm">
-                    <v-text-field
-                    v-model="signInForm.email"
-                    :rules="emailRules"
-                    label="Email"
-                    variant="underlined"
-                    append-inner-icon="mdi-email"
-                    required
-                    >
-                    </v-text-field>
-                    <v-text-field
-                    v-model="signInForm.password"
-                    :rules="passwordRules"
-                    label="Fjalëkalimi"
-                    variant="underlined"
-                    append-inner-icon="mdi-lock"
-                    type="password"
-                    required
-                    >
-                    </v-text-field>
-                    <v-btn
-                    :disabled="!signInFormValid"
-                    :loading="loading"
-                    block
-                    rounded
-                    text="Hyr"
-                    type="submit"
-                    color="grey-darken-3"
-                    class="text-capitalize mt-4"
-                    >
-                    </v-btn>
-                </v-form>
-            </v-card-text>
-            <v-card-actions>
-                <v-row justify="center">
-                    <v-btn @click="forget=true" variant="text" text="Keni harruar fjalëkalimin?" class="text-capitalize"></v-btn>
-                </v-row>               
-            </v-card-actions>
+        <div class="login-wrapper">
+            <!-- Logo & Branding -->
+            <div class="login-brand">
+                <v-img @click="switchToLanding" :src="logoSrc" max-width="120" class="cursor-pointer mx-auto"></v-img>
+            </div>
 
-            <v-expand-transition>
-                <v-card 
-                v-if="forget"
-                class="position-absolute w-100"
-                height="100%"
-                style="bottom: 0"
-                >
-                    <v-card-title class="text-center">
-                        <div class="d-flex justify-center"><v-img @click="switchToLanding" :src="logoSrc" max-height="50" max-width="70" class="cursor-pointer"></v-img></div>                
-                        <div class="text-h6 font-weight-bold">Rivendos Fjalëkalimin</div>
-                    </v-card-title>
-                    <v-form v-model="forgetPasswordFormValid" @submit.prevent="submitForgetPasswordForm">
-                        <v-card-text>
+            <!-- Login Card -->
+            <div class="login-card">
+                <div class="login-card-header">
+                    <h1 class="login-title">Mirë se vini</h1>
+                    <p class="login-subtitle">Sistemi i menaxhimit</p>
+                </div>
+
+                <v-form v-model="signInFormValid" @submit.prevent="submitSignInForm">
+                    <div class="login-fields">
+                        <div class="field-group">
+                            <label class="field-label">Email</label>
                             <v-text-field
-                            v-model="forgetEmail"
-                            :rules="emailRules"
-                            label="Email"
-                            variant="underlined"
-                            append-inner-icon="mdi-email"
-                            required
-                            >
-                            </v-text-field>                                                
-                        </v-card-text>
-                        <v-card-actions class="pt-0">
-                            <v-btn
-                            variant="text"
-                            text="Mbyll"
-                            color="grey-darken-3"
-                            class="text-capitalize"
-                            @click="forget=false"
-                            >
-                            </v-btn>
-                            <v-spacer></v-spacer>
-                            <v-btn
-                            :disabled="!forgetPasswordFormValid"
-                            variant="text"
-                            text="Dërgo Fjalëkalimin"
+                                v-model="signInForm.email"
+                                :rules="emailRules"
+                                placeholder="emri@email.com"
+                                variant="outlined"
+                                density="comfortable"
+                                prepend-inner-icon="mdi-email-outline"
+                                hide-details="auto"
+                                required
+                                class="login-input"
+                            ></v-text-field>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label">Fjalëkalimi</label>
+                            <v-text-field
+                                v-model="signInForm.password"
+                                :rules="passwordRules"
+                                placeholder="Shkruani fjalëkalimin"
+                                variant="outlined"
+                                density="comfortable"
+                                prepend-inner-icon="mdi-lock-outline"
+                                :append-inner-icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+                                :type="showPassword ? 'text' : 'password'"
+                                @click:append-inner="showPassword = !showPassword"
+                                hide-details="auto"
+                                required
+                                class="login-input"
+                            ></v-text-field>
+                        </div>
+                    </div>
+
+                    <div class="login-actions">
+                        <v-btn
+                            :disabled="!signInFormValid"
+                            :loading="loading"
+                            block
+                            size="large"
                             type="submit"
-                            color="grey-darken-3"
-                            class="text-capitalize"
-                            >
-                            </v-btn>
-                        </v-card-actions>
-                    </v-form>
-                </v-card>
-            </v-expand-transition>
-        </v-card>
+                            color="#1e293b"
+                            class="login-btn"
+                        >
+                            Hyr
+                        </v-btn>
+                    </div>
+                </v-form>
+
+                <div class="login-footer">
+                    <button type="button" class="forgot-link" @click="forget = true">
+                        Keni harruar fjalëkalimin?
+                    </button>
+                </div>
+
+                <!-- Forgot Password Overlay -->
+                <v-expand-transition>
+                    <div v-if="forget" class="forgot-overlay">
+                        <div class="login-card-header">
+                            <v-img @click="switchToLanding" :src="logoSrc" max-width="60" class="cursor-pointer mx-auto mb-4"></v-img>
+                            <h1 class="login-title">Rivendos Fjalëkalimin</h1>
+                            <p class="login-subtitle">Shkruani email-in tuaj për të marrë linkun e rivendosjes</p>
+                        </div>
+
+                        <v-form v-model="forgetPasswordFormValid" @submit.prevent="submitForgetPasswordForm">
+                            <div class="login-fields">
+                                <div class="field-group">
+                                    <label class="field-label">Email</label>
+                                    <v-text-field
+                                        v-model="forgetEmail"
+                                        :rules="emailRules"
+                                        placeholder="emri@email.com"
+                                        variant="outlined"
+                                        density="comfortable"
+                                        prepend-inner-icon="mdi-email-outline"
+                                        hide-details="auto"
+                                        required
+                                        class="login-input"
+                                    ></v-text-field>
+                                </div>
+                            </div>
+
+                            <div class="forgot-actions">
+                                <v-btn
+                                    variant="outlined"
+                                    size="large"
+                                    color="#64748b"
+                                    class="login-btn flex-grow-1"
+                                    @click="forget = false"
+                                >
+                                    Mbyll
+                                </v-btn>
+                                <v-btn
+                                    :disabled="!forgetPasswordFormValid"
+                                    size="large"
+                                    color="#1e293b"
+                                    class="login-btn flex-grow-1"
+                                    type="submit"
+                                >
+                                    Dërgo
+                                </v-btn>
+                            </div>
+                        </v-form>
+                    </div>
+                </v-expand-transition>
+            </div>
+
+            <p class="login-copyright">&copy; {{ new Date().getFullYear() }} Autoshkolla Linda</p>
+        </div>
     </div>
-    
 </template>
 
 <script setup>
@@ -112,6 +142,7 @@ const settingStore=useSettingStore()
 const signInFormValid=ref(false)
 const forgetPasswordFormValid=ref(false)
 const forget=ref(false)
+const showPassword=ref(false)
 const passwordRules = [
     (v) => !!v || 'Fjalëkalimi është i detyrueshëm',
     (v) => (v && v.length >= 6) || 'Fjalëkalimi duhet të ketë më shumë se 6 karaktere',
@@ -128,15 +159,12 @@ const signInForm=ref({
 })
 const appInitialData=JSON.parse(localStorage.getItem('allSettings')) || {}
 
-//get logo
 const logoSrc='/linda_logo.png'
 
-//Logo click — already on sign-in, nothing to do
 const switchToLanding=()=>{
     // landing page removed; stay on sign-in
 }
 
-//password forget submit
 const submitForgetPasswordForm=()=>{
     if(appInitialData.defaultEmail=='' || appInitialData.password=='' || appInitialData.host=='' || appInitialData.port==null){
         settingStore.toggleSnackbar({status:true,msg:'Cilësimet e email-it nuk janë konfiguruar ende! Konfiguroni ato dhe pastaj dërgoni email nga këtu.'})
@@ -166,12 +194,10 @@ const submitForgetPasswordForm=()=>{
     }
 }
 
-//submit sign in
 const submitSignInForm=()=>{
     login()
 }
 
-//sign in
 const login=()=>{
     userStore.userSignIn(signInForm.value)
     .then(response=>{
@@ -208,11 +234,4 @@ const login=()=>{
 </script>
 
 <style scoped>
-.login-page{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-}
 </style>

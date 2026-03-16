@@ -1,48 +1,42 @@
 <template>
-    <div class="vehicles-container">
-        <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Vehicle Services</div>
+    <div class="page-container">
+        <div class="page-header d-flex flex-wrap align-center justify-space-between ga-3">
+            <div>
+                <div class="page-title">Serviset e Automjeteve</div>
+                <div class="page-subtitle">Historia e serviseve të automjeteve</div>
+            </div>
         </div>
-        <v-data-table
-            :headers="headers"
-            :items="items"
-            :loading="loading"
-            class="elevation-2 vehicles-table"
-        >
-            <template v-slot:top>
-                <v-toolbar density="comfortable" flat class="vehicles-toolbar">
-                    <div class="vehicles-actions-wrap">
-                        <div class="vehicles-export-group">
-                            <v-btn class="vehicles-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
-                                <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
-                                    name="vehicle-services.xlsx">Excel</download-excel>
-                            </v-btn>
-                            <v-btn class="vehicles-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
-                                <download-excel :data="items" :fields="headersExcel" type="csv"
-                                    name="vehicle-services.csv">CSV</download-excel>
-                            </v-btn>
-                            <v-btn class="vehicles-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
-                                @click.stop="exportPdf">PDF</v-btn>
-                        </div>
-                        <div class="vehicles-filters-wrap">
-                            <v-text-field
-                                v-model="searchText"
-                                label="Search (Plate, Description)"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                clearable
-                                class="vehicles-filter-search"
-                                @update:model-value="handleSearch"
-                            ></v-text-field>
-                            <v-btn color="primary" variant="elevated" class="vehicles-add-btn text-none" prepend-icon="mdi-plus" disabled>
-                                Add Service (coming soon)
-                            </v-btn>
-                        </div>
-                    </div>
-                </v-toolbar>
-            </template>
-        </v-data-table>
+
+        <v-card class="table-card">
+            <div class="filter-bar">
+                <div class="export-group">
+                    <v-btn variant="tonal" color="success" size="small" class="text-none" prepend-icon="mdi-file-excel">
+                        <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
+                            name="vehicle-services.xlsx">Excel</download-excel>
+                    </v-btn>
+                    <v-btn variant="tonal" color="error" size="small" class="text-none" prepend-icon="mdi-file-pdf-box"
+                        @click.stop="exportPdf">PDF</v-btn>
+                </div>
+                <v-spacer></v-spacer>
+                <div class="filter-inputs">
+                    <v-text-field
+                        v-model="searchText"
+                        label="Search (Plate, Description)"
+                        prepend-inner-icon="mdi-magnify"
+                        clearable
+                        class="filter-field filter-field--search"
+                        @update:model-value="handleSearch"
+                    ></v-text-field>
+                </div>
+            </div>
+
+            <v-data-table
+                :headers="headers"
+                :items="items"
+                :loading="loading"
+            >
+            </v-data-table>
+        </v-card>
     </div>
 </template>
 
@@ -121,173 +115,48 @@ onMounted(() => { loadServices(); });
 </script>
 
 <style scoped>
-.vehicles-container {
-    width: 100%;
-    padding: 16px 20px;
-    margin: 0;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
-    min-height: 100%;
-}
-
-.vehicles-table {
-    width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.vehicles-toolbar {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.vehicles-actions-wrap {
-    width: 100%;
+.filter-inputs {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.vehicles-export-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.vehicles-action-btn {
-    border-radius: 4px !important;
-}
-
-.vehicles-filters-wrap {
-    margin-left: auto;
-    display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
 }
 
-.vehicles-add-btn {
-    min-height: 40px;
-    border-radius: 4px !important;
-}
-
-.vehicles-filter-search {
+.filter-field--search {
     min-width: 260px;
 }
 
-.vehicles-table :deep(.v-data-table__wrapper) {
-    width: 100%;
-}
-
-.vehicles-table :deep(thead th) {
-    font-weight: 600;
-    font-size: 13px;
-    padding: 14px 16px !important;
-    background: #f5f5f5;
-    color: #424242;
-}
-
-.vehicles-table :deep(tbody td) {
-    padding: 12px 16px !important;
-    font-size: 14px;
-}
-
-.vehicles-table :deep(.v-toolbar) {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-}
-
-.vehicles-toolbar :deep(.v-toolbar__content) {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-}
-
-.vehicles-toolbar :deep(.v-btn),
-.vehicles-toolbar :deep(.v-field) {
-    border-radius: 4px !important;
-}
-
-@media (max-width: 1024px) and (min-width: 601px) {
-    .vehicles-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+@media (max-width: 960px) {
+    .filter-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
     }
 
-    .vehicles-filters-wrap {
-        margin-left: 0;
+    .filter-inputs {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
     }
 
-    .vehicles-filter-search {
-        width: 100%;
+    .filter-field--search {
         min-width: 0;
-    }
-
-    .vehicles-add-btn {
-        width: 100%;
-        grid-column: 1 / -1;
+        flex: 1;
     }
 }
 
 @media (max-width: 600px) {
-    .vehicles-container {
-        padding: 8px !important;
+    .filter-inputs {
+        flex-direction: column;
     }
 
-    .vehicles-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .filter-field--search {
         width: 100%;
     }
 
-    .vehicles-export-group {
+    .export-group {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
     }
 
-    .vehicles-action-btn {
-        width: 100%;
-        min-width: 0;
-        min-height: 40px;
-        padding-inline: 8px;
-    }
-
-    .vehicles-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .vehicles-filter-search {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .vehicles-add-btn {
-        width: 100%;
-        min-height: 44px;
-    }
-
-    .vehicles-table :deep(thead th),
-    .vehicles-table :deep(tbody td) {
-        padding: 6px 8px !important;
-        font-size: 0.75rem !important;
-    }
-    .vehicles-table :deep(.v-toolbar) {
-        padding: 8px !important;
-        flex-wrap: wrap;
+    .export-group .v-btn {
+        flex: 1;
     }
 }
 </style>

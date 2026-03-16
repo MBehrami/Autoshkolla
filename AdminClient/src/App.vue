@@ -149,140 +149,562 @@ API.interceptors.response.use(
 </script>
 
 <style>
-body {
-  position: relative;
+/* ═══════════════════════════════════════════════════════
+   Modern SaaS Design System — Global Styles
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -4px rgba(0,0,0,0.04);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+  --font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
   height: 100%;
   width: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-  background: #FAFAFA;
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Global Clean UI ─── */
+body {
+  background: var(--slate-100);
+}
+
+/* ─── Constrain the Vuetify layout chain so v-main scrolls ─── */
+.v-application {
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.v-application__wrap {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ─── Main Content Area ─── */
 .v-main {
-  background: #FAFAFA !important;
+  background: var(--slate-100) !important;
+  overflow-y: auto !important;
   overflow-x: hidden !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
 }
 
+/* ─── Card System ─── */
 .v-card {
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--slate-200) !important;
+  box-shadow: var(--shadow-card) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.v-card:not(.v-card--flat):not(.v-card--outlined):hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* ═══ Login Page — full isolation from redesign ═══ */
+.login-page {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f8fafc !important;
+  padding: 24px;
+}
+
+.login-page .login-wrapper {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.login-page .login-brand {
+  text-align: center;
+}
+
+.login-page .login-card {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 6px 16px rgba(0,0,0,0.06);
+  padding: 36px 32px 32px;
+}
+
+.login-page .login-card-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.login-page .login-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+
+.login-page .login-subtitle {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0;
+  font-weight: 400;
+}
+
+.login-page .login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.login-page .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-page .field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.01em;
+}
+
+.login-page .login-input .v-field {
+  border-radius: 10px !important;
+  min-height: 46px;
+}
+
+.login-page .login-input .v-field--variant-outlined .v-field__outline {
+  --v-field-border-opacity: 0.18;
+}
+
+.login-page .login-input .v-field--variant-outlined:hover .v-field__outline {
+  --v-field-border-opacity: 0.35;
+}
+
+.login-page .login-input .v-field--focused .v-field__outline {
+  --v-field-border-opacity: 1;
+  color: #2563eb;
+}
+
+.login-page .login-input .v-field .v-icon {
+  color: #94a3b8;
+  font-size: 20px;
+}
+
+.login-page .login-input .v-field--focused .v-icon {
+  color: #2563eb;
+}
+
+.login-page .login-input input::placeholder {
+  color: #cbd5e1;
+  font-weight: 400;
+}
+
+.login-page .login-actions {
+  margin-bottom: 20px;
+}
+
+.login-page .login-btn {
+  border-radius: 10px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  font-size: 0.9375rem !important;
+  letter-spacing: 0.01em !important;
+  min-height: 46px !important;
+}
+
+.login-page .login-footer {
+  text-align: center;
+  padding-top: 4px;
+}
+
+.login-page .forgot-link {
+  font-size: 0.8125rem;
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.15s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.login-page .forgot-link:hover {
+  color: #2563eb;
+}
+
+.login-page .forgot-overlay {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 36px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+}
+
+.login-page .forgot-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.login-page .login-copyright {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin: 0;
+  text-align: center;
+}
+
+/* Login page — prevent global card styles from applying */
+.login-page .v-card {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 16px;
+  }
+  .login-page .login-card {
+    padding: 28px 20px 24px;
+    border-radius: 12px;
+  }
+  .login-page .login-wrapper {
+    max-width: 100%;
+  }
+}
+
+/* ─── Table System ─── */
 .v-data-table {
-  border-radius: 8px !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  border: 1px solid var(--slate-200);
+  background: #fff !important;
 }
 
-/* width */
+.v-data-table .v-table__wrapper {
+  overflow-x: auto;
+}
+
+.v-data-table thead th {
+  background: var(--slate-50) !important;
+  color: var(--slate-600) !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--slate-200) !important;
+  padding: 14px 16px !important;
+  white-space: nowrap;
+}
+
+.v-data-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.v-data-table tbody tr:hover {
+  background: rgba(37, 99, 235, 0.03) !important;
+}
+
+.v-data-table tbody td {
+  color: var(--slate-700) !important;
+  font-size: 0.875rem !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid var(--slate-100) !important;
+}
+
+.v-data-table-footer {
+  border-top: 1px solid var(--slate-200) !important;
+  padding: 8px 16px !important;
+}
+
+/* ─── Button System ─── */
+.v-btn {
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+}
+
+/* ─── Input / Field System ─── */
+.v-field--variant-outlined .v-field__outline {
+  --v-field-border-opacity: 0.2;
+}
+
+.v-field--variant-outlined:hover .v-field__outline {
+  --v-field-border-opacity: 0.35;
+}
+
+.v-field--focused .v-field__outline {
+  --v-field-border-opacity: 1;
+}
+
+/* ─── Dialog / Modal System ─── */
+.v-overlay__content > .v-card {
+  border: none !important;
+  box-shadow: 0 20px 60px -12px rgba(0,0,0,0.15), 0 8px 16px -8px rgba(0,0,0,0.1) !important;
+}
+
+/* ─── Toolbar ─── */
+.v-toolbar {
+  box-shadow: none !important;
+}
+
+/* ─── Scrollbar ─── */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
+  height: 6px;
 }
 
-/* Track */
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #a3a3c2;
+  background: var(--slate-300);
+  border-radius: 3px;
 }
 
-/* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--slate-400);
 }
 
-/* ─── Global Mobile Responsiveness ─── */
+/* ─── Page Container Utility ─── */
+.page-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 24px 28px 48px;
+  margin: 0;
+}
 
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: var(--slate-800) !important;
+  line-height: 1.3;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--slate-500);
+  margin-top: 4px;
+}
+
+/* ─── Table Card Wrapper ─── */
+.table-card {
+  border: 1px solid var(--slate-200) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  background: #fff !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.table-card .v-data-table {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── Filter Bar ─── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #fff;
+  border-bottom: 1px solid var(--slate-100);
+  flex-wrap: wrap;
+}
+
+.filter-bar .v-field {
+  border-radius: var(--radius-sm) !important;
+}
+
+/* ─── Export Buttons Group ─── */
+.export-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.export-group .v-btn {
+  font-size: 0.8125rem;
+}
+
+/* ─── Action Icon Buttons ─── */
+.action-btn {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+}
+
+/* ─── Chip / Badge ─── */
+.v-chip {
+  font-weight: 500 !important;
+}
+
+/* ─── Snackbar ─── */
+.v-snackbar__content {
+  font-weight: 500 !important;
+}
+
+/* ─── Container Override ─── */
 .v-container {
   max-width: 100% !important;
 }
 
-/* Make data tables horizontally scrollable on mobile */
-.v-data-table {
-  overflow-x: auto;
-}
-
-/* Responsive: stack filters and buttons vertically on small screens */
+/* ═══ Responsive ═══ */
 @media (max-width: 600px) {
-  /* Cards/containers full width */
-  .vehicles-container,
-  .dashboard-container {
-    padding: 8px !important;
+  .page-container {
+    padding: 16px 12px !important;
   }
 
-  /* Make v-row items stack */
-  .v-row > .v-col {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
+  .page-title {
+    font-size: 1.25rem !important;
   }
 
-  /* Table font size reduction for mobile */
-  .v-data-table th,
-  .v-data-table td {
+  .filter-bar {
+    padding: 12px !important;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .export-group {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .export-group .v-btn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .v-data-table thead th,
+  .v-data-table tbody td {
+    padding: 8px 10px !important;
     font-size: 0.75rem !important;
-    padding: 4px 8px !important;
   }
 
-  /* Touch-friendly buttons */
   .v-btn {
     min-height: 40px;
   }
 
-  /* Touch-friendly inputs */
   .v-text-field input,
   .v-select .v-field__input {
-    font-size: 16px !important; /* Prevents zoom on iOS */
+    font-size: 16px !important;
   }
 
-  /* Dialog full-width on mobile */
   .v-dialog > .v-overlay__content {
     max-width: 95vw !important;
     margin: 8px !important;
   }
 
-  /* Calendar cards overflow */
-  .calendar-card {
-    overflow-x: auto !important;
-  }
-
-  /* Stat cards compact */
-  .stat-card .v-card-text {
-    padding: 12px !important;
-  }
-
-  .stat-card .text-h5 {
-    font-size: 1.1rem !important;
-  }
-
-  /* Tabs: scroll on overflow */
-  .v-tabs {
-    overflow-x: auto !important;
-  }
-
-  /* App bar compact */
   .v-app-bar .v-btn {
     min-width: 36px !important;
     padding: 0 6px !important;
   }
 
-  /* Filter rows stack properly */
   .v-toolbar__content {
     flex-wrap: wrap !important;
     height: auto !important;
   }
 }
 
-/* Tablet breakpoint */
 @media (max-width: 960px) {
-  .vehicles-container,
-  .dashboard-container {
-    padding: 12px !important;
+  .page-container {
+    padding: 20px 16px !important;
   }
+}
 
-  /* 2-column layout for medium screens */
-  .v-row > .v-col-md-4 {
-    flex: 0 0 50% !important;
-    max-width: 50% !important;
-  }
+/* ═══ Table Action Buttons — visible hover states ═══ */
+.v-data-table .action-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+.v-data-table .action-btn:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.v-data-table .action-btn .v-icon {
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.v-data-table .action-btn:hover .v-icon {
+  opacity: 1;
+}
+
+/* Ensure tonal action buttons keep visible color on row hover */
+.v-data-table tbody tr:hover .v-btn--variant-text,
+.v-data-table tbody tr:hover .v-btn--variant-tonal {
+  color: inherit !important;
+}
+
+.v-data-table tbody tr:hover .v-btn--variant-text .v-icon,
+.v-data-table tbody tr:hover .v-btn--variant-tonal .v-icon {
+  color: inherit !important;
+}
+
+/* Status chips stay visible on hover */
+.v-data-table tbody tr:hover .v-chip {
+  color: inherit !important;
+}
+
+/* Section title used inside cards/pages */
+.section-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--slate-500);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--slate-100);
 }
 </style>
