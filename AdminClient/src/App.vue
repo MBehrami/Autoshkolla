@@ -182,11 +182,8 @@ API.interceptors.response.use(
 }
 
 html, body {
-  height: 100%;
-  width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -196,25 +193,9 @@ body {
   background: var(--slate-100);
 }
 
-/* ─── Constrain the Vuetify layout chain so v-main scrolls ─── */
-.v-application {
-  height: 100% !important;
-  overflow: hidden !important;
-}
-
-.v-application__wrap {
-  height: 100% !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-}
-
 /* ─── Main Content Area ─── */
 .v-main {
   background: var(--slate-100) !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  flex: 1 1 0% !important;
-  min-height: 0 !important;
 }
 
 /* ─── Card System ─── */
@@ -247,11 +228,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
-}
-
-.login-page .login-brand {
-  text-align: center;
+  gap: 24px;
 }
 
 .login-page .login-card {

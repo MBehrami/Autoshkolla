@@ -3,13 +3,7 @@
     <v-navigation-drawer v-model="drawer" class="sidebar" :width="smAndDown ? 260 : 260" elevation="0">
         <!-- Brand -->
         <div class="sidebar-brand">
-            <v-avatar color="rgba(255,255,255,0.15)" size="38" rounded="lg">
-                <v-icon icon="mdi-steering" color="white" size="22"></v-icon>
-            </v-avatar>
-            <div class="sidebar-brand-text">
-                <div class="sidebar-brand-name">Autoshkolla</div>
-                <div class="sidebar-brand-sub">Linda</div>
-            </div>
+            <v-img src="/linda_logo.png" max-width="110" max-height="48" contain class="sidebar-brand-logo"></v-img>
         </div>
 
         <!-- Profile -->
@@ -487,23 +481,13 @@ const signOut = () => {
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
     padding: 20px 20px 16px;
 }
 
-.sidebar-brand-name {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.2;
-}
-
-.sidebar-brand-sub {
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+.sidebar-brand-logo {
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
 }
 
 .sidebar-profile {

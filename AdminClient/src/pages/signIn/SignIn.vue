@@ -1,15 +1,10 @@
 <template>
     <div class="login-page">
         <div class="login-wrapper">
-            <!-- Logo & Branding -->
-            <div class="login-brand">
-                <v-img @click="switchToLanding" :src="logoSrc" max-width="120" class="cursor-pointer mx-auto"></v-img>
-            </div>
-
             <!-- Login Card -->
             <div class="login-card">
                 <div class="login-card-header">
-                    <h1 class="login-title">Mirë se vini</h1>
+                    <v-img @click="switchToLanding" :src="logoSrc" max-width="140" class="cursor-pointer mx-auto mb-5"></v-img>
                     <p class="login-subtitle">Sistemi i menaxhimit</p>
                 </div>
 
