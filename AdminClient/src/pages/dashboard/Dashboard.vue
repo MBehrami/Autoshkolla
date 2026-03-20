@@ -6,8 +6,8 @@
             <div class="page-subtitle">Mirë se vini! Këtu keni një pasqyrë të shpejtë të aktivitetit.</div>
         </div>
 
-        <!-- Summary Cards -->
-        <v-row>
+        <!-- Summary Cards — admin only -->
+        <v-row v-if="isAdmin">
             <v-col cols="12" sm="6" lg="4">
                 <v-card class="stat-card">
                     <v-card-text class="d-flex align-center ga-4 pa-5">
@@ -123,7 +123,7 @@
 <script setup>
 import { useUserStore } from '@/store/UserStore';
 import { useSettingStore } from '@/store/SettingStore';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const userStore = useUserStore()
 const settingStore = useSettingStore()
@@ -138,6 +138,11 @@ const profileInfo = JSON.parse(localStorage.getItem('profile') || '{}')
 const profileName = profileInfo?.obj?.fullName || ''
 const profileRole = profileInfo?.obj?.roleName || ''
 
+const isAdmin = computed(() => {
+    const role = profileRole
+    return role === 'Admin' || role === 'SuperAdmin'
+})
+
 const todayDate = new Date().toLocaleDateString('sq-AL', {
     weekday: 'long',
     year: 'numeric',
@@ -145,21 +150,25 @@ const todayDate = new Date().toLocaleDateString('sq-AL', {
     day: 'numeric'
 })
 
-userStore.getDashboardSummary()
-    .then((res) => {
-        const d = res?.data
-        if (d && typeof d === 'object') {
-            summary.value = {
-                totalCandidates: d.totalCandidates ?? 0,
-                totalInstructors: d.totalInstructors ?? 0,
-                activeVehicles: d.activeVehicles ?? 0
+if (isAdmin.value) {
+    userStore.getDashboardSummary()
+        .then((res) => {
+            const d = res?.data
+            if (d && typeof d === 'object') {
+                summary.value = {
+                    totalCandidates: d.totalCandidates ?? 0,
+                    totalInstructors: d.totalInstructors ?? 0,
+                    activeVehicles: d.activeVehicles ?? 0
+                }
             }
-        }
-    })
-    .catch(() => { /* keep defaults */ })
-    .finally(() => {
-        settingStore.overlayToggle(false)
-    })
+        })
+        .catch(() => { /* keep defaults */ })
+        .finally(() => {
+            settingStore.overlayToggle(false)
+        })
+} else {
+    settingStore.overlayToggle(false)
+}
 </script>
 
 <style scoped>

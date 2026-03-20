@@ -210,7 +210,7 @@ namespace AdminApi.Controllers
                             ? candidate.DocWithdrawalDate : DateTime.Now.ToString("dd.MM.yyyy");
                         await DailyReportsController.CreateAutoEntry(
                             _context, reportDate, "Income", candidateFullName,
-                            candidate.DocWithdrawalAmount.Value,
+                             candidate.DocWithdrawalAmount.Value,
                             "Terheqja e Dokumentave (Document Withdrawal)",
                             "CandidateDocWithdrawal", candidate.CandidateId, candidate.AddedBy);
                     }

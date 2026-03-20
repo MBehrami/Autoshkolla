@@ -112,7 +112,16 @@
                     <!-- Driving Sessions (Admin) -->
                     <v-card v-if="!isInstructor" class="mb-4">
                         <v-card-text class="pa-5">
-                            <div class="section-title">Vozitjet <v-chip size="x-small" variant="tonal" color="primary" class="ml-2">{{ drivingSessions.length }}</v-chip></div>
+                            <div class="section-title d-flex flex-wrap align-center ga-2">
+                                <span>Vozitjet</span>
+                                <v-chip size="x-small" variant="tonal" color="primary">{{ drivingSessions.length }}</v-chip>
+                                <v-chip v-if="drivingPaymentTotal > 0" size="x-small" variant="tonal" color="success">
+                                    Total pagesat: {{ drivingPaymentTotal.toFixed(2) }} &euro;
+                                </v-chip>
+                                <v-chip v-if="waitingCount > 0" size="x-small" variant="tonal" color="warning">
+                                    {{ waitingCount }} në pritje
+                                </v-chip>
+                            </div>
                             <v-table v-if="drivingSessions.length > 0" density="comfortable" class="detail-table">
                                 <thead>
                                     <tr>
@@ -127,7 +136,10 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="ds in drivingSessions" :key="ds.drivingSessionId">
-                                        <td>{{ ds.drivingDate || '–' }}</td>
+                                        <td>
+                                            <template v-if="ds.drivingDate">{{ ds.drivingDate }}</template>
+                                            <v-chip v-else size="x-small" color="warning" variant="tonal">Listë pritjeje</v-chip>
+                                        </td>
                                         <td>{{ ds.drivingTime || '–' }}</td>
                                         <td>{{ ds.vehiclePlate }} {{ ds.vehicleBrand ? '– ' + ds.vehicleBrand : '' }}</td>
                                         <td>
@@ -300,6 +312,14 @@ const totalPayments = computed(() => {
     return (payments.value || []).reduce((sum, p) => sum + (p.amount || 0), 0)
 })
 
+const drivingPaymentTotal = computed(() => {
+    return (drivingSessions.value || []).reduce((sum, ds) => sum + (ds.paymentAmount || 0), 0)
+})
+
+const waitingCount = computed(() => {
+    return (drivingSessions.value || []).filter(ds => !ds.drivingDate).length
+})
+
 function calcEndTime(startTime) {
     if (!startTime) return ''
     const parts = String(startTime).split(':')
@@ -425,5 +445,31 @@ onMounted(() => {
 .detail-table :deep(td) {
     font-size: 0.8125rem !important;
     color: var(--slate-700) !important;
+}
+
+@media (max-width: 600px) {
+    .detail-label {
+        font-size: 0.6875rem;
+        margin-bottom: 2px;
+    }
+    .detail-value {
+        font-size: 0.8125rem;
+    }
+    .summary-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    .detail-value-inline {
+        margin-left: 0;
+    }
+    .detail-table :deep(th),
+    .detail-table :deep(td) {
+        padding: 6px 8px !important;
+        font-size: 0.7rem !important;
+    }
+    .detail-table {
+        overflow-x: auto;
+    }
 }
 </style>

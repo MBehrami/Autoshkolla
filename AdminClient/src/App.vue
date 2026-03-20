@@ -458,7 +458,41 @@ body {
 /* ─── Dialog / Modal System ─── */
 .v-overlay__content > .v-card {
   border: none !important;
-  box-shadow: 0 20px 60px -12px rgba(0,0,0,0.15), 0 8px 16px -8px rgba(0,0,0,0.1) !important;
+  background: #ffffff !important;
+  color: var(--slate-800) !important;
+  box-shadow: 0 20px 60px -12px rgba(0,0,0,0.2), 0 8px 20px -8px rgba(0,0,0,0.12) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+.v-overlay__content > .v-card .v-card-title {
+  color: var(--slate-800) !important;
+  font-weight: 600 !important;
+  font-size: 1.05rem !important;
+}
+
+.v-overlay__content > .v-card .v-card-text {
+  color: var(--slate-700) !important;
+}
+
+.v-overlay__content > .v-card .v-card-actions {
+  border-top: 1px solid var(--slate-100);
+}
+
+/* ─── Snackbar — high contrast ─── */
+.v-snackbar > .v-snackbar__wrapper {
+  background: var(--slate-800) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+}
+
+.v-snackbar .v-snackbar__content {
+  color: #ffffff !important;
+  font-size: 0.875rem !important;
+}
+
+.v-snackbar .v-btn {
+  color: #f472b6 !important;
 }
 
 /* ─── Toolbar ─── */
@@ -575,7 +609,7 @@ body {
 /* ═══ Responsive ═══ */
 @media (max-width: 600px) {
   .page-container {
-    padding: 16px 12px !important;
+    padding: 16px 10px !important;
   }
 
   .page-title {
@@ -586,6 +620,7 @@ body {
     padding: 12px !important;
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
 
   .export-group {
@@ -600,8 +635,13 @@ body {
 
   .v-data-table thead th,
   .v-data-table tbody td {
-    padding: 8px 10px !important;
+    padding: 8px 8px !important;
     font-size: 0.75rem !important;
+  }
+
+  .v-data-table .v-table__wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .v-btn {
@@ -609,13 +649,38 @@ body {
   }
 
   .v-text-field input,
-  .v-select .v-field__input {
+  .v-select .v-field__input,
+  .v-autocomplete .v-field__input {
     font-size: 16px !important;
   }
 
+  /* ─── Mobile Dialogs ─── */
   .v-dialog > .v-overlay__content {
-    max-width: 95vw !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 24px) !important;
     margin: 8px !important;
+    width: 100% !important;
+  }
+
+  .v-overlay__content > .v-card {
+    border-radius: var(--radius-md) !important;
+  }
+
+  .v-overlay__content > .v-card .v-card-title {
+    font-size: 0.95rem !important;
+    padding: 14px 16px !important;
+  }
+
+  .v-overlay__content > .v-card .v-card-text {
+    padding: 16px !important;
+  }
+
+  .v-overlay__content > .v-card .v-card-actions {
+    padding: 12px 16px !important;
+  }
+
+  .v-overlay__content > .v-card .v-card-text .v-row .v-col {
+    padding: 4px 8px !important;
   }
 
   .v-app-bar .v-btn {
@@ -627,11 +692,27 @@ body {
     flex-wrap: wrap !important;
     height: auto !important;
   }
+
+  /* ─── Mobile: table action buttons smaller ─── */
+  .v-data-table .action-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+  }
+  .v-data-table .action-btn .v-icon {
+    font-size: 16px !important;
+  }
 }
 
 @media (max-width: 960px) {
   .page-container {
-    padding: 20px 16px !important;
+    padding: 20px 14px !important;
+  }
+
+  /* ─── Tablet Dialogs ─── */
+  .v-dialog > .v-overlay__content {
+    max-width: calc(100vw - 32px) !important;
+    margin: 16px !important;
   }
 }
 
@@ -642,14 +723,15 @@ body {
   min-width: 32px !important;
   border-radius: 8px !important;
   transition: all 0.15s ease !important;
+  background: transparent !important;
 }
 
 .v-data-table .action-btn:hover {
-  background: rgba(37, 99, 235, 0.1) !important;
+  background: rgba(37, 99, 235, 0.08) !important;
 }
 
 .v-data-table .action-btn .v-icon {
-  opacity: 0.7;
+  opacity: 0.75;
   transition: opacity 0.15s ease;
 }
 
@@ -657,20 +739,29 @@ body {
   opacity: 1;
 }
 
-/* Ensure tonal action buttons keep visible color on row hover */
-.v-data-table tbody tr:hover .v-btn--variant-text,
-.v-data-table tbody tr:hover .v-btn--variant-tonal {
-  color: inherit !important;
+/* Prevent row hover from altering button/chip/icon colors */
+.v-data-table tbody tr:hover .v-btn .v-icon {
+  color: currentColor !important;
+  opacity: 1 !important;
 }
 
-.v-data-table tbody tr:hover .v-btn--variant-text .v-icon,
-.v-data-table tbody tr:hover .v-btn--variant-tonal .v-icon {
-  color: inherit !important;
-}
-
-/* Status chips stay visible on hover */
 .v-data-table tbody tr:hover .v-chip {
-  color: inherit !important;
+  opacity: 1 !important;
+}
+
+.v-data-table tbody tr:hover .v-btn--variant-tonal,
+.v-data-table tbody tr:hover .v-btn--variant-text {
+  opacity: 1 !important;
+}
+
+/* Global: visible hover feedback */
+.v-btn--variant-text:hover {
+  background: rgba(0,0,0,0.04) !important;
+}
+
+.v-btn--variant-elevated:hover,
+.v-btn--variant-flat:hover {
+  filter: brightness(1.06);
 }
 
 /* Section title used inside cards/pages */

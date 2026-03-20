@@ -3,61 +3,58 @@
         <div class="page-header mb-4">
             <div class="page-title">Raporti Ditor</div>
         </div>
-        <!-- ─── Stats Cards ─── -->
-        <v-row class="mb-4">
-            <v-col cols="12" sm="3">
+        <!-- ─── Stats Cards — horizontally scrollable on mobile ─── -->
+        <div class="stats-scroll-wrap mb-4">
+            <div class="stats-scroll">
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="primary" size="48">
-                            <v-icon icon="mdi-calendar-today" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="primary" size="44">
+                            <v-icon icon="mdi-calendar-today" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ selectedDateDisplay }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Data e zgjedhur</div>
+                            <div class="text-h6 font-weight-bold">{{ selectedDateDisplay }}</div>
+                            <div class="text-caption text-medium-emphasis">Data e zgjedhur</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="3">
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="success" size="48">
-                            <v-icon icon="mdi-cash-plus" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="success" size="44">
+                            <v-icon icon="mdi-cash-plus" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ formatCurrency(totals.incomeTotal) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Hyrjet</div>
+                            <div class="text-h6 font-weight-bold">{{ formatCurrency(totals.incomeTotal) }}</div>
+                            <div class="text-caption text-medium-emphasis">Hyrjet</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="3">
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="error" size="48">
-                            <v-icon icon="mdi-cash-minus" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="error" size="44">
+                            <v-icon icon="mdi-cash-minus" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ formatCurrency(totals.expenseTotal) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Daljet</div>
+                            <div class="text-h6 font-weight-bold">{{ formatCurrency(totals.expenseTotal) }}</div>
+                            <div class="text-caption text-medium-emphasis">Daljet</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="3">
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar :color="totals.balance >= 0 ? 'info' : 'warning'" size="48">
-                            <v-icon icon="mdi-scale-balance" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar :color="totals.balance >= 0 ? 'info' : 'warning'" size="44">
+                            <v-icon icon="mdi-scale-balance" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ formatCurrency(totals.balance) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Balanca</div>
+                            <div class="text-h6 font-weight-bold">{{ formatCurrency(totals.balance) }}</div>
+                            <div class="text-caption text-medium-emphasis">Balanca</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-        </v-row>
+            </div>
+        </div>
 
         <!-- ─── Filters Row ─── -->
         <v-card elevation="2" rounded="lg" class="mb-4">
@@ -594,8 +591,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ─── Stats horizontal scroll ─── */
+.stats-scroll-wrap {
+    width: 100%;
+}
+
+.stats-scroll {
+    display: flex;
+    gap: 16px;
+}
+
 .stat-card {
+    border-radius: 12px;
     transition: transform 0.15s ease;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .stat-card:hover {
@@ -614,6 +624,42 @@ onMounted(() => {
 }
 
 @media (max-width: 600px) {
+    .stats-scroll-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-left: -12px;
+        margin-right: -12px;
+        padding: 0 12px;
+    }
+
+    .stats-scroll {
+        min-width: max-content;
+        gap: 10px;
+        padding-bottom: 4px;
+    }
+
+    .stat-card {
+        flex: 0 0 auto;
+        min-width: 160px;
+    }
+
+    .stat-card :deep(.v-card-text) {
+        padding: 10px 12px !important;
+    }
+
+    .stat-card :deep(.text-h6) {
+        font-size: 0.95rem !important;
+    }
+
+    .stat-card :deep(.v-avatar) {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .stat-card :deep(.v-avatar .v-icon) {
+        font-size: 18px !important;
+    }
+
     .ledger-table :deep(thead th),
     .ledger-table :deep(td) {
         padding: 6px 8px !important;

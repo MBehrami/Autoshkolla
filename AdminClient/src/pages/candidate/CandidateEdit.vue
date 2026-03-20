@@ -674,4 +674,10 @@ onMounted(() => {
         position: static;
     }
 }
+
+@media (max-width: 600px) {
+    .save-card {
+        position: static;
+    }
+}
 </style>
