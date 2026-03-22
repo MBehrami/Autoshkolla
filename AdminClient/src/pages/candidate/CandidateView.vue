@@ -11,13 +11,26 @@
                     <div class="page-subtitle">Nr. Rendor: {{ candidate?.serialNumber || '–' }}</div>
                 </div>
             </div>
-            <div class="d-flex ga-2">
+            <div class="d-flex ga-2 flex-wrap">
                 <v-btn v-if="!isInstructor" variant="tonal" color="error" class="text-none" prepend-icon="mdi-file-pdf-box"
-                    :loading="downloadingPdf" @click="downloadApplication">
+                    size="small" :loading="downloadingPdf" @click="downloadApplication">
                     Shkarko Aplikacionin
                 </v-btn>
+                <v-btn v-if="!isInstructor" variant="tonal" color="deep-purple" class="text-none" prepend-icon="mdi-file-document-outline"
+                    size="small" :loading="downloadingContract" @click="downloadContract">
+                    Shkarko Kontratën
+                </v-btn>
+                <v-btn v-if="!isInstructor" variant="tonal" color="teal" class="text-none" prepend-icon="mdi-certificate-outline"
+                    size="small" :loading="downloadingCertificate" @click="downloadCertificate">
+                    Shkarko Vërtetimin
+                </v-btn>
+                <v-btn v-if="!isInstructor" variant="tonal" color="blue-grey" class="text-none" prepend-icon="mdi-card-account-details-outline"
+                    size="small" disabled>
+                    Shkarko Kartelën
+                    <v-tooltip activator="parent" location="bottom">Së shpejti</v-tooltip>
+                </v-btn>
                 <v-btn v-if="!isInstructor" variant="flat" color="primary" class="text-none" prepend-icon="mdi-pencil"
-                    @click="$router.push(`/candidates/${candidateId}/edit`)">
+                    size="small" @click="$router.push(`/candidates/${candidateId}/edit`)">
                     Ndrysho
                 </v-btn>
             </div>
@@ -62,17 +75,17 @@
                         </v-card-text>
                     </v-card>
 
-                    <!-- Contact & Address -->
+                    <!-- Contact & Municipality -->
                     <v-card class="mb-4">
                         <v-card-text class="pa-5">
-                            <div class="section-title">Kontakti & Adresa</div>
+                            <div class="section-title">Kontakti & Komuna</div>
                             <v-row>
                                 <v-col cols="12" sm="6">
                                     <div class="detail-label">Numri i telefonit</div>
                                     <div class="detail-value">{{ candidate.phoneNumber || '–' }}</div>
                                 </v-col>
                                 <v-col cols="12" sm="6">
-                                    <div class="detail-label">Adresa</div>
+                                    <div class="detail-label">Komuna</div>
                                     <div class="detail-value">{{ candidate.address || '–' }}</div>
                                 </v-col>
                             </v-row>
@@ -272,6 +285,8 @@
 import { useCandidateStore } from '@/store/CandidateStore';
 import { useSettingStore } from '@/store/SettingStore';
 import { downloadApplicationPdf } from '@/utils/applicationPdf';
+import { downloadContractPdf } from '@/utils/contractPdf';
+import { downloadCertificatePdf } from '@/utils/certificatePdf';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
@@ -289,6 +304,8 @@ const practicalLessons = ref([])
 const drivingSessions = ref([])
 const payments = ref([])
 const downloadingPdf = ref(false)
+const downloadingContract = ref(false)
+const downloadingCertificate = ref(false)
 
 const isInstructor = computed(() => {
     try {
@@ -370,6 +387,32 @@ const downloadApplication = async () => {
         settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të aplikacionit' })
     } finally {
         downloadingPdf.value = false
+    }
+}
+
+const downloadContract = async () => {
+    if (!candidate.value) return
+    downloadingContract.value = true
+    try {
+        await downloadContractPdf(candidate.value)
+    } catch (err) {
+        console.error('Download contract error:', err)
+        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të kontratës' })
+    } finally {
+        downloadingContract.value = false
+    }
+}
+
+const downloadCertificate = async () => {
+    if (!candidate.value) return
+    downloadingCertificate.value = true
+    try {
+        await downloadCertificatePdf(candidate.value)
+    } catch (err) {
+        console.error('Download certificate error:', err)
+        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të vërtetimit' })
+    } finally {
+        downloadingCertificate.value = false
     }
 }
 

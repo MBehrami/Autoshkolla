@@ -365,10 +365,10 @@ namespace AdminApi.Controllers
         }
 
         // ─────────────────────────────────────────────────────────────
-        //  PUT  api/DrivingSessions/UpdateDrivingSession/{id}
+        //  POST api/DrivingSessions/UpdateDrivingSession/{id}
         //  Updates Status, Examiner, PaymentAmount, PaymentDate
         // ─────────────────────────────────────────────────────────────
-        [HttpPut("{id}")]
+        [HttpPost("{id}")]
         [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult> UpdateDrivingSession(int id, [FromBody] UpdateDrivingSessionRequest request)
         {

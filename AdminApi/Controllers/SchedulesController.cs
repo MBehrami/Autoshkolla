@@ -77,10 +77,18 @@ namespace AdminApi.Controllers
                                                 EventType = "schedule"
                                             }).ToListAsync();
 
+                // Determine current user for instructor-level access control
+                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+                var role = User.FindFirst("role")?.Value ?? "";
+                bool isInstructor = role == "Instructor";
+
+                // For instructors: force filter to own events only (security)
+                int effectiveInstructorId = isInstructor ? currentUserId : instructorId;
+
                 // Apply filters in memory (dates are dd.MM.yyyy strings)
                 var filtered = scheduleEvents.AsEnumerable();
-                if (instructorId > 0)
-                    filtered = filtered.Where(e => e.InstructorUserId == instructorId);
+                if (effectiveInstructorId > 0)
+                    filtered = filtered.Where(e => e.InstructorUserId == effectiveInstructorId);
                 if (vehicleId > 0)
                     filtered = filtered.Where(e => e.VehicleId == vehicleId);
                 if (fromDt.HasValue || toDt.HasValue)
@@ -116,8 +124,8 @@ namespace AdminApi.Controllers
                                              }).ToListAsync();
 
                 var dsFiltered = drivingSessions.Where(e => !string.IsNullOrEmpty(e.DrivingDate) && !string.IsNullOrEmpty(e.DrivingTime)).AsEnumerable();
-                if (instructorId > 0)
-                    dsFiltered = dsFiltered.Where(e => e.InstructorUserId == instructorId);
+                if (effectiveInstructorId > 0)
+                    dsFiltered = dsFiltered.Where(e => e.InstructorUserId == effectiveInstructorId);
                 if (vehicleId > 0)
                     dsFiltered = dsFiltered.Where(e => e.VehicleId == vehicleId);
                 if (fromDt.HasValue || toDt.HasValue)
@@ -131,11 +139,6 @@ namespace AdminApi.Controllers
                         return true;
                     });
                 }
-
-                // Determine current user role for data visibility
-                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
-                var role = User.FindFirst("role")?.Value ?? "";
-                bool isInstructor = role == "Instructor";
 
                 // Map driving sessions to a common event shape
                 // Instructor: see only vehicle info (plate + brand) – no candidate details
@@ -206,6 +209,19 @@ namespace AdminApi.Controllers
         {
             try
             {
+                var role = User.FindFirst("role")?.Value ?? "";
+                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+
+                // Instructors only see themselves in the list
+                if (role == "Instructor")
+                {
+                    var self = await _context.Users
+                        .Where(u => u.UserId == currentUserId)
+                        .Select(u => new { u.UserId, u.FullName })
+                        .FirstOrDefaultAsync();
+                    return Ok(new { data = self != null ? new[] { self } : Array.Empty<object>() });
+                }
+
                 var list = await (from u in _context.Users
                                  join r in _context.UserRole on u.UserRoleId equals r.UserRoleId
                                  where u.IsActive == true && r.RoleName == "Instructor"

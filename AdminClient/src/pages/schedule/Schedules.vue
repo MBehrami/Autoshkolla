@@ -338,7 +338,12 @@ const isAdmin = computed(() => {
     } catch { return false; }
 });
 const currentUserId = computed(() => {
-    try { return parseInt(localStorage.getItem('userId') || '0'); } catch { return 0; }
+    try {
+        const uid = localStorage.getItem('userId');
+        if (uid) return parseInt(uid);
+        const profile = JSON.parse(localStorage.getItem('profile') || '{}');
+        return profile?.obj?.userId || profile?.obj?.UserId || 0;
+    } catch { return 0; }
 });
 
 // ─── View state ───
@@ -410,7 +415,9 @@ function dateRange() {
 
 function loadEvents() {
     const { from, to } = dateRange();
-    store.getEvents(from, to, filterInstructor.value || 0, filterVehicle.value || 0)
+    // Instructors always filter by own ID; admins use the dropdown filter
+    const instructorFilter = isAdmin.value ? (filterInstructor.value || 0) : currentUserId.value;
+    store.getEvents(from, to, instructorFilter, filterVehicle.value || 0)
         .then((res) => {
             const raw = res?.data?.data ?? res?.data?.Data ?? [];
             events.value = raw.map(normalizeEvent).filter(Boolean);

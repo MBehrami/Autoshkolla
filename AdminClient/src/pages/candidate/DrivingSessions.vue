@@ -105,26 +105,28 @@
                                 </template>
                                 <v-date-picker v-model="toDateModel" color="primary" @update:model-value="handleToDate"></v-date-picker>
                             </v-menu>
-                            <v-btn
-                                color="primary"
-                                variant="flat"
-                                class="text-none"
-                                prepend-icon="mdi-plus"
-                                size="small"
-                                @click="openCreateDialog"
-                            >
-                                Regjistro vozitjen
-                            </v-btn>
-                            <v-btn
-                                color="warning"
-                                variant="flat"
-                                class="text-none"
-                                prepend-icon="mdi-cash-plus"
-                                size="small"
-                                @click="openPaymentDialog"
-                            >
-                                Regjistro pagesën
-                            </v-btn>
+                            <div class="action-btn-group">
+                                <v-btn
+                                    color="primary"
+                                    variant="flat"
+                                    class="text-none action-btn-half"
+                                    prepend-icon="mdi-plus"
+                                    size="small"
+                                    @click="openCreateDialog"
+                                >
+                                    Regjistro vozitjen
+                                </v-btn>
+                                <v-btn
+                                    color="warning"
+                                    variant="flat"
+                                    class="text-none action-btn-half"
+                                    prepend-icon="mdi-cash-plus"
+                                    size="small"
+                                    @click="openPaymentDialog"
+                                >
+                                    Regjistro pagesën
+                                </v-btn>
+                            </div>
                         </div>
                     </div>
 
@@ -215,16 +217,29 @@
                             <span v-else class="text-medium-emphasis">–</span>
                         </template>
                         <template v-slot:[`item.actions`]="{ item }">
-                            <v-btn
-                                variant="tonal"
-                                color="primary"
-                                size="small"
-                                prepend-icon="mdi-calendar-plus"
-                                class="text-none"
-                                @click="assignFromWaitingList(item)"
-                            >
-                                Cakto datën
-                            </v-btn>
+                            <div class="d-flex align-center ga-1">
+                                <v-btn
+                                    variant="tonal"
+                                    color="primary"
+                                    size="small"
+                                    prepend-icon="mdi-calendar-plus"
+                                    class="text-none"
+                                    @click="assignFromWaitingList(item)"
+                                >
+                                    Cakto datën
+                                </v-btn>
+                                <v-btn
+                                    v-if="isAdmin"
+                                    icon
+                                    variant="text"
+                                    color="error"
+                                    size="small"
+                                    @click="confirmWaitingDelete(item)"
+                                >
+                                    <v-icon size="18">mdi-delete-outline</v-icon>
+                                    <v-tooltip activator="parent" location="top">Fshi nga lista</v-tooltip>
+                                </v-btn>
+                            </div>
                         </template>
                     </v-data-table>
                 </v-card>
@@ -471,6 +486,31 @@
                     <v-spacer></v-spacer>
                     <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
                     <v-btn color="error" variant="elevated" :loading="deleting" @click="doDelete">Fshi</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- Waiting list delete confirm -->
+        <v-dialog v-model="waitingDeleteDialog" max-width="440">
+            <v-card rounded="lg">
+                <v-card-title class="d-flex align-center ga-2 pa-4">
+                    <v-icon icon="mdi-delete-alert" color="error"></v-icon>
+                    <span>Fshi nga lista e pritjes</span>
+                </v-card-title>
+                <v-divider></v-divider>
+                <v-card-text class="pa-5">
+                    <div v-if="waitingDeleteTarget" class="mb-2">
+                        <span class="font-weight-medium">{{ waitingDeleteTarget.candidateName }}</span>
+                        <span v-if="waitingDeleteTarget.paymentAmount > 0" class="text-medium-emphasis ml-1">
+                            ({{ formatCurrency(waitingDeleteTarget.paymentAmount) }} &euro;)
+                        </span>
+                    </div>
+                    Jeni të sigurt që dëshironi të fshini këtë regjistrim nga lista e pritjes?
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                    <v-spacer></v-spacer>
+                    <v-btn variant="text" @click="waitingDeleteDialog = false">Anulo</v-btn>
+                    <v-btn color="error" variant="elevated" :loading="waitingDeleting" @click="doWaitingDelete">Fshi</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -1152,6 +1192,31 @@ async function doDelete() {
     }
 }
 
+// ─── Waiting List Delete ───
+const waitingDeleteDialog = ref(false);
+const waitingDeleting = ref(false);
+const waitingDeleteTarget = ref(null);
+
+function confirmWaitingDelete(item) {
+    waitingDeleteTarget.value = item;
+    waitingDeleteDialog.value = true;
+}
+
+async function doWaitingDelete() {
+    if (!waitingDeleteTarget.value) return;
+    waitingDeleting.value = true;
+    try {
+        await store.deleteDrivingSession(waitingDeleteTarget.value.drivingSessionId);
+        settingStore.toggleSnackbar({ status: true, msg: 'U fshi nga lista e pritjes' });
+        waitingDeleteDialog.value = false;
+        loadWaitingList();
+    } catch {
+        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë fshirjes' });
+    } finally {
+        waitingDeleting.value = false;
+    }
+}
+
 // ─── PDF Export ───
 function exportPdf() {
     const doc = new jsPDF({ orientation: 'landscape' });
@@ -1216,6 +1281,16 @@ onMounted(() => {
 .filter-field--date {
     min-width: 140px;
     max-width: 160px;
+}
+
+.action-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.action-btn-half {
+    white-space: nowrap;
 }
 
 .waiting-search {
@@ -1308,6 +1383,23 @@ onMounted(() => {
 
     .export-group .v-btn {
         flex: 1;
+    }
+
+    .action-btn-group {
+        width: 100%;
+        display: flex;
+        gap: 6px;
+    }
+
+    .action-btn-half {
+        flex: 1 1 0;
+        min-width: 0;
+        font-size: 0.75rem !important;
+        padding: 0 8px !important;
+    }
+
+    .action-btn-half :deep(.v-btn__prepend) {
+        margin-inline-end: 4px;
     }
 
     .waiting-search {

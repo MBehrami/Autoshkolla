@@ -26,7 +26,7 @@
                     <v-text-field :model-value="candidate.phoneNumber" label="Numri i telefonit" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
-                    <v-text-field :model-value="candidate.address" label="Adresa" variant="outlined" readonly></v-text-field>
+                    <v-text-field :model-value="candidate.address" label="Komuna" variant="outlined" readonly></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
                     <v-text-field :model-value="candidate.vehicleType" label="Lloji i vetures" variant="outlined" readonly></v-text-field>
@@ -207,17 +207,23 @@
         </v-card-text>
 
         <v-divider></v-divider>
-        <v-card-actions class="pa-4">
-            <v-btn
-                v-if="!isInstructor"
-                color="error"
-                variant="tonal"
-                class="text-capitalize"
-                prepend-icon="mdi-file-pdf-box"
-                :loading="downloadingPdf"
-                @click="downloadApplication"
-            >
+        <v-card-actions class="pa-4 flex-wrap ga-2">
+            <v-btn v-if="!isInstructor" variant="tonal" color="error" class="text-capitalize" size="small"
+                prepend-icon="mdi-file-pdf-box" :loading="downloadingPdf" @click="downloadApplication">
                 Shkarko Aplikacionin
+            </v-btn>
+            <v-btn v-if="!isInstructor" variant="tonal" color="deep-purple" class="text-capitalize" size="small"
+                prepend-icon="mdi-file-document-outline" :loading="downloadingContract" @click="downloadContract">
+                Shkarko Kontratën
+            </v-btn>
+            <v-btn v-if="!isInstructor" variant="tonal" color="teal" class="text-capitalize" size="small"
+                prepend-icon="mdi-certificate-outline" :loading="downloadingCertificate" @click="downloadCertificate">
+                Shkarko Vërtetimin
+            </v-btn>
+            <v-btn v-if="!isInstructor" variant="tonal" color="blue-grey" class="text-capitalize" size="small"
+                prepend-icon="mdi-card-account-details-outline" disabled>
+                Shkarko Kartelën
+                <v-tooltip activator="parent" location="top">Së shpejti</v-tooltip>
             </v-btn>
             <v-spacer></v-spacer>
             <v-btn text="Close" color="primary" class="text-capitalize" @click="closeDialog"></v-btn>
@@ -229,6 +235,8 @@
 import { useCandidateStore } from '@/store/CandidateStore';
 import { useSettingStore } from '@/store/SettingStore';
 import { downloadApplicationPdf } from '@/utils/applicationPdf';
+import { downloadContractPdf } from '@/utils/contractPdf';
+import { downloadCertificatePdf } from '@/utils/certificatePdf';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, watch } from 'vue';
 
@@ -251,6 +259,8 @@ const practicalLessons = ref([])
 const drivingSessions = ref([])
 const payments = ref([])
 const downloadingPdf = ref(false)
+const downloadingContract = ref(false)
+const downloadingCertificate = ref(false)
 
 const isInstructor = computed(() => {
     try {
@@ -326,6 +336,32 @@ const downloadApplication = async () => {
         settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të aplikacionit' })
     } finally {
         downloadingPdf.value = false
+    }
+}
+
+const downloadContract = async () => {
+    if (!candidate.value) return
+    downloadingContract.value = true
+    try {
+        await downloadContractPdf(candidate.value)
+    } catch (err) {
+        console.error('Download contract error:', err)
+        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të kontratës' })
+    } finally {
+        downloadingContract.value = false
+    }
+}
+
+const downloadCertificate = async () => {
+    if (!candidate.value) return
+    downloadingCertificate.value = true
+    try {
+        await downloadCertificatePdf(candidate.value)
+    } catch (err) {
+        console.error('Download certificate error:', err)
+        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të vërtetimit' })
+    } finally {
+        downloadingCertificate.value = false
     }
 }
 

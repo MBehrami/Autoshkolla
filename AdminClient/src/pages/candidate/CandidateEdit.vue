@@ -79,10 +79,10 @@
                         </v-card-text>
                     </v-card>
 
-                    <!-- Contact & Address -->
+                    <!-- Contact & Municipality -->
                     <v-card class="mb-4">
                         <v-card-text class="pa-5">
-                            <div class="section-title">Kontakti & Adresa</div>
+                            <div class="section-title">Kontakti & Komuna</div>
                             <v-row>
                                 <v-col cols="12" sm="6">
                                     <v-text-field v-model="candidateForm.phoneNumber" label="Numri i telefonit"
@@ -95,7 +95,7 @@
                                         clearable></v-text-field>
                                 </v-col>
                                 <v-col cols="12">
-                                    <v-text-field v-model="candidateForm.address" label="Adresa" variant="outlined"
+                                    <v-text-field v-model="candidateForm.address" label="Komuna" variant="outlined"
                                         density="comfortable" hide-details="auto" clearable></v-text-field>
                                 </v-col>
                             </v-row>

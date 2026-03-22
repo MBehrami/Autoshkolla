@@ -88,7 +88,7 @@
                     </v-col>
                 </v-row>
                 <!-- Contact -->
-                <h3 class="form-section-title">Numri i telefonit & adresa</h3>
+                <h3 class="form-section-title">Numri i telefonit & komuna</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-text-field
@@ -109,7 +109,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.address"
-                            label="Adresa"
+                            label="Komuna"
                             variant="outlined"
                             clearable
                         ></v-text-field>

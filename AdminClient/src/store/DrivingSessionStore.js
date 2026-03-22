@@ -74,7 +74,7 @@ export const useDrivingSessionStore = defineStore("drivingSessionStore", {
     updateDrivingSession(id, payload) {
       return new Promise((resolve, reject) => {
         this.loading = true;
-        API.put(
+        API.post(
           import.meta.env.VITE_API_URL + `/api/DrivingSessions/UpdateDrivingSession/${id}`,
           camelToPascal(payload)
         )
