@@ -284,8 +284,7 @@ const updateGeneralSettings = () => {
                 settingStore.toggleSnackbar({ status: true, msg: 'U Përditësua me Sukses' })
             }
         })
-        .catch(error => {
-            console.log('error', error)
+        .catch(() => {
         })
 }
 
@@ -297,8 +296,7 @@ const updateEmailSettings = () => {
                 settingStore.toggleSnackbar({ status: true, msg: 'U Përditësua me Sukses' })
             }
         })
-        .catch(error => {
-            console.log('error', error)
+        .catch(() => {
         })
 }
 
@@ -310,8 +308,7 @@ const updateEmailTextSettings = () => {
                 settingStore.toggleSnackbar({ status: true, msg: 'U Përditësua me Sukses' })
             }
         })
-        .catch(error => {
-            console.log('error', error)
+        .catch(() => {
         })
 }
 

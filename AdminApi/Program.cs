@@ -84,7 +84,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 #pragma warning restore CS8604 // Possible null reference argument.
 });
 
-IdentityModelEventSource.ShowPII = true;
+IdentityModelEventSource.ShowPII = false;
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -126,9 +126,9 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.Configure<FormOptions>(o => {
-    o.ValueLengthLimit = int.MaxValue;
-    o.MultipartBodyLengthLimit = int.MaxValue;
-    o.MemoryBufferThreshold = int.MaxValue;
+    o.ValueLengthLimit = 10 * 1024 * 1024;
+    o.MultipartBodyLengthLimit = 10 * 1024 * 1024;
+    o.MemoryBufferThreshold = 2 * 1024 * 1024;
 });
 
 // Local dev: listen on port 5002. On IIS, the server manages the binding.
@@ -144,6 +144,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.SetCommandTimeout(180);
     try
     {
         _ = db.Database.ExecuteSqlRawAsync(@"
@@ -899,7 +900,7 @@ using (var scope = app.Services.CreateScope())
             END
         ").GetAwaiter().GetResult();
     }
-    catch (Exception ex) { Console.WriteLine($"SiteSettings table setup error: {ex.Message}"); }
+    catch (Exception) { /* SiteSettings setup - logged by EF */ }
 
     // ── Fix SiteSettings copyright + title for existing rows ──
     try
@@ -943,7 +944,7 @@ using (var scope = app.Services.CreateScope())
             END
         ").GetAwaiter().GetResult();
     }
-    catch (Exception ex) { Console.WriteLine($"SuperAdmin setup error: {ex.Message}"); }
+    catch (Exception) { /* SuperAdmin setup - logged by EF */ }
 }
 
 // ── Middleware pipeline (order matters!) ──
@@ -1000,7 +1001,9 @@ if (!app.Environment.IsDevelopment())
                 var user = parts.Length > 0 ? parts[0] : "";
                 var pass = parts.Length > 1 ? parts[1] : "";
 
-                if (user != "Mbehrami" || pass != "Testimi123")
+                var swaggerUser = builder.Configuration["Swagger:Username"] ?? "admin";
+                var swaggerPass = builder.Configuration["Swagger:Password"] ?? "ChangeThisPassword!";
+                if (user != swaggerUser || pass != swaggerPass)
                 {
                     context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"Swagger\"";
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;

@@ -18,8 +18,15 @@ export const useSettingStore = defineStore("settingStore", {
         API.get(import.meta.env.VITE_API_URL + "/api/Settings/GetSiteSettings")
           .then((response) => {
             this.loading = false;
-            this.allSettings = response.data;
-            localStorage.setItem("allSettings", JSON.stringify(response.data));
+            const safe = { ...response.data };
+            delete safe.password;
+            delete safe.Password;
+            delete safe.host;
+            delete safe.Host;
+            delete safe.port;
+            delete safe.Port;
+            this.allSettings = safe;
+            localStorage.setItem("allSettings", JSON.stringify(safe));
             resolve(response);
           })
           .catch((error) => {

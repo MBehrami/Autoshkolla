@@ -262,7 +262,6 @@ const loadCandidates = () => {
             const body = response?.data
             if (body && (body.status === 'error' || body.responseMsg)) {
                 const msg = body.responseMsg || 'Error loading candidates'
-                console.warn('candidates API error response:', msg)
                 settingStore.toggleSnackbar({ status: true, msg })
                 return
             }
@@ -284,7 +283,6 @@ const loadCandidates = () => {
             items.value = [...mapped]
         })
         .catch((error) => {
-            console.error('candidates load error', error?.response?.status, error?.response?.data)
             settingStore.toggleSnackbar({ status: true, msg: error?.response?.data?.responseMsg || 'Error loading candidates' })
         })
 }
@@ -294,7 +292,6 @@ const loadCategories = () => {
     candidateStore.getCategories()
         .then((response) => {
             if (response.data && (response.data.status === 'error' || response.data.responseMsg)) {
-                console.warn('[Categories] API returned error body:', response.data)
                 settingStore.toggleSnackbar({ status: true, msg: response.data.responseMsg || 'Error loading categories' })
                 return
             }
@@ -303,10 +300,8 @@ const loadCategories = () => {
                 categoryId: c.categoryId ?? c.CategoryId,
                 categoryName: c.categoryName ?? c.CategoryName ?? String(c.categoryId ?? c.CategoryId ?? '')
             })).filter((c) => c.categoryId != null)
-            console.log('[Categories] Loaded', categories.value.length, 'categories from', apiUrl, '→', categories.value)
         })
         .catch((error) => {
-            console.error('[Categories] Request failed:', import.meta.env.VITE_API_URL + '/api/Candidates/GetCategories', error?.response?.status, error?.response?.data, error)
             settingStore.toggleSnackbar({ status: true, msg: error?.response?.data?.responseMsg || 'Error loading categories' })
         })
 }

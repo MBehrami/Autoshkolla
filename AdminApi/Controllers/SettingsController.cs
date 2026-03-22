@@ -109,24 +109,21 @@ namespace QuizplusApi.Controllers
                     });
                 }
 
+                siteSettings.Password = "";
+                siteSettings.Host = "";
+                siteSettings.Port = 0;
                 return Ok(siteSettings);
             }
             catch (Exception ex)
             {
-                // TEMP DEBUG: return full exception so missing columns are visible in browser Network tab
                 return StatusCode(500, new { status = "error", message = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize(Roles="SuperAdmin")]
         public IActionResult DbInfo()
         {
-            var conn = _context.Database.GetDbConnection();
-            return Ok(new
-            {
-                Database = conn.Database,
-                DataSource = conn.DataSource
-            });
+            return Ok(new { Status = "connected" });
         }
 
         ///<summary>
@@ -292,7 +289,8 @@ namespace QuizplusApi.Controllers
         ///Site Logo upload
         ///</summary>
         [Authorize(Roles="SuperAdmin,Admin")]   
-        [HttpPost, DisableRequestSizeLimit]
+        [HttpPost]
+        [RequestSizeLimit(2 * 1024 * 1024)]
         public async Task<ActionResult> UploadLogo()
         {
             try
@@ -301,12 +299,14 @@ namespace QuizplusApi.Controllers
                 var folderName = Path.Combine("Resources", "Logo");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
-                if (file.Length > 0 && file.ContentType.StartsWith("image/"))
-                {
-                    #pragma warning disable CS8602 // Dereference of a possibly null reference.
-                    var fileName = Guid.NewGuid().ToString()+"_"+ ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    #pragma warning restore CS8602 // Dereference of a possibly null reference.
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico" };
+                var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+                if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Lloji i skedarit nuk lejohet." });
 
+                if (file.Length > 0 && file.Length <= 2 * 1024 * 1024)
+                {
+                    var fileName = Guid.NewGuid().ToString() + ext;
                     var fullPath = Path.Combine(pathToSave, fileName);
                     var dbPath = Path.Combine(folderName, fileName);
 
@@ -319,7 +319,7 @@ namespace QuizplusApi.Controllers
                 }
                 else
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Nuk eshte imazh" }); 
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Skedari eshte shume i madh ose bosh." }); 
                 }
             }
             catch (Exception ex)
@@ -332,7 +332,8 @@ namespace QuizplusApi.Controllers
         ///Site Favicon upload
         ///</summary>
         [Authorize(Roles="SuperAdmin,Admin")]   
-        [HttpPost, DisableRequestSizeLimit]
+        [HttpPost]
+        [RequestSizeLimit(1 * 1024 * 1024)]
         public async Task<ActionResult> UploadFavicon()
         {
             try
@@ -341,12 +342,14 @@ namespace QuizplusApi.Controllers
                 var folderName = Path.Combine("Resources", "Favicon");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
-                if (file.Length > 0 && file.ContentType.StartsWith("image/"))
-                {
-                    #pragma warning disable CS8602 // Dereference of a possibly null reference.
-                    var fileName = Guid.NewGuid().ToString()+"_"+ ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    #pragma warning restore CS8602 // Dereference of a possibly null reference.
+                var allowedExtensions = new[] { ".ico", ".png", ".svg" };
+                var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+                if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Lloji i skedarit nuk lejohet." });
 
+                if (file.Length > 0 && file.Length <= 1 * 1024 * 1024)
+                {
+                    var fileName = Guid.NewGuid().ToString() + ext;
                     var fullPath = Path.Combine(pathToSave, fileName);
                     var dbPath = Path.Combine(folderName, fileName);
 
@@ -359,7 +362,7 @@ namespace QuizplusApi.Controllers
                 }
                 else
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Nuk eshte imazh" }); 
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Skedari eshte shume i madh ose bosh." }); 
                 }
             }
             catch (Exception ex)

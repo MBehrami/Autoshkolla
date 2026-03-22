@@ -351,7 +351,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating exam question");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = $"Ndodhi nje gabim gjate perpunimit te kerkeses: {ex.Message}" });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 

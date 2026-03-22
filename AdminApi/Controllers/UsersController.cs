@@ -67,16 +67,16 @@ namespace AdminApi.Controllers
                     if(isPasswordValid)
                     {
                         UserInfo userInfo=new UserInfo{UserId=user.UserId,UserRoleId=user.UserRoleId,RoleName=user.RoleName,FullName=user.FullName,
-                        Mobile=user.Mobile,Email=user.Email,ImagePath=user.ImagePath,Password=user.Password};
+                        Mobile=user.Mobile,Email=user.Email,ImagePath=user.ImagePath};
                         var tokenString=GenerateJwtToken(userInfo);
                         return Ok(new Response{token=tokenString,Obj=userInfo});
                     }
                     else
                     {
-                        return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Fjalekalim i pasakte!" });
+                        return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Email ose fjalekalim i pasakte!" });
                     }                                                                         
                 }  
-               return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Email i pasakte!" });               
+               return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Email ose fjalekalim i pasakte!" });               
             }
             catch (Exception ex)
             {
@@ -98,7 +98,7 @@ namespace AdminApi.Controllers
                 {
                     user.ForgetPasswordRef=Guid.NewGuid().ToString();
                     await _context.SaveChangesAsync();
-                    return Ok(user);
+                    return Ok(new { userId=user.UserId, fullName=user.FullName, email=user.Email, forgetPasswordRef=user.ForgetPasswordRef });
                 }
                 else
                 {
@@ -148,7 +148,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Create Log History after login
         ///</summary>
-        [AllowAnonymous]
+        [Authorize]
         [HttpPost]       
         public async Task<ActionResult> CreateLoginHistory(LogHistory model)
         {
@@ -169,7 +169,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Update Login History
         ///</summary>
-        [AllowAnonymous]
+        [Authorize]
         [HttpPatch("{logCode}")]       
         public async Task<ActionResult> UpdateLoginHistory(string logCode)
         {
@@ -189,7 +189,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get date wise Login summary
         ///</summary>
-        [AllowAnonymous]
+        [Authorize]
         [HttpGet("{id}")]    
         public async Task<ActionResult> GetLogInSummaryByDate(int id)
         {
@@ -220,7 +220,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get month wise Login summary
         ///</summary>
-        [AllowAnonymous] 
+        [Authorize] 
         [HttpGet("{id}")]
         public async Task<ActionResult> GetLogInSummaryByMonth(int id)
         {
@@ -251,7 +251,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get month wise Login summary
         ///</summary>
-        [AllowAnonymous]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetLogInSummaryByYear(int id)
         {
@@ -282,7 +282,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get Browser Count
         ///</summary>
-        [AllowAnonymous]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetBrowserCount(int id)
         {
@@ -313,7 +313,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get Role wise User Count
         ///</summary>
-        [AllowAnonymous]     
+        [Authorize(Roles="SuperAdmin,Admin")]     
         [HttpGet] 
         public async Task<ActionResult> GetRoleWiseUser()
         {
@@ -473,7 +473,7 @@ namespace AdminApi.Controllers
         ///Get User List
         ///</summary>
         [HttpGet]
-        [Authorize(Roles="SuperAdmin,Admin,User")]
+        [Authorize(Roles="SuperAdmin,Admin")]
         public async Task<ActionResult> GetUserList()
         {
             try
@@ -481,11 +481,11 @@ namespace AdminApi.Controllers
                 var list=await (from u in _context.Users join r in _context.UserRole on 
                 u.UserRoleId equals r.UserRoleId
                 select new {u.UserId,u.UserRoleId,u.FullName,r.RoleName,u.Mobile,u.Email,u.DateOfBirth,
-                u.Password,u.ImagePath}).ToListAsync();
+                u.ImagePath}).ToListAsync();
 
                 var userInfoList=list.Select(s=>new UserInfo
                 {UserId=s.UserId,UserRoleId=s.UserRoleId,RoleName=s.RoleName,FullName=s.FullName,Mobile=s.Mobile,
-                Email=s.Email,DateOfBirth=s.DateOfBirth,Password=s.Password,ImagePath=s.ImagePath});
+                Email=s.Email,DateOfBirth=s.DateOfBirth,ImagePath=s.ImagePath});
 
                 int totalRecords=userInfoList.Count();
                 return Ok(new {data=userInfoList, recordsTotal = totalRecords, recordsFiltered = totalRecords});
@@ -524,7 +524,9 @@ namespace AdminApi.Controllers
             try
             {
                 var singleUser=await _context.Users.SingleOrDefaultAsync(q=>q.ForgetPasswordRef==hash);
-                return Ok(singleUser);
+                if(singleUser==null)
+                    return Accepted(new Confirmation{Status="error",ResponseMsg="Linku nuk eshte i vlefshem."});
+                return Ok(new { userId=singleUser.UserId, fullName=singleUser.FullName, email=singleUser.Email });
             }
             catch (Exception ex)
             {              
@@ -640,21 +642,30 @@ namespace AdminApi.Controllers
         }
 
         ///<summary>
-        ///Change User Password
+        ///Change User Password (requires authentication)
         ///</summary>
-        [AllowAnonymous]
+        [Authorize]
         [HttpPatch]       
         public async Task<ActionResult> ChangeUserPassword(UserInfo model)
         {
             try
             {
+                var authenticatedUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+                if (authenticatedUserId == 0)
+                    return Unauthorized(new Confirmation { Status = "error", ResponseMsg = "Sesioni ka skaduar." });
+
+                var isSuperAdmin = User.FindFirst("role")?.Value == "SuperAdmin";
+                var isAdmin = User.FindFirst("role")?.Value == "Admin";
+                if (model.UserId != authenticatedUserId && !isSuperAdmin && !isAdmin)
+                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Nuk keni leje per kete veprim." });
+
                 string salt=PasswordHasher.GenerateSalt();
                 string hashedPassword=PasswordHasher.HashPassword(model.Password,salt);
                 var objUser=await _context.Users.SingleAsync(opt=>opt.UserId==model.UserId);              
                 objUser.Password=hashedPassword;
                 objUser.PasswordSalt=salt;
                 objUser.LastPasswordChangeDate=DateTime.Now;
-                objUser.PasswordChangedBy=model.UserId;
+                objUser.PasswordChangedBy=authenticatedUserId;
                 objUser.IsPasswordChange=true;            
                 await _context.SaveChangesAsync();
                 return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                          
@@ -716,7 +727,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get Browsing Log
         ///</summary>
-        [AllowAnonymous]     
+        [Authorize(Roles="SuperAdmin,Admin")]     
         [HttpGet("{id}")]        
         public async Task<ActionResult> GetBrowseList(int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -782,7 +793,7 @@ namespace AdminApi.Controllers
         ///<summary>
         ///Get Notification List
         ///</summary>    
-        [AllowAnonymous]
+        [Authorize]
         [HttpGet("{id}")]        
         public async Task<ActionResult> GetNotificationList(int id)
         {
@@ -809,7 +820,8 @@ namespace AdminApi.Controllers
         ///Profile picture upload
         ///</summary>
         [Authorize(Roles="SuperAdmin,Admin,User")]   
-        [HttpPost, DisableRequestSizeLimit]
+        [HttpPost]
+        [RequestSizeLimit(5 * 1024 * 1024)]
         public async Task<ActionResult> Upload()
         {
             try
@@ -818,11 +830,17 @@ namespace AdminApi.Controllers
                 var folderName = Path.Combine("Resources", "Images");
                 var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
 
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+                if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Lloji i skedarit nuk lejohet. Vetëm imazhe (.jpg, .png, .gif, .webp)." });
+
+                if (file.Length > 5 * 1024 * 1024)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Skedari eshte shume i madh. Maksimumi eshte 5MB." });
+
                 if (file.Length > 0)
                 {
-                    #pragma warning disable CS8602 // Dereference of a possibly null reference.
-                    var fileName = Guid.NewGuid().ToString()+"_"+ ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    #pragma warning restore CS8602 // Dereference of a possibly null reference.
+                    var fileName = Guid.NewGuid().ToString() + ext;
                     var fullPath = Path.Combine(pathToSave, fileName);
                     var dbPath = Path.Combine(folderName, fileName);
 

@@ -147,7 +147,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateVehicle failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e automjetit deshtoi. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e automjetit deshtoi." });
             }
         }
 
@@ -185,7 +185,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "UpdateVehicle failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Perditesimi i automjetit deshtoi. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Perditesimi i automjetit deshtoi." });
             }
         }
 
@@ -365,7 +365,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateVehicleFuel failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e hyrjes se karburantit deshtoi. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e hyrjes se karburantit deshtoi." });
             }
         }
 

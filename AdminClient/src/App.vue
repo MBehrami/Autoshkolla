@@ -47,13 +47,13 @@ const toggleFullscreen = async (isFullscreen) => {
     try {
       await fullscreenElement.value.requestFullscreen();
     } catch (error) {
-      console.error("Failed to enter fullscreen mode:", error);
+      console.error("Failed to enter fullscreen mode:");
     }
   } else {
     try {
       await document.exitFullscreen();
     } catch (error) {
-      console.error("Failed to exit fullscreen mode:", error);
+      console.error("Failed to exit fullscreen mode:");
     }
   }
 }
@@ -74,8 +74,7 @@ onUnmounted(() => {
 })
 
 //App Error Capture life cycle hook
-onErrorCaptured((err) => {
-  console.log('onErrorCaptured', err)
+onErrorCaptured(() => {
 })
 
 // Guard flag to prevent recursive interceptor loops when the API is unreachable

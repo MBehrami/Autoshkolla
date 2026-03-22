@@ -20,10 +20,7 @@ import { createPinia } from 'pinia'
 const app = createApp(App)
 const pinia=createPinia()
 
-app.config.errorHandler=(err,instance,info)=>{
-    console.log('main_err',err)
-    console.log('main_instance',instance)
-    console.log('main_info',info)
+app.config.errorHandler=()=>{
 }
 
 registerPlugins(app)

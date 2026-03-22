@@ -907,7 +907,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "AddPracticalLesson failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e ores deshtoi. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e ores deshtoi." });
             }
         }
 
@@ -1073,7 +1073,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "DownloadApplication failed for candidate {Id}", id);
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Gjenerimi i PDF-se se aplikimit deshtoi: " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Gjenerimi i PDF-se se aplikimit deshtoi." });
             }
         }
 

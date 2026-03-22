@@ -21,12 +21,16 @@ export const useUserStore = defineStore("userStore", {
         )
           .then((response) => {
             if (response.status == 200) {
-              localStorage.setItem("userId", response.data.obj.userId);
-              localStorage.setItem("userRoleId", response.data.obj.userRoleId);
-              localStorage.setItem(
-                "profile",
-                JSON.stringify({ ...response.data })
-              );
+              const data = { ...response.data };
+              if (data.obj) {
+                delete data.obj.password;
+                delete data.obj.Password;
+                delete data.obj.passwordSalt;
+                delete data.obj.PasswordSalt;
+              }
+              localStorage.setItem("userId", data.obj.userId);
+              localStorage.setItem("userRoleId", data.obj.userRoleId);
+              localStorage.setItem("profile", JSON.stringify(data));
             }
             this.loading = false;
             resolve(response);

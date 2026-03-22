@@ -36,11 +36,19 @@ function getRoleName() {
   }
 }
 
-// Helper: check if a valid session token exists
+// Helper: check if a valid and non-expired session token exists
 function isAuthenticated() {
   try {
     const profile = JSON.parse(localStorage.getItem("profile") || "{}");
-    return !!profile?.token;
+    if (!profile?.token) return false;
+    const parts = profile.token.split(".");
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem("profile");
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }

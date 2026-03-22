@@ -372,7 +372,7 @@ const loadAccounts = async () => {
         const list = response?.data?.data || response?.data?.obj || [];
         items.value = Array.isArray(list) ? list.map(normalizeAccount) : [];
     } catch (error) {
-        console.error('Error loading accounts:', error);
+        console.error('Error loading accounts:');
         showSnackbar(error?.message || 'Gabim në ngarkimin e llogarive', 'error');
     }
 };
@@ -388,7 +388,7 @@ const loadUnlinkedCandidates = async () => {
             ? list.map(normalizeCandidate).filter(x => !!x.candidateId)
             : [];
     } catch (error) {
-        console.error('Error loading unlinked candidates:', error);
+        console.error('Error loading unlinked candidates:');
         showSnackbar(error?.message || 'Gabim në ngarkimin e kandidatëve', 'error');
     }
 };
@@ -404,7 +404,7 @@ const loadExamCategories = async () => {
             ? list.map(normalizeExamCategory).filter(x => !!x.examCategoryId && x.code)
             : [];
     } catch (error) {
-        console.error('Error loading exam categories:', error);
+        console.error('Error loading exam categories:');
         showSnackbar(error?.message || 'Gabim në ngarkimin e kategorive të testit', 'error');
     }
 };
@@ -452,7 +452,7 @@ const saveItem = async () => {
         loadAccounts();
         loadUnlinkedCandidates();
     } catch (error) {
-        console.error('Error saving account:', error);
+        console.error('Error saving account:');
         const message = error.response?.data?.responseMsg || error.response?.data?.ResponseMsg || 'Gabim në ruajtjen e llogarisë';
         showSnackbar(message, 'error');
     }
@@ -464,7 +464,7 @@ const toggleActiveItem = async (item) => {
         showSnackbar(`Llogaria u ${item.isActive ? 'çaktivizua' : 'aktivizua'} me sukses`, 'success');
         loadAccounts();
     } catch (error) {
-        console.error('Error toggling active:', error);
+        console.error('Error toggling active:');
         showSnackbar('Gabim në ndryshimin e statusit', 'error');
     }
 };
@@ -492,7 +492,7 @@ const savePassword = async () => {
         showSnackbar('Fjalëkalimi u ndryshua me sukses', 'success');
         closePasswordDialog();
     } catch (error) {
-        console.error('Error setting password:', error);
+        console.error('Error setting password:');
         showSnackbar('Gabim në ndryshimin e fjalëkalimit', 'error');
     }
 };

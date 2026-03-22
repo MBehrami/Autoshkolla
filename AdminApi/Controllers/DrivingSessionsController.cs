@@ -500,7 +500,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "UpdateDrivingSession failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Perditesimi i seances deshtoi." });
             }
         }
 
@@ -543,7 +543,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetWaitingList failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 

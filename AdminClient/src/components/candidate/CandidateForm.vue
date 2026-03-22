@@ -628,7 +628,6 @@ const loadCategories = () => {
     candidateStore.getCategories()
         .then((response) => {
             if (response.data && (response.data.status === 'error' || response.data.responseMsg)) {
-                console.warn('[CandidateForm Categories] API returned error body:', response.data)
                 settingStore.toggleSnackbar({ status: true, msg: response.data.responseMsg || 'Error loading categories' })
                 return
             }
@@ -637,10 +636,8 @@ const loadCategories = () => {
                 categoryId: c.categoryId ?? c.CategoryId,
                 categoryName: c.categoryName ?? c.CategoryName ?? String(c.categoryId ?? c.CategoryId ?? '')
             })).filter((c) => c.categoryId != null)
-            console.log('[CandidateForm Categories] Loaded', categories.value.length, 'categories →', categories.value)
         })
         .catch((error) => {
-            console.error('[CandidateForm Categories] Request failed:', error?.response?.status, error?.response?.data, error)
             settingStore.toggleSnackbar({ status: true, msg: error?.response?.data?.responseMsg || 'Error loading categories' })
         })
 }

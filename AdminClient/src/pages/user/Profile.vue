@@ -90,7 +90,6 @@ const profileForm = ref({
 userStore.getSingleUser(localStorage.getItem('userId'))
     .then(res => {
         if (res.status == 200) {
-            //console.log(res.data)
             profileForm.value.fullName = res.data.fullName
             profileForm.value.email = res.data.email
             profileForm.value.mobile = res.data.mobile
@@ -131,8 +130,7 @@ const updateProfile = () => {
                 settingStore.toggleSnackbar({ status: true, msg: response.data.responseMsg })
             }
         })
-        .catch(error => {
-            console.log('error', error)
+        .catch(() => {
         })
 }
 

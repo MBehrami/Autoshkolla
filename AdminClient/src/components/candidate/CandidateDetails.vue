@@ -332,7 +332,7 @@ const downloadApplication = async () => {
     try {
         await downloadApplicationPdf(candidate.value)
     } catch (err) {
-        console.error('Download application error:', err)
+        console.error('Download application error:')
         settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të aplikacionit' })
     } finally {
         downloadingPdf.value = false
@@ -345,7 +345,7 @@ const downloadContract = async () => {
     try {
         await downloadContractPdf(candidate.value)
     } catch (err) {
-        console.error('Download contract error:', err)
+        console.error('Download contract error:')
         settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të kontratës' })
     } finally {
         downloadingContract.value = false
@@ -358,7 +358,7 @@ const downloadCertificate = async () => {
     try {
         await downloadCertificatePdf(candidate.value)
     } catch (err) {
-        console.error('Download certificate error:', err)
+        console.error('Download certificate error:')
         settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë shkarkimit të vërtetimit' })
     } finally {
         downloadingCertificate.value = false

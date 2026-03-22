@@ -236,8 +236,7 @@ const lockOpen = () => {
                 settingStore.toggleSnackbar({ status: true, msg: response.data.responseMsg })
             }
         })
-        .catch(error => {
-            console.log('error', error)
+        .catch(() => {
         })
 }
 
@@ -456,8 +455,7 @@ menuStore.getSidebar(roleId)
     .then((res) => {
         menus.value = buildMenu(res.data)
     })
-    .catch((error) => {
-        console.log(error)
+    .catch(() => {
         menus.value = getFallbackMenu()
     })
 

@@ -45,9 +45,6 @@ export const useCandidateStore = defineStore("candidateStore", {
         if (year) url += `year=${year}&`;
         API.get(url)
           .then((response) => {
-            if (typeof console !== 'undefined' && console.log) {
-              console.log('candidates raw response (store)', response?.data);
-            }
             resolve(response);
           })
           .catch((error) => {

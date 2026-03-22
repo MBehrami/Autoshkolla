@@ -184,7 +184,6 @@ const exportPdf = () => {
 
 //check root menu
 const chkOption = () => {
-    //console.log(parentMenuSelect.value)
     if (parentMenuSelect.value == null) {
         visible.value = false
     } else if (parentMenuSelect.value.id == 0) {
@@ -245,7 +244,6 @@ initilizeMenu()
 
 //edit initialize
 const editItem = (item) => {
-    //console.log(item)
     item.parentID == 0 ? visible.value = true : visible.value = false
     parentMenuSelect.value = { text: item.parentMenuName == null ? 'Root' : item.parentMenuName, id: item.parentID }
     editedIndex.value = items.value.indexOf(item)
@@ -307,7 +305,6 @@ const saveMenu = () => {
             isActive: false,
             addedBy: localStorage.getItem('userId')
         }
-        //console.log(insertObj)
         menuStore.createSingleMenu(insertObj)
             .then((response) => {
                 if (response.status == 200) {

@@ -447,7 +447,7 @@ const loadCategories = async () => {
         const response = await examStore.getCategoriesAdmin();
         categories.value = response.data?.data || response.data?.obj || [];
     } catch (error) {
-        console.error('Error loading categories:', error);
+        console.error('Error loading categories:');
         showSnackbar('Gabim në ngarkimin e kategorive', 'error');
     }
 };
@@ -489,7 +489,7 @@ const saveCategory = async () => {
         closeCategoryDialog();
         loadCategories();
     } catch (error) {
-        console.error('Error saving category:', error);
+        console.error('Error saving category:');
         const message = error.response?.data?.responseMsg || error.response?.data?.ResponseMsg || 'Gabim në ruajtjen e kategorisë';
         showSnackbar(message, 'error');
     }
@@ -501,7 +501,7 @@ const toggleCategoryStatus = async (item) => {
         showSnackbar(`Kategoria u ${item.isActive ? 'çaktivizua' : 'aktivizua'} me sukses`, 'success');
         loadCategories();
     } catch (error) {
-        console.error('Error toggling category:', error);
+        console.error('Error toggling category:');
         showSnackbar('Gabim në ndryshimin e statusit', 'error');
     }
 };
@@ -517,7 +517,7 @@ const loadExams = async () => {
         const response = await examStore.getExamsAdmin(selectedCategoryForExams.value);
         exams.value = response.data?.data || response.data?.obj || [];
     } catch (error) {
-        console.error('Error loading exams:', error);
+        console.error('Error loading exams:');
         showSnackbar('Gabim në ngarkimin e testeve', 'error');
     }
 };
@@ -536,7 +536,7 @@ const loadExamsForQuestions = async () => {
         selectedExamForQuestions.value = null;
         questions.value = [];
     } catch (error) {
-        console.error('Error loading exams:', error);
+        console.error('Error loading exams:');
         showSnackbar('Gabim në ngarkimin e testeve', 'error');
     }
 };
@@ -579,7 +579,7 @@ const saveExam = async () => {
         closeExamDialog();
         loadExams();
     } catch (error) {
-        console.error('Error saving exam:', error);
+        console.error('Error saving exam:');
         const message = error.response?.data?.responseMsg || error.response?.data?.ResponseMsg || 'Gabim në ruajtjen e testit';
         showSnackbar(message, 'error');
     }
@@ -591,7 +591,7 @@ const toggleExamStatus = async (item) => {
         showSnackbar(`Testi u ${item.isActive ? 'çaktivizua' : 'aktivizua'} me sukses`, 'success');
         loadExams();
     } catch (error) {
-        console.error('Error toggling exam:', error);
+        console.error('Error toggling exam:');
         showSnackbar('Gabim në ndryshimin e statusit', 'error');
     }
 };
@@ -607,7 +607,7 @@ const loadQuestions = async () => {
         const response = await examStore.getQuestionsAdmin(selectedExamForQuestions.value);
         questions.value = response.data?.data || response.data?.obj || [];
     } catch (error) {
-        console.error('Error loading questions:', error);
+        console.error('Error loading questions:');
         showSnackbar('Gabim në ngarkimin e pyetjeve', 'error');
     }
 };
@@ -683,7 +683,7 @@ const saveQuestion = async () => {
         closeQuestionDialog();
         loadQuestions();
     } catch (error) {
-        console.error('Error saving question:', error);
+        console.error('Error saving question:');
         const message = error.message || error.response?.data?.responseMsg || error.response?.data?.ResponseMsg || 'Gabim në ruajtjen e pyetjes';
         showSnackbar(message, 'error');
     }
@@ -695,7 +695,7 @@ const toggleQuestionStatus = async (item) => {
         showSnackbar(`Pyetja u ${item.isActive ? 'çaktivizua' : 'aktivizua'} me sukses`, 'success');
         loadQuestions();
     } catch (error) {
-        console.error('Error toggling question:', error);
+        console.error('Error toggling question:');
         showSnackbar('Gabim në ndryshimin e statusit', 'error');
     }
 };
@@ -728,7 +728,7 @@ const handleImageUpload = async (event) => {
             showSnackbar(response.data?.responseMsg || 'Gabim në ngarkimin e fotografisë', 'error');
         }
     } catch (error) {
-        console.error('Error uploading image:', error);
+        console.error('Error uploading image:');
         const message = error.response?.data?.responseMsg || 'Gabim në ngarkimin e fotografisë';
         showSnackbar(message, 'error');
     } finally {
@@ -762,7 +762,7 @@ const handleImageError = (event) => {
     if (currentSrcIndex < extensions.length - 1) {
         event.target.src = `${apiUrl}/files/${imageGuid}${extensions[currentSrcIndex + 1]}`;
     } else {
-        console.error('Image load failed for GUID:', imageGuid);
+        console.error('Image load failed for GUID:');
     }
 };
 
