@@ -21,6 +21,8 @@ import VehicleServices from "@/pages/vehicle/VehicleServices.vue";
 import DrivingSessions from "@/pages/candidate/DrivingSessions.vue";
 import Schedules from "@/pages/schedule/Schedules.vue";
 import DailyReport from "@/pages/report/DailyReport.vue";
+import CandidateAccounts from "@/pages/etestimi/CandidateAccounts.vue";
+import ExamManagement from "@/pages/etestimi/ExamManagement.vue";
 
 // Helper: get current user's role name from stored profile
 function getRoleName() {
@@ -78,6 +80,20 @@ const routes = [
     path: "/daily-report",
     name: "DailyReport",
     component: DailyReport,
+    meta: { adminOnly: true },
+  },
+
+  // ─── E-Testimi Management (Admin + SuperAdmin) ───
+  {
+    path: "/etestimi/candidate-accounts",
+    name: "CandidateAccounts",
+    component: CandidateAccounts,
+    meta: { adminOnly: true },
+  },
+  {
+    path: "/etestimi/exams",
+    name: "ExamManagement",
+    component: ExamManagement,
     meta: { adminOnly: true },
   },
 

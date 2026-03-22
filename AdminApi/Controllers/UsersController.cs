@@ -73,14 +73,14 @@ namespace AdminApi.Controllers
                     }
                     else
                     {
-                        return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Incorrect Password!" });
+                        return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Fjalekalim i pasakte!" });
                     }                                                                         
                 }  
-               return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Incorrect Email!" });               
+               return Accepted(new Confirmation { Status = "incorrect", ResponseMsg = "Email i pasakte!" });               
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -102,12 +102,12 @@ namespace AdminApi.Controllers
                 }
                 else
                 {
-                    return Accepted(new Confirmation{Status="error",ResponseMsg="There is no user for this email"});
+                    return Accepted(new Confirmation{Status="error",ResponseMsg="Nuk ka perdorues per kete email"});
                 }
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation{Status="error",ResponseMsg=ex.Message});           
+                return Accepted(new Confirmation{Status="error",ResponseMsg="Ndodhi nje gabim gjate perpunimit te kerkeses."});           
             }
         }
 
@@ -132,16 +132,16 @@ namespace AdminApi.Controllers
                     model.DateAdded=DateTime.Now;
                     model.IsActive=true;
                     await _userRepo.Insert(model);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Registered" });
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U regjistrua me sukses" });
                 }
                 else
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "This email already have a user" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Ky email tashme ka nje perdorues" });
                 }
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -162,7 +162,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -178,11 +178,11 @@ namespace AdminApi.Controllers
                 var objLogHistory=await _context.LogHistory.SingleAsync(opt=>opt.LogCode==logCode);
                 objLogHistory.LogOutTime=DateTime.Now;
                 await _context.SaveChangesAsync();
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -213,7 +213,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -244,7 +244,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -275,7 +275,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -306,7 +306,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -334,7 +334,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -358,7 +358,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -376,7 +376,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -393,17 +393,17 @@ namespace AdminApi.Controllers
                 if(checkList.Count==0)
                 {
                     await _userRoleRepo.Delete(id);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Deleted" });
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U fshi me sukses" });
                 }
                 else
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "This role has assinged user. Not allowed to delete." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ky rol ka perdorues te caktuar. Fshirja nuk lejohet." });
                 }
                           
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -422,17 +422,17 @@ namespace AdminApi.Controllers
                     model.DateAdded=DateTime.Now;
                     model.IsActive=true;
                     await _userRoleRepo.Insert(model);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                  
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                  
                 }
                 else if(objCheck!=null)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Role name" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Emer roli i dyfishte" });
                 }
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Something Unexpected" });                      
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim i papritur" });                      
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "unknown", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "unknown", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -450,7 +450,7 @@ namespace AdminApi.Controllers
 
                 if(objCheck!=null && objCheck.RoleName!=objUserRole.RoleName)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate role" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Rol i dyfishte" });
                 }
                 else
                 {
@@ -460,12 +460,12 @@ namespace AdminApi.Controllers
                     objUserRole.LastUpdatedBy=model.LastUpdatedBy;
                     objUserRole.LastUpdatedDate=DateTime.Now;
                     await _context.SaveChangesAsync();
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });
                 }                                             
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -492,7 +492,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -510,7 +510,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -528,7 +528,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -542,11 +542,11 @@ namespace AdminApi.Controllers
             try
             {
                 await _userRepo.Delete(id);
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Deleted" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U fshi me sukses" });
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -570,17 +570,17 @@ namespace AdminApi.Controllers
                     model.IsActive=true;
                     model.IsPasswordChange=false;
                     await _userRepo.Insert(model);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });
                 }
                 else if(objCheck!=null)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "This email already have a user" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Ky email tashme ka nje perdorues" });
                 }
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Something Unexpected" });          
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim i papritur" });          
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -603,11 +603,11 @@ namespace AdminApi.Controllers
                 objUser.LastUpdatedBy=model.LastUpdatedBy;
                 objUser.LastUpdatedDate=DateTime.Now;
                 await _context.SaveChangesAsync();
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                                                     
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                                                     
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -631,11 +631,11 @@ namespace AdminApi.Controllers
                 objUser.LastUpdatedBy=model.LastUpdatedBy;
                 objUser.LastUpdatedDate=DateTime.Now;
                 await _context.SaveChangesAsync();
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                         
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                         
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -657,11 +657,11 @@ namespace AdminApi.Controllers
                 objUser.PasswordChangedBy=model.UserId;
                 objUser.IsPasswordChange=true;            
                 await _context.SaveChangesAsync();
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                          
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                          
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -686,7 +686,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -709,7 +709,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -729,7 +729,7 @@ namespace AdminApi.Controllers
                 var objUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(e => e.UserId == id);
                 if (objUser == null)
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "User not found." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Perdoruesi nuk u gjet." });
                 }
 
                 var query = from l in _context.LogHistory.AsNoTracking()
@@ -775,7 +775,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -801,7 +801,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -840,7 +840,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });               
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });               
             }
         }
 
@@ -870,3 +870,5 @@ namespace AdminApi.Controllers
         }
     }
 }
+
+

@@ -12,12 +12,12 @@
             <h4
               class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left"
             >
-              Roland Zogjani
+              {{ authStore.fullName || 'Kandidat' }}
             </h4>
             <div
               class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left"
             >
-              <p class="text-sm text-gray-500 dark:text-gray-400">048567729</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ authStore.phoneNumber || 'N/A' }}</p>
             </div>
           </div>
         </div>
@@ -27,5 +27,8 @@
 </template>
 
 <script setup>
+import { useAuthStore } from '@/stores/auth'
 import { UserCircleIcon } from '@/icons'
+
+const authStore = useAuthStore()
 </script>

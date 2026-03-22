@@ -90,7 +90,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetSessionsByDate failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -163,7 +163,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetSessionsByDateRange failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -197,7 +197,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetSessionStats failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -227,7 +227,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetCandidatesDropdown failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -241,38 +241,38 @@ namespace AdminApi.Controllers
             try
             {
                 if (request.CandidateId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati eshte i detyrueshem." });
                 if (request.VehicleId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Vehicle is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti eshte i detyrueshem." });
                 if (string.IsNullOrWhiteSpace(request.DrivingDate))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Driving date is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data e vozitjes eshte e detyrueshme." });
                 if (string.IsNullOrWhiteSpace(request.DrivingTime))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Driving time is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e vozitjes eshte e detyrueshme." });
 
                 if (!Regex.IsMatch(request.DrivingDate.Trim(), @"^\d{2}\.\d{2}\.\d{4}$"))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format. Use dd.MM.yyyy." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem. Perdorni dd.MM.yyyy." });
                 if (!DateTime.TryParseExact(request.DrivingDate.Trim(), "dd.MM.yyyy",
                         CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Date e pavlefshme." });
 
                 string time = request.DrivingTime.Trim();
                 if (!AllowedTimeSlots.Contains(time))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Invalid time slot: {time}. Allowed: 08:00 – 15:00 in 15-min intervals." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Termini i ores eshte i pavlefshem: {time}. Lejohet: 08:00 - 15:00 ne intervale 15-minuteshe." });
 
                 var candidate = await _context.Candidates.FindAsync(request.CandidateId);
                 if (candidate == null)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate not found." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet." });
 
                 var vehicle = await _context.Vehicles.FindAsync(request.VehicleId);
                 if (vehicle == null || !vehicle.IsActive)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Vehicle not found or inactive." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti nuk u gjet ose eshte joaktiv." });
 
                 if (!string.IsNullOrWhiteSpace(request.PaymentDate))
                 {
                     if (!Regex.IsMatch(request.PaymentDate.Trim(), @"^\d{2}\.\d{2}\.\d{4}$") ||
                         !DateTime.TryParseExact(request.PaymentDate.Trim(), "dd.MM.yyyy",
                             CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid payment date format. Use dd.MM.yyyy." });
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates se pageses eshte i pavlefshem. Perdorni dd.MM.yyyy." });
                 }
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
@@ -339,12 +339,12 @@ namespace AdminApi.Controllers
                     session.DateAdded
                 };
 
-                return Ok(new { status = "success", responseMsg = "Driving session created.", data = result });
+                return Ok(new { status = "success", responseMsg = "Seanca e vozitjes u krijua.", data = result });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateDrivingSession failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -360,7 +360,7 @@ namespace AdminApi.Controllers
             {
                 var session = await _context.DrivingSessions.FindAsync(id);
                 if (session == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Session not found." });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Seanca nuk u gjet." });
 
                 // Validate status if provided
                 if (!string.IsNullOrWhiteSpace(request.Status))
@@ -385,7 +385,7 @@ namespace AdminApi.Controllers
                     string pd = request.PaymentDate.Trim();
                     if (pd.Length > 0 && (!Regex.IsMatch(pd, @"^\d{2}\.\d{2}\.\d{4}$") ||
                         !DateTime.TryParseExact(pd, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)))
-                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid payment date format. Use dd.MM.yyyy." });
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates se pageses eshte i pavlefshem. Perdorni dd.MM.yyyy." });
                     session.PaymentDate = pd.Length > 0 ? pd : null;
                 }
 
@@ -441,12 +441,12 @@ namespace AdminApi.Controllers
                     session.DateAdded
                 };
 
-                return Ok(new { status = "success", responseMsg = "Session updated.", data = result });
+                return Ok(new { status = "success", responseMsg = "Seanca u perditesua.", data = result });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "UpdateDrivingSession failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -461,17 +461,17 @@ namespace AdminApi.Controllers
             {
                 var session = await _context.DrivingSessions.FindAsync(id);
                 if (session == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Session not found." });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Seanca nuk u gjet." });
 
                 _context.DrivingSessions.Remove(session);
                 await _context.SaveChangesAsync();
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Session deleted." });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Seanca u fshi." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "DeleteDrivingSession failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -491,3 +491,5 @@ namespace AdminApi.Controllers
         }
     }
 }
+
+

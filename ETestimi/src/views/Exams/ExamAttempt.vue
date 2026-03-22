@@ -11,7 +11,21 @@
         </router-link>
       </div>
 
-      <component-card v-if="!exam" title="Testi nuk u gjet" desc="Ju lutem zgjidhni një kategori dhe test të vlefshëm.">
+      <div v-if="errorMessage" class="rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        {{ errorMessage }}
+      </div>
+
+      <CategoryAccessDeniedModal
+        v-if="showCategoryAccessDenied"
+        :message="accessDeniedMessage"
+        @close="closeCategoryAccessDeniedModal"
+      />
+
+      <component-card v-if="loading" title="Duke u ngarkuar..." desc="Ju lutem prisni ndërsa ngarkohet testi.">
+        <div class="py-8 text-center text-gray-500 dark:text-gray-400">Duke u ngarkuar...</div>
+      </component-card>
+
+      <component-card v-else-if="!exam" title="Testi nuk u gjet" desc="Ju lutem zgjidhni një kategori dhe test të vlefshëm.">
         <router-link
           to="/exams"
           class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
@@ -97,7 +111,7 @@
               <div class="grid gap-3">
                 <button
                   v-for="(option, optionIndex) in currentQuestion.options"
-                  :key="option"
+                  :key="optionIndex"
                   type="button"
                   class="flex items-center gap-4 rounded-lg border px-5 py-4 text-left text-base transition sm:text-lg lg:text-xl"
                   :class="
@@ -136,10 +150,11 @@
             <button
               v-if="isLastQuestion"
               type="button"
-              class="inline-flex min-w-28 items-center justify-center rounded-lg bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600"
+              class="inline-flex min-w-28 items-center justify-center rounded-lg bg-brand-500 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+              :disabled="isSubmitting"
               @click="submitExam"
             >
-              DORËZO →
+              {{ isSubmitting ? 'Duke dërguar...' : 'DORËZO →' }}
             </button>
             <button
               v-else
@@ -199,7 +214,7 @@
               <div class="mt-3 grid gap-3">
                 <button
                   v-for="(option, optionIndex) in reviewItem.question.options"
-                  :key="`${reviewItem.question.id}-${optionIndex}`"
+                  :key="optionIndex"
                   type="button"
                   disabled
                   class="flex items-center gap-4 rounded-lg border px-4 py-3 text-left text-sm font-medium lg:text-base"
@@ -241,26 +256,44 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import ComponentCard from '@/components/common/ComponentCard.vue'
+import CategoryAccessDeniedModal from '@/components/common/CategoryAccessDeniedModal.vue'
 import CalenderIcon from '@/icons/CalenderIcon.vue'
 import DocsIcon from '@/icons/DocsIcon.vue'
 import PieChartIcon from '@/icons/PieChartIcon.vue'
 import SuccessIcon from '@/icons/SuccessIcon.vue'
-import { DEFAULT_QUESTION_IMAGE, getExam } from '@/data/exams'
+import { useExamStore } from '@/stores/exam'
+
+const DEFAULT_QUESTION_IMAGE = '/images/default-question.jpg'
 
 const route = useRoute()
+const examStore = useExamStore()
 
 type Step = 'rules' | 'questions' | 'result'
 const EXAM_DURATION_SECONDS = 45 * 60
 
 const step = ref<Step>('rules')
 const currentQuestionIndex = ref(0)
-const answers = ref<Record<string, number>>({})
+const answers = ref<Record<number, number>>({})
 const remainingSeconds = ref(EXAM_DURATION_SECONDS)
+const loading = ref(true)
+const isSubmitting = ref(false)
+const localErrorMessage = ref('')
+const showCategoryAccessDenied = ref(false)
 let timer: ReturnType<typeof setInterval> | null = null
+
+const exam = computed(() => examStore.currentExam)
+const errorMessage = computed(() => {
+  if (examStore.categoryAccessDeniedMessage) {
+    return ''
+  }
+
+  return localErrorMessage.value || examStore.error || ''
+})
+const accessDeniedMessage = computed(() => examStore.categoryAccessDeniedMessage || 'Nuk keni akses në këtë kategori, kontaktoni administratorin.')
 
 const category = computed(() => {
   const value = route.params.category
@@ -269,7 +302,29 @@ const category = computed(() => {
 
 const examId = computed(() => Number(route.params.examId))
 
-const exam = computed(() => getExam(category.value, examId.value))
+onMounted(async () => {
+  if (!category.value || !examId.value) {
+    loading.value = false
+    return
+  }
+
+  examStore.clearError()
+  examStore.clearCategoryAccessDenied()
+  try {
+    await examStore.fetchExam(category.value, examId.value)
+    
+    if (examStore.currentExam?.durationMinutes) {
+      remainingSeconds.value = examStore.currentExam.durationMinutes * 60
+    }
+  } catch (error: any) {
+    if (examStore.categoryAccessDeniedMessage) {
+      showCategoryAccessDenied.value = true
+    }
+    console.error('Deshtoi ngarkimi i testit:', error)
+  } finally {
+    loading.value = false
+  }
+})
 
 const categoryBackLink = computed(() =>
   category.value ? `/exams/${category.value}` : '/exams'
@@ -409,10 +464,18 @@ const startTimer = () => {
 }
 
 const startExam = () => {
+  if (!exam.value) {
+    return
+  }
+
+  localErrorMessage.value = ''
+  
   step.value = 'questions'
   currentQuestionIndex.value = 0
   answers.value = {}
-  remainingSeconds.value = EXAM_DURATION_SECONDS
+  
+  const duration = exam.value.durationMinutes ?? 45
+  remainingSeconds.value = duration * 60
   startTimer()
 }
 
@@ -440,21 +503,80 @@ const prevQuestion = () => {
   currentQuestionIndex.value -= 1
 }
 
-const submitExam = () => {
+const submitExam = async () => {
+  if (!exam.value || isSubmitting.value || step.value !== 'questions') {
+    return
+  }
+
+  localErrorMessage.value = ''
+  isSubmitting.value = true
+  stopTimer()
+
+  try {
+    const examDurationSeconds = (exam.value.durationMinutes ?? 45) * 60
+    const durationSeconds = Math.max(0, examDurationSeconds - remainingSeconds.value)
+
+    const submittedAnswers = Object.entries(answers.value).map(([questionId, selectedOptionIndex]) => ({
+      questionId: Number(questionId),
+      selectedOptionIndex,
+    }))
+
+    await examStore.submitExamAttempt({
+      categoryCode: category.value,
+      examId: exam.value.examId,
+      durationSeconds,
+      answers: submittedAnswers,
+    })
+
+    step.value = 'result'
+
+    try {
+      await examStore.fetchCandidateStats(true)
+    } catch {
+      // Non-blocking for exam result view; dashboard will retry loading stats.
+    }
+  } catch (error: any) {
+    if (examStore.categoryAccessDeniedMessage) {
+      showCategoryAccessDenied.value = true
+      localErrorMessage.value = ''
+      return
+    }
+
+    localErrorMessage.value = error?.message || 'Dërgimi i testit dështoi. Ju lutem provoni përsëri.'
+    startTimer()
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+watch(
+  () => examStore.categoryAccessDeniedMessage,
+  (message) => {
+    if (message) {
+      showCategoryAccessDenied.value = true
+    }
+  }
+)
+
+const closeCategoryAccessDeniedModal = () => {
+  showCategoryAccessDenied.value = false
+  examStore.clearCategoryAccessDenied()
+}
+
+const retakeExam = () => {
   if (!exam.value) {
     return
   }
 
-  stopTimer()
-  step.value = 'result'
-}
-
-const retakeExam = () => {
+  localErrorMessage.value = ''
+  
   stopTimer()
   step.value = 'rules'
   currentQuestionIndex.value = 0
   answers.value = {}
-  remainingSeconds.value = EXAM_DURATION_SECONDS
+  
+  const duration = exam.value.durationMinutes ?? 45
+  remainingSeconds.value = duration * 60
 }
 
 onBeforeUnmount(() => {

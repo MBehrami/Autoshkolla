@@ -90,7 +90,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetVehiclesList failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -103,12 +103,12 @@ namespace AdminApi.Controllers
             {
                 var vehicle = await _context.Vehicles.FindAsync(id);
                 if (vehicle == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Vehicle not found" });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Automjeti nuk u gjet" });
                 return Ok(vehicle);
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -120,7 +120,7 @@ namespace AdminApi.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(request.PlateNumber))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Plate Number is required" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Targa eshte e detyrueshme" });
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
 
@@ -142,12 +142,12 @@ namespace AdminApi.Controllers
                 _context.Vehicles.Add(vehicle);
                 await _context.SaveChangesAsync();
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Vehicle added successfully" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Automjeti u shtua me sukses" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateVehicle failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Failed to save vehicle. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e automjetit deshtoi. " + ex.Message });
             }
         }
 
@@ -160,10 +160,10 @@ namespace AdminApi.Controllers
             {
                 var vehicle = await _context.Vehicles.FindAsync(id);
                 if (vehicle == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Vehicle not found" });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Automjeti nuk u gjet" });
 
                 if (string.IsNullOrWhiteSpace(request.PlateNumber))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Plate Number is required" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Targa eshte e detyrueshme" });
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
 
@@ -180,12 +180,12 @@ namespace AdminApi.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Vehicle updated successfully" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Automjeti u perditesua me sukses" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "UpdateVehicle failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Failed to update vehicle. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Perditesimi i automjetit deshtoi. " + ex.Message });
             }
         }
 
@@ -198,7 +198,7 @@ namespace AdminApi.Controllers
             {
                 var vehicle = await _context.Vehicles.FindAsync(id);
                 if (vehicle == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Vehicle not found" });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Automjeti nuk u gjet" });
 
                 vehicle.IsActive = !vehicle.IsActive;
                 vehicle.LastUpdatedBy = int.Parse(User.FindFirst("sub")?.Value ?? "0");
@@ -212,7 +212,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ToggleVehicleStatus failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -306,7 +306,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetVehicleFuelList failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -321,11 +321,11 @@ namespace AdminApi.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(request.FillDate))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Fill Date is required" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data e mbushjes eshte e detyrueshme" });
                 if (request.VehicleId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Vehicle is required" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti eshte i detyrueshem" });
                 if (string.IsNullOrWhiteSpace(request.FuelType))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Fuel Type is required" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Lloji i karburantit eshte i detyrueshem" });
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
                 var role = User.FindFirst("role")?.Value ?? "";
@@ -338,13 +338,13 @@ namespace AdminApi.Controllers
                 else
                 {
                     if (request.StaffUserId <= 0)
-                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Staff is required" });
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Stafi eshte i detyrueshem" });
                     staffUserId = request.StaffUserId;
                 }
 
                 var vehicle = await _context.Vehicles.FindAsync(request.VehicleId);
                 if (vehicle == null)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Selected vehicle not found" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti i zgjedhur nuk u gjet" });
 
                 var entry = new VehicleFuel
                 {
@@ -360,12 +360,12 @@ namespace AdminApi.Controllers
                 _context.VehicleFuels.Add(entry);
                 await _context.SaveChangesAsync();
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Fuel entry added successfully" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Hyrja e karburantit u shtua me sukses" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateVehicleFuel failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Failed to save fuel entry. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e hyrjes se karburantit deshtoi. " + ex.Message });
             }
         }
 
@@ -436,8 +436,10 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetVehicleServiceList failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
     }
 }
+
+

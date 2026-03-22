@@ -30,16 +30,16 @@
         </div>
 
         <h4 class="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
-          Drag & Drop File Here
+          Terhiqeni dhe leshojeni fajllin ketu
         </h4>
         <span
           class="mx-auto mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400"
         >
-          Drag and drop your PNG, JPG, WebP, SVG images here or browse
+          Terhiqeni dhe leshojeni fotografinë PNG, JPG, WebP ose SVG ketu, ose zgjidhni nga pajisja
         </span>
 
         <span class="font-medium underline cursor-pointer text-theme-sm text-brand-500">
-          Browse File
+          Zgjidh Fajllin
         </span>
       </div>
     </form>
@@ -74,13 +74,13 @@ onMounted(() => {
     dictDefaultMessage: '',
     init: function () {
       this.on('addedfile', (file) => {
-        console.log('A file has been added', file)
+        console.log('U shtua nje fajll', file)
       })
       this.on('success', (file, response) => {
-        console.log('File successfully uploaded', file, response)
+        console.log('Fajlli u ngarkua me sukses', file, response)
       })
       this.on('error', (file, error) => {
-        console.error('An error occurred during upload', file, error)
+        console.error('Ndodhi nje gabim gjate ngarkimit', file, error)
       })
     },
   })

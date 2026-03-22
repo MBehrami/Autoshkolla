@@ -87,60 +87,89 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import AdminLayout from '../components/layout/AdminLayout.vue'
 import ComponentCard from '../components/common/ComponentCard.vue'
+import { useExamStore } from '@/stores/exam'
 
-const analyticsPreview = [
-  {
-    title: 'Teste të Përfunduara',
-    value: '18',
-    subtitle: 'Në 7 ditët e fundit',
-    trend: '+4 krahasuar me javën e kaluar',
-    trendType: 'up',
-  },
-  {
-    title: 'Rezultati Mesatar',
-    value: '78%',
-    subtitle: 'Në të gjitha tentimet e fundit',
-    trend: '+6%',
-    trendType: 'up',
-  },
-  {
-    title: 'Norma e Kalimit',
-    value: '72%',
-    subtitle: '13 nga 18 tentativa të kaluara',
-    trend: '+3%',
-    trendType: 'up',
-  },
-  {
-    title: 'Pyetje të Gabuara',
-    value: '24',
-    subtitle: 'Gabimet më të shpeshta në shenja dhe përparësi',
-    trend: 'Fushë për fokus',
-    trendType: 'focus',
-  },
-]
+const examStore = useExamStore()
+const loadingStats = ref(true)
 
-const categoryPerformance = [
-  {
-    id: 'A',
-    averageScore: 84,
-    attempts: 5,
-  },
-  {
-    id: 'B',
-    averageScore: 76,
-    attempts: 7,
-  },
-  {
-    id: 'C',
-    averageScore: 71,
-    attempts: 4,
-  },
-  {
-    id: 'D',
-    averageScore: 79,
-    attempts: 2,
-  },
-]
+onMounted(async () => {
+  try {
+    await examStore.fetchCandidateStats(true)
+  } catch (error) {
+    console.error('Deshtoi ngarkimi i statistikave te kandidatit:', error)
+  } finally {
+    loadingStats.value = false
+  }
+})
+
+const stats = computed(() => examStore.candidateStats)
+
+const analyticsPreview = computed(() => {
+  const totalAttempts = stats.value?.totalAttempts ?? 0
+  const passedAttempts = stats.value?.passedAttempts ?? 0
+  const averageScore = stats.value?.averageScorePercent ?? 0
+  const passRate = stats.value?.passRatePercent ?? 0
+
+  return [
+    {
+      title: 'Teste të Përfunduara',
+      value: totalAttempts.toString(),
+      subtitle: 'Totali i tentimeve të ruajtura',
+      trend: loadingStats.value ? 'Duke ngarkuar...' : 'Përditësuar në kohë reale',
+      trendType: 'up',
+    },
+    {
+      title: 'Rezultati Mesatar',
+      value: `${averageScore.toFixed(2)}%`,
+      subtitle: 'Mesatarja nga të gjitha tentimet',
+      trend: loadingStats.value ? 'Duke ngarkuar...' : 'Bazuar në historikun tuaj',
+      trendType: 'up',
+    },
+    {
+      title: 'Norma e Kalimit',
+      value: `${passRate.toFixed(2)}%`,
+      subtitle: `${passedAttempts} nga ${totalAttempts} tentativa të kaluara`,
+      trend: loadingStats.value ? 'Duke ngarkuar...' : 'Bazuar në tentimet e ruajtura',
+      trendType: 'up',
+    },
+    {
+      title: 'Statusi',
+      value: loadingStats.value ? '...' : 'Aktiv',
+      subtitle: 'Statistikat sinkronizohen pas çdo dorëzimi',
+      trend: loadingStats.value ? 'Duke ngarkuar...' : 'Fushë për fokus',
+      trendType: 'focus',
+    },
+  ]
+})
+
+const categoryPerformance = computed(() => {
+  const fallback = ['A', 'B', 'C', 'D'].map((code) => ({
+    id: code,
+    averageScore: 0,
+    attempts: 0,
+  }))
+
+  const apiItems = stats.value?.categoryPerformance ?? []
+  if (apiItems.length === 0) {
+    return fallback
+  }
+
+  const byCode = new Map(apiItems.map((item) => [item.categoryCode.toUpperCase(), item]))
+
+  return fallback.map((item) => {
+    const apiItem = byCode.get(item.id)
+    if (!apiItem) {
+      return item
+    }
+
+    return {
+      id: item.id,
+      averageScore: Number(apiItem.averageScorePercent.toFixed(2)),
+      attempts: apiItem.attempts,
+    }
+  })
+})
 </script>

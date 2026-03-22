@@ -42,11 +42,11 @@ namespace QuizplusApi.Controllers
             try
             {
                 await _mailService.SendWelcomeEmailAsync(request);
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Please check your Email"});
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Ju lutem kontrolloni email-in tuaj"});
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -60,11 +60,11 @@ namespace QuizplusApi.Controllers
             try
             {
                 await _mailService.SendPasswordEmailAsync(request);
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Please check your Email"});
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Ju lutem kontrolloni email-in tuaj"});
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }              
         }
 
@@ -114,7 +114,7 @@ namespace QuizplusApi.Controllers
             catch (Exception ex)
             {
                 // TEMP DEBUG: return full exception so missing columns are visible in browser Network tab
-                return StatusCode(500, new { status = "error", message = ex.Message, detail = ex.ToString() });
+                return StatusCode(500, new { status = "error", message = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
         [HttpGet]
@@ -154,7 +154,7 @@ namespace QuizplusApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
         ///<summary>
@@ -178,7 +178,7 @@ namespace QuizplusApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -203,7 +203,7 @@ namespace QuizplusApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -258,7 +258,7 @@ namespace QuizplusApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -285,7 +285,7 @@ namespace QuizplusApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
         ///<summary>
@@ -319,12 +319,12 @@ namespace QuizplusApi.Controllers
                 }
                 else
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Not an image" }); 
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Nuk eshte imazh" }); 
                 }
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });               
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });               
             }
         }
 
@@ -359,12 +359,12 @@ namespace QuizplusApi.Controllers
                 }
                 else
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Not an image" }); 
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Nuk eshte imazh" }); 
                 }
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });               
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });               
             }
         }
         ///<summary>
@@ -388,7 +388,7 @@ namespace QuizplusApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -406,12 +406,14 @@ namespace QuizplusApi.Controllers
             {  
                 model.DateAdded=DateTime.Now;
                 await _errorLogRepo.Insert(model); 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                                   
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                                   
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
     }
 }
+
+

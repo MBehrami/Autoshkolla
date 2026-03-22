@@ -14,7 +14,7 @@
                   Hyrje
                 </h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Shkruani email-in dhe fjalëkalimin për tu kyçur!
+                  Shkruani numrin e telefonit dhe fjalëkalimin për t'u kyçur!
                 </p>
               </div>
               <div>
@@ -33,9 +33,13 @@
                         type="tel"
                         id="phone"
                         name="phone"
-                        placeholder="+383 44 123 456"
-                        class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                        placeholder="P.sh. 044123123"
+                        :class="phoneError ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/10'"
+                        class="dark:bg-dark-900 h-11 w-full rounded-lg border bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                        @blur="validatePhone"
+                        @input="clearPhoneError"
                       />
+                      <p v-if="phoneError" class="mt-1 text-xs text-error-500">{{ phoneError }}</p>
                     </div>
                     <!-- Password -->
                     <div>
@@ -51,7 +55,10 @@
                           :type="showPassword ? 'text' : 'password'"
                           id="password"
                           placeholder="Shkruani fjalëkalimin"
-                          class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                          :class="passwordError ? 'border-error-500 focus:border-error-500 focus:ring-error-500/10' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/10'"
+                          class="dark:bg-dark-900 h-11 w-full rounded-lg border bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                          @blur="validatePassword"
+                          @input="clearPasswordError"
                         />
                         <button
                           type="button"
@@ -63,6 +70,7 @@
                           <EyeIcon v-else class="h-5 w-5" />
                         </button>
                       </div>
+                      <p v-if="passwordError" class="mt-1 text-xs text-error-500">{{ passwordError }}</p>
                     </div>
                     <!-- Checkbox -->
                     <div class="flex items-center justify-between">
@@ -120,11 +128,18 @@
                     <div>
                       <button
                         type="submit"
-                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                        :disabled="isSubmitting"
+                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
                       >
-                        Kyçu
+                        {{ isSubmitting ? 'Duke u kyçur...' : 'Kyçu' }}
                       </button>
                     </div>
+                    <Alert
+                      v-if="formError"
+                      variant="error"
+                      title="Kyçja dështoi"
+                      :message="formError"
+                    />
                   </div>
                 </form>
               </div>
@@ -132,19 +147,13 @@
           </div>
         </div>
         <div
-          class="relative items-center hidden w-full h-full lg:w-1/2 bg-brand-950 dark:bg-white/5 lg:grid"
+          class="relative hidden w-full h-full lg:w-1/2 lg:block overflow-hidden"
         >
-          <div class="flex items-center justify-center z-1">
-            <common-grid-shape />
-            <div class="flex flex-col items-center max-w-xs">
-              <router-link to="/dashboard" class="block mb-4">
-                <img width="{231}" height="{48}" src="/images/logo/auth-logo.svg" alt="Logo" />
-              </router-link>
-              <p class="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
-              </p>
-            </div>
-          </div>
+          <img
+            src="/images/logo/linda_carss.png"
+            alt="Auto Shkolla Linda"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
         </div>
       </div>
     </div>
@@ -171,7 +180,7 @@
             </div>
 
             <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-800 dark:bg-white/5 dark:text-gray-300">
-              Telefoni: +383 44 123 456
+              Telefoni: 044123456
             </div>
 
             <div class="flex items-center justify-end pt-1">
@@ -191,25 +200,92 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CommonGridShape from '@/components/common/CommonGridShape.vue'
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
 import Modal from '@/components/ui/Modal.vue'
+import Alert from '@/components/ui/Alert.vue'
 import { EyeIcon, EyeCloseIcon } from '@/icons'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 const phoneNumber = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const keepLoggedIn = ref(false)
 const isHelpModalOpen = ref(false)
+const phoneError = ref('')
+const passwordError = ref('')
 const router = useRouter()
+
+const isSubmitting = computed(() => authStore.isLoading)
+const formError = computed(() => authStore.error || '')
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleSubmit = () => {
-  router.push('/dashboard')
+const validatePhone = () => {
+  phoneError.value = ''
+  
+  if (!phoneNumber.value?.trim()) {
+    phoneError.value = 'Numri i telefonit është i detyrueshëm.'
+    return false
+  }
+  
+  // Basic phone validation (allow various formats)
+  const phoneRegex = /^[\d\s+()-]{8,20}$/
+  if (!phoneRegex.test(phoneNumber.value.trim())) {
+    phoneError.value = 'Formati i numrit të telefonit është i pasaktë.'
+    return false
+  }
+  
+  return true
+}
+
+const validatePassword = () => {
+  passwordError.value = ''
+  
+  if (!password.value) {
+    passwordError.value = 'Fjalëkalimi është i detyrueshëm.'
+    return false
+  }
+  
+  if (password.value.length < 4) {
+    passwordError.value = 'Fjalëkalimi duhet të ketë të paktën 4 karaktere.'
+    return false
+  }
+  
+  return true
+}
+
+const clearPhoneError = () => {
+  if (phoneError.value) phoneError.value = ''
+}
+
+const clearPasswordError = () => {
+  if (passwordError.value) passwordError.value = ''
+}
+
+const handleSubmit = async () => {
+  authStore.clearError()
+  
+  // Validate both fields
+  const isPhoneValid = validatePhone()
+  const isPasswordValid = validatePassword()
+  
+  if (!isPhoneValid || !isPasswordValid) {
+    return
+  }
+
+  try {
+    await authStore.signIn(phoneNumber.value.trim(), password.value)
+    router.push('/exams')
+  } catch (error: any) {
+    // Error is already in authStore.error, just handle display
+    console.error('Gabim gjatë kyçjes:', error)
+  }
 }
 
 const openHelpModal = () => {

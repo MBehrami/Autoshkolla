@@ -123,7 +123,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetEntries failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -150,7 +150,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -165,27 +165,27 @@ namespace AdminApi.Controllers
             {
                 // Validation
                 if (string.IsNullOrWhiteSpace(req.EntryDate))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Date is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data eshte e detyrueshme." });
                 if (string.IsNullOrWhiteSpace(req.EntryType) ||
                     (req.EntryType != "Income" && req.EntryType != "Expense"))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Entry type must be 'Income' or 'Expense'." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Lloji i hyrjes duhet te jete 'Income' ose 'Expense'." });
                 if (string.IsNullOrWhiteSpace(req.FullName))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Full name is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Emri i plote eshte i detyrueshem." });
                 if (req.Amount <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Amount must be greater than 0." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Shuma duhet te jete me e madhe se 0." });
                 if (string.IsNullOrWhiteSpace(req.Description))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Description is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Pershkrimi eshte i detyrueshem." });
 
                 string date = req.EntryDate.Trim();
                 if (!Regex.IsMatch(date, @"^\d{2}\.\d{2}\.\d{4}$") ||
                     !DateTime.TryParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format (dd.MM.yyyy)." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem (dd.MM.yyyy)." });
 
                 // Check day status — don't allow adding to closed day
                 var dayStatus = await _context.DailyReportStatuses
                     .FirstOrDefaultAsync(s => s.ReportDate == date);
                 if (dayStatus != null && dayStatus.Status == "Closed")
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "This day's report is closed. No new entries allowed." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Raporti i kesaj dite eshte i mbyllur. Nuk lejohen hyrje te reja." });
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
 
@@ -212,7 +212,7 @@ namespace AdminApi.Controllers
                 return Ok(new
                 {
                     status = "success",
-                    responseMsg = "Entry created.",
+                    responseMsg = "Hyrja u krijua.",
                     data = new
                     {
                         entry.DailyReportEntryId,
@@ -234,7 +234,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateEntry failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -249,23 +249,23 @@ namespace AdminApi.Controllers
             try
             {
                 if (req.OriginalEntryId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Original entry ID is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "ID-ja e hyrjes origjinale eshte e detyrueshme." });
 
                 var original = await _context.DailyReportEntries.FindAsync(req.OriginalEntryId);
                 if (original == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Original entry not found." });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Hyrja origjinale nuk u gjet." });
 
                 // Check if already reversed
                 var alreadyReversed = await _context.DailyReportEntries
                     .AnyAsync(e => e.ReversalOfEntryId == req.OriginalEntryId);
                 if (alreadyReversed)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "This entry has already been reversed." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kjo hyrje eshte storno tashme." });
 
                 // Check day status
                 var dayStatus = await _context.DailyReportStatuses
                     .FirstOrDefaultAsync(s => s.ReportDate == original.EntryDate);
                 if (dayStatus != null && dayStatus.Status == "Closed")
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "This day's report is closed. Cannot reverse entries." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Raporti i kesaj dite eshte i mbyllur. Nuk mund te behet storno." });
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
                 int nextSerial = await GetNextSerialNumber(original.EntryDate, original.EntryType);
@@ -294,7 +294,7 @@ namespace AdminApi.Controllers
                 return Ok(new
                 {
                     status = "success",
-                    responseMsg = "Reversal entry created.",
+                    responseMsg = "Hyrja e storno-s u krijua.",
                     data = new
                     {
                         reversal.DailyReportEntryId,
@@ -315,7 +315,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ReverseEntry failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -330,12 +330,12 @@ namespace AdminApi.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(date))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Date is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data eshte e detyrueshme." });
 
                 string d = date.Trim();
                 if (!Regex.IsMatch(d, @"^\d{2}\.\d{2}\.\d{4}$") ||
                     !DateTime.TryParseExact(d, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem." });
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
 
@@ -353,7 +353,7 @@ namespace AdminApi.Controllers
                         ClosedAt = DateTime.UtcNow
                     };
                     await _statusRepo.Insert(newStatus);
-                    return Ok(new { status = "success", dayStatus = "Closed", responseMsg = "Day closed." });
+                    return Ok(new { status = "success", dayStatus = "Closed", responseMsg = "Dita u mbyll." });
                 }
                 else
                 {
@@ -380,7 +380,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ToggleDayStatus failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -479,3 +479,5 @@ namespace AdminApi.Controllers
         }
     }
 }
+
+

@@ -34,6 +34,8 @@ ServerVersion.AutoDetect(builder.Configuration["ConnectionStrings:ApiConnStringM
 
 builder.Services.AddScoped(typeof(ISqlRepository<>), typeof(SqlRepository<>));
 
+builder.Services.AddScoped<IFileService, FileService>();
+
 builder.Services.AddCors(options=>
 {
     options.AddPolicy(name:AllowSpecificOrigins,builder=>
@@ -142,6 +144,22 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        _ = db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.ExamQuestions', N'U') IS NOT NULL
+               AND NOT EXISTS (
+                   SELECT 1
+                   FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE TABLE_NAME = 'ExamQuestions'
+                     AND COLUMN_NAME = 'ImageGuid'
+               )
+            BEGIN
+                ALTER TABLE [dbo].[ExamQuestions] ADD [ImageGuid] NVARCHAR(36) NULL;
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* Column may already exist or table may not be present yet */ }
     try
     {
         _ = db.Database.ExecuteSqlRawAsync(@"
@@ -351,6 +369,253 @@ using (var scope = app.Services.CreateScope())
         ").GetAwaiter().GetResult();
     }
     catch { /* Table may already exist */ }
+
+    // ── ETestimi tables (candidate accounts + exams) ──
+    try
+    {
+        _ = db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.CandidateAccounts', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[CandidateAccounts] (
+                    [CandidateAccountId] INT IDENTITY(1,1) NOT NULL,
+                    [CandidateId] INT NULL,
+                    [FirstName] NVARCHAR(100) NULL,
+                    [LastName] NVARCHAR(100) NULL,
+                    [PhoneNumber] NVARCHAR(50) NOT NULL,
+                    [Email] NVARCHAR(100) NULL,
+                    [Password] NVARCHAR(200) NOT NULL,
+                    [PasswordSalt] NVARCHAR(MAX) NULL,
+                    [ValidTo] DATETIME2 NOT NULL,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [LastLoginDate] DATETIME2 NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_CandidateAccounts] PRIMARY KEY ([CandidateAccountId]),
+                    CONSTRAINT [FK_CandidateAccounts_Candidates] FOREIGN KEY ([CandidateId]) REFERENCES [dbo].[Candidates]([CandidateId])
+                );
+                CREATE UNIQUE INDEX [IX_CandidateAccounts_CandidateId] ON [dbo].[CandidateAccounts]([CandidateId]) WHERE [CandidateId] IS NOT NULL;
+                CREATE UNIQUE INDEX [IX_CandidateAccounts_PhoneNumber] ON [dbo].[CandidateAccounts]([PhoneNumber]);
+                CREATE UNIQUE INDEX [IX_CandidateAccounts_Email] ON [dbo].[CandidateAccounts]([Email]) WHERE [Email] IS NOT NULL;
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'CandidateAccounts' AND COLUMN_NAME = 'FirstName')
+            BEGIN
+                ALTER TABLE [dbo].[CandidateAccounts] ADD [FirstName] NVARCHAR(100) NULL;
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'CandidateAccounts' AND COLUMN_NAME = 'LastName')
+            BEGIN
+                ALTER TABLE [dbo].[CandidateAccounts] ADD [LastName] NVARCHAR(100) NULL;
+            END
+
+            IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'CandidateAccounts' AND COLUMN_NAME = 'CandidateId' AND IS_NULLABLE = 'NO')
+            BEGIN
+                ALTER TABLE [dbo].[CandidateAccounts] ALTER COLUMN [CandidateId] INT NULL;
+            END
+
+            IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CandidateAccounts_CandidateId' AND object_id = OBJECT_ID(N'dbo.CandidateAccounts'))
+            BEGIN
+                DROP INDEX [IX_CandidateAccounts_CandidateId] ON [dbo].[CandidateAccounts];
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CandidateAccounts_CandidateId' AND object_id = OBJECT_ID(N'dbo.CandidateAccounts'))
+            BEGIN
+                CREATE UNIQUE INDEX [IX_CandidateAccounts_CandidateId] ON [dbo].[CandidateAccounts]([CandidateId]) WHERE [CandidateId] IS NOT NULL;
+            END
+
+            IF OBJECT_ID(N'dbo.ExamCategories', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[ExamCategories] (
+                    [ExamCategoryId] INT IDENTITY(1,1) NOT NULL,
+                    [Code] NVARCHAR(20) NOT NULL,
+                    [Title] NVARCHAR(100) NOT NULL,
+                    [Description] NVARCHAR(500) NULL,
+                    [SortOrder] INT NOT NULL DEFAULT 0,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_ExamCategories] PRIMARY KEY ([ExamCategoryId])
+                );
+                CREATE UNIQUE INDEX [IX_ExamCategories_Code] ON [dbo].[ExamCategories]([Code]);
+            END
+
+            IF OBJECT_ID(N'dbo.Exams', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[Exams] (
+                    [ExamId] INT IDENTITY(1,1) NOT NULL,
+                    [ExamCategoryId] INT NOT NULL,
+                    [Title] NVARCHAR(200) NOT NULL,
+                    [Description] NVARCHAR(1000) NULL,
+                    [DurationMinutes] INT NOT NULL DEFAULT 45,
+                    [PassPercent] INT NOT NULL DEFAULT 85,
+                    [SortOrder] INT NOT NULL DEFAULT 0,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_Exams] PRIMARY KEY ([ExamId]),
+                    CONSTRAINT [FK_Exams_ExamCategories] FOREIGN KEY ([ExamCategoryId]) REFERENCES [dbo].[ExamCategories]([ExamCategoryId])
+                );
+            END
+
+            IF OBJECT_ID(N'dbo.CandidateAccountExamCategoryAccesses', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[CandidateAccountExamCategoryAccesses] (
+                    [CandidateAccountId] INT NOT NULL,
+                    [ExamCategoryId] INT NOT NULL,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_CandidateAccountExamCategoryAccesses] PRIMARY KEY ([CandidateAccountId], [ExamCategoryId]),
+                    CONSTRAINT [FK_CandidateAccountExamCategoryAccesses_CandidateAccounts] FOREIGN KEY ([CandidateAccountId]) REFERENCES [dbo].[CandidateAccounts]([CandidateAccountId]),
+                    CONSTRAINT [FK_CandidateAccountExamCategoryAccesses_ExamCategories] FOREIGN KEY ([ExamCategoryId]) REFERENCES [dbo].[ExamCategories]([ExamCategoryId])
+                );
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CandidateAccountExamCategoryAccesses_ExamCategoryId' AND object_id = OBJECT_ID(N'dbo.CandidateAccountExamCategoryAccesses'))
+            BEGIN
+                CREATE INDEX [IX_CandidateAccountExamCategoryAccesses_ExamCategoryId]
+                ON [dbo].[CandidateAccountExamCategoryAccesses]([ExamCategoryId]);
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CandidateAccountExamCategoryAccesses_CandidateAccountId_IsActive' AND object_id = OBJECT_ID(N'dbo.CandidateAccountExamCategoryAccesses'))
+            BEGIN
+                CREATE INDEX [IX_CandidateAccountExamCategoryAccesses_CandidateAccountId_IsActive]
+                ON [dbo].[CandidateAccountExamCategoryAccesses]([CandidateAccountId], [IsActive]);
+            END
+
+            IF OBJECT_ID(N'dbo.ExamQuestions', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[ExamQuestions] (
+                    [ExamQuestionId] INT IDENTITY(1,1) NOT NULL,
+                    [ExamId] INT NOT NULL,
+                    [Text] NVARCHAR(2000) NOT NULL,
+                    [ImagePath] NVARCHAR(500) NULL,
+                    [SortOrder] INT NOT NULL DEFAULT 0,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_ExamQuestions] PRIMARY KEY ([ExamQuestionId]),
+                    CONSTRAINT [FK_ExamQuestions_Exams] FOREIGN KEY ([ExamId]) REFERENCES [dbo].[Exams]([ExamId])
+                );
+            END
+
+            IF OBJECT_ID(N'dbo.ExamQuestionOptions', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[ExamQuestionOptions] (
+                    [ExamQuestionOptionId] INT IDENTITY(1,1) NOT NULL,
+                    [ExamQuestionId] INT NOT NULL,
+                    [OptionText] NVARCHAR(1000) NOT NULL,
+                    [IsCorrect] BIT NOT NULL,
+                    [SortOrder] INT NOT NULL DEFAULT 0,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_ExamQuestionOptions] PRIMARY KEY ([ExamQuestionOptionId]),
+                    CONSTRAINT [FK_ExamQuestionOptions_ExamQuestions] FOREIGN KEY ([ExamQuestionId]) REFERENCES [dbo].[ExamQuestions]([ExamQuestionId])
+                );
+            END
+
+            IF OBJECT_ID(N'dbo.ExamSubmissions', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[ExamSubmissions] (
+                    [ExamSubmissionId] INT IDENTITY(1,1) NOT NULL,
+                    [CandidateAccountId] INT NOT NULL,
+                    [ExamId] INT NOT NULL,
+                    [ExamCategoryId] INT NOT NULL,
+                    [ScorePercent] DECIMAL(5,2) NOT NULL,
+                    [IsPassed] BIT NOT NULL,
+                    [TotalQuestions] INT NOT NULL,
+                    [CorrectAnswers] INT NOT NULL,
+                    [DurationSeconds] INT NOT NULL,
+                    [SubmittedAt] DATETIME2 NOT NULL,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    CONSTRAINT [PK_ExamSubmissions] PRIMARY KEY ([ExamSubmissionId]),
+                    CONSTRAINT [FK_ExamSubmissions_CandidateAccounts] FOREIGN KEY ([CandidateAccountId]) REFERENCES [dbo].[CandidateAccounts]([CandidateAccountId]),
+                    CONSTRAINT [FK_ExamSubmissions_Exams] FOREIGN KEY ([ExamId]) REFERENCES [dbo].[Exams]([ExamId]),
+                    CONSTRAINT [FK_ExamSubmissions_ExamCategories] FOREIGN KEY ([ExamCategoryId]) REFERENCES [dbo].[ExamCategories]([ExamCategoryId])
+                );
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_ExamSubmissions_CandidateAccountId_SubmittedAt' AND object_id = OBJECT_ID(N'dbo.ExamSubmissions'))
+            BEGIN
+                CREATE INDEX [IX_ExamSubmissions_CandidateAccountId_SubmittedAt]
+                ON [dbo].[ExamSubmissions]([CandidateAccountId], [SubmittedAt]);
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_ExamSubmissions_CandidateAccountId_ExamCategoryId' AND object_id = OBJECT_ID(N'dbo.ExamSubmissions'))
+            BEGIN
+                CREATE INDEX [IX_ExamSubmissions_CandidateAccountId_ExamCategoryId]
+                ON [dbo].[ExamSubmissions]([CandidateAccountId], [ExamCategoryId]);
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM [dbo].[ExamCategories])
+            BEGIN
+                INSERT INTO [dbo].[ExamCategories] ([Code],[Title],[Description],[SortOrder],[IsActive],[AddedBy],[DateAdded],[IsMigrationData])
+                VALUES
+                (N'A', N'Kategoria A', N'Motoçikleta dhe mjete të lehta me dy rrota', 1, 1, 1, GETUTCDATE(), 1),
+                (N'B', N'Kategoria B', N'Automjete për pasagjerë dhe transport personal', 2, 1, 1, GETUTCDATE(), 1),
+                (N'C', N'Kategoria C', N'Kamionë dhe automjete të rënda për mallra', 3, 1, 1, GETUTCDATE(), 1),
+                (N'D', N'Kategoria D', N'Autobusë dhe automjete për transport pasagjerësh', 4, 1, 1, GETUTCDATE(), 1);
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* Tables may already exist */ }
+
+    // Ensure account-category access mapping table exists even if the larger ETestimi batch failed.
+    try
+    {
+        _ = db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.CandidateAccountExamCategoryAccesses', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[CandidateAccountExamCategoryAccesses] (
+                    [CandidateAccountId] INT NOT NULL,
+                    [ExamCategoryId] INT NOT NULL,
+                    [IsActive] BIT NOT NULL DEFAULT 1,
+                    [AddedBy] INT NOT NULL,
+                    [DateAdded] DATETIME2 NOT NULL,
+                    [IsMigrationData] BIT NOT NULL DEFAULT 0,
+                    [LastUpdatedDate] DATETIME2 NULL,
+                    [LastUpdatedBy] INT NULL,
+                    CONSTRAINT [PK_CandidateAccountExamCategoryAccesses] PRIMARY KEY ([CandidateAccountId], [ExamCategoryId]),
+                    CONSTRAINT [FK_CandidateAccountExamCategoryAccesses_CandidateAccounts] FOREIGN KEY ([CandidateAccountId]) REFERENCES [dbo].[CandidateAccounts]([CandidateAccountId]),
+                    CONSTRAINT [FK_CandidateAccountExamCategoryAccesses_ExamCategories] FOREIGN KEY ([ExamCategoryId]) REFERENCES [dbo].[ExamCategories]([ExamCategoryId])
+                );
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CandidateAccountExamCategoryAccesses_ExamCategoryId' AND object_id = OBJECT_ID(N'dbo.CandidateAccountExamCategoryAccesses'))
+            BEGIN
+                CREATE INDEX [IX_CandidateAccountExamCategoryAccesses_ExamCategoryId]
+                ON [dbo].[CandidateAccountExamCategoryAccesses]([ExamCategoryId]);
+            END
+
+            IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_CandidateAccountExamCategoryAccesses_CandidateAccountId_IsActive' AND object_id = OBJECT_ID(N'dbo.CandidateAccountExamCategoryAccesses'))
+            BEGIN
+                CREATE INDEX [IX_CandidateAccountExamCategoryAccesses_CandidateAccountId_IsActive]
+                ON [dbo].[CandidateAccountExamCategoryAccesses]([CandidateAccountId], [IsActive]);
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch { /* Table/indexes may already exist, or DB user may not have DDL rights */ }
 
     // ── Vehicle tables ──
     try
@@ -674,6 +939,11 @@ app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
     RequestPath = new PathString("/Resources")
+});
+app.UseStaticFiles(new StaticFileOptions()
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"files")),
+    RequestPath = new PathString("/files")
 });
 
 // 4) Auth

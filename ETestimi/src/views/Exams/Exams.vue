@@ -12,8 +12,19 @@
         </router-link>
       </div>
 
+      <div v-if="errorMessage" class="rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        {{ errorMessage }}
+      </div>
+
+      <CategoryAccessDeniedModal
+        v-if="showCategoryAccessDenied"
+        :message="accessDeniedMessage"
+        @close="closeCategoryAccessDeniedModal"
+      />
+
       <component-card title="Zgjidh Kategorinë" desc="Zgjidh një kategori patente për të parë testet e disponueshme.">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div v-if="loadingCategories" class="py-8 text-center text-gray-500 dark:text-gray-400">Duke u ngarkuar...</div>
+        <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <router-link
             v-for="category in examCategories"
             :key="category.id"
@@ -43,7 +54,8 @@
         :title="`Teste për ${selectedCategory.title}`"
         desc="Zgjidh një test për të nisur vetë-vlerësimin."
       >
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+        <div v-if="loadingExams" class="py-8 text-center text-gray-500 dark:text-gray-400">Duke u ngarkuar...</div>
+        <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
           <router-link
             v-for="exam in exams"
             :key="exam.id"
@@ -59,45 +71,97 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import ComponentCard from '@/components/common/ComponentCard.vue'
+import CategoryAccessDeniedModal from '@/components/common/CategoryAccessDeniedModal.vue'
 import { MotorcycleIcon, CarIcon, BusIcon, TruckIcon } from '@/icons'
-import { examCategories, getCategoryById, getExamsByCategory, isValidCategory } from '@/data/exams'
+import { useExamStore } from '@/stores/exam'
 
-const categoryIcons = {
+const categoryIcons: Record<string, any> = {
   A: MotorcycleIcon,
   B: CarIcon,
   C: TruckIcon,
   D: BusIcon,
-} as const
+}
 
 const route = useRoute()
+const examStore = useExamStore()
+const loadingCategories = ref(false)
+const loadingExams = ref(false)
+const showCategoryAccessDenied = ref(false)
+
+const examCategories = computed(() => examStore.categories)
+const errorMessage = computed(() => (examStore.categoryAccessDeniedMessage ? '' : examStore.error || ''))
+const accessDeniedMessage = computed(() => examStore.categoryAccessDeniedMessage || 'Nuk keni akses në këtë kategori, kontaktoni administratorin.')
 
 const selectedCategoryId = computed(() => {
   const value = route.params.category
   if (typeof value !== 'string') {
     return null
   }
-
-  const normalized = value.toUpperCase()
-  return isValidCategory(normalized) ? normalized : null
+  return value.toUpperCase()
 })
 
 const selectedCategory = computed(() => {
   if (!selectedCategoryId.value) {
     return null
   }
-
-  return getCategoryById(selectedCategoryId.value) ?? null
+  return examCategories.value.find(c => c.id === selectedCategoryId.value) ?? null
 })
 
 const exams = computed(() => {
   if (!selectedCategoryId.value) {
     return []
   }
-
-  return getExamsByCategory(selectedCategoryId.value)
+  return examStore.exams[selectedCategoryId.value] || []
 })
+
+onMounted(async () => {
+  loadingCategories.value = true
+  examStore.clearError()
+  examStore.clearCategoryAccessDenied()
+  try {
+    await examStore.fetchCategories()
+  } catch (error) {
+    console.error('Deshtoi ngarkimi i kategorive:', error)
+  } finally {
+    loadingCategories.value = false
+  }
+})
+
+watch(selectedCategoryId, async (newCode) => {
+  if (!newCode) {
+    return
+  }
+  
+  loadingExams.value = true
+  examStore.clearError()
+  examStore.clearCategoryAccessDenied()
+  try {
+    await examStore.fetchExamsByCategory(newCode)
+  } catch (error) {
+    if (examStore.categoryAccessDeniedMessage) {
+      showCategoryAccessDenied.value = true
+    }
+    console.error('Deshtoi ngarkimi i testeve:', error)
+  } finally {
+    loadingExams.value = false
+  }
+}, { immediate: true })
+
+watch(
+  () => examStore.categoryAccessDeniedMessage,
+  (message) => {
+    if (message) {
+      showCategoryAccessDenied.value = true
+    }
+  }
+)
+
+const closeCategoryAccessDeniedModal = () => {
+  showCategoryAccessDenied.value = false
+  examStore.clearCategoryAccessDenied()
+}
 </script>

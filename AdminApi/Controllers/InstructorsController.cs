@@ -32,17 +32,17 @@ namespace AdminApi.Controllers
             try
             {
                 if (string.IsNullOrWhiteSpace(request.Email))
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Email is required." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Email-i eshte i detyrueshem." });
                 if (string.IsNullOrWhiteSpace(request.InitialPassword))
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Initial password is required." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Fjalekalimi fillestar eshte i detyrueshem." });
 
                 var existing = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email.Trim());
                 if (existing != null)
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "This email already has a user." });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Ky email tashme ka nje perdorues." });
 
                 var instructorRole = await _context.UserRole.FirstOrDefaultAsync(r => r.RoleName == "Instructor");
                 if (instructorRole == null)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Instructor role not found." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Roli i instruktorit nuk u gjet." });
 
                 var addedBy = int.Parse(User.FindFirst("sub")?.Value ?? "1");
                 var fullName = string.Join(" ", new[] { request.FirstName, request.ParentName, request.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
@@ -83,11 +83,11 @@ namespace AdminApi.Controllers
                 _context.InstructorProfiles.Add(profile);
                 await _context.SaveChangesAsync();
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -144,7 +144,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -159,11 +159,11 @@ namespace AdminApi.Controllers
                     .Select(x => new { x.UserId, x.FullName, x.Email, x.Mobile, x.DateOfBirth, x.IsActive, x.UserRoleId })
                     .FirstOrDefaultAsync();
                 if (u == null)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Instructor not found." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Instruktori nuk u gjet." });
 
                 var r = await _context.UserRole.Where(x => x.UserRoleId == u.UserRoleId).Select(x => x.RoleName).FirstOrDefaultAsync();
                 if (r != "Instructor")
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "User is not an instructor." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Perdoruesi nuk eshte instruktor." });
 
                 var p = await _context.InstructorProfiles.FirstOrDefaultAsync(x => x.UserId == id);
                 return Ok(new
@@ -185,7 +185,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -197,11 +197,11 @@ namespace AdminApi.Controllers
             {
                 var user = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id);
                 if (user == null)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Instructor not found." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Instruktori nuk u gjet." });
 
                 var role = await _context.UserRole.Where(x => x.UserRoleId == user.UserRoleId).Select(x => x.RoleName).FirstOrDefaultAsync();
                 if (role != "Instructor")
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "User is not an instructor." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Perdoruesi nuk eshte instruktor." });
 
                 var fullName = string.Join(" ", new[] { request.FirstName, request.ParentName, request.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim();
                 if (!string.IsNullOrEmpty(fullName)) user.FullName = fullName;
@@ -244,11 +244,11 @@ namespace AdminApi.Controllers
                 }
                 await _context.SaveChangesAsync();
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Updated" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U perditesua me sukses" });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -260,23 +260,25 @@ namespace AdminApi.Controllers
             {
                 var user = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id);
                 if (user == null)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Instructor not found." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Instruktori nuk u gjet." });
 
                 var role = await _context.UserRole.Where(x => x.UserRoleId == user.UserRoleId).Select(x => x.RoleName).FirstOrDefaultAsync();
                 if (role != "Instructor")
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "User is not an instructor." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Perdoruesi nuk eshte instruktor." });
 
                 user.IsActive = !user.IsActive;
                 user.LastUpdatedBy = int.Parse(User.FindFirst("sub")?.Value ?? "1");
                 user.LastUpdatedDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                return Ok(new { isActive = user.IsActive, status = "success", responseMsg = "Status updated." });
+                return Ok(new { isActive = user.IsActive, status = "success", responseMsg = "Statusi u perditesua." });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
     }
 }
+
+

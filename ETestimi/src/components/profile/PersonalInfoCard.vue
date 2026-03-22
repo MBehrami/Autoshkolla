@@ -9,27 +9,33 @@
 
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
-              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Emri</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">Roland</p>
-            </div>
-
-            <div>
-              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Mbiemri</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">Zogjani</p>
+              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Emri i Plotë</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ authStore.fullName || 'N/A' }}</p>
             </div>
 
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Adresa e Email-it
+                Telofoni
               </p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                email@mail.com
+                {{ authStore.phoneNumber || 'N/A' }}
               </p>
             </div>
 
             <div>
-              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Telefoni</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">+383 48 123 456</p>
+              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Kategoria e Kredive
+              </p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                {{ authStore.profile?.category || 'N/A' }}
+              </p>
+            </div>
+
+            <div>
+              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Vlefshëm Deri</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                {{ formatDate(authStore.profile?.validTo) }}
+              </p>
             </div>
           </div>
         </div>
@@ -38,4 +44,21 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  try {
+    return new Date(date).toLocaleDateString('sq-AL', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+  } catch {
+    return 'N/A'
+  }
+}
+</script>

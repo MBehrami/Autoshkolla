@@ -10,7 +10,7 @@
         <UserCircleIcon class="h-7 w-7 text-gray-500 dark:text-gray-400" />
       </span>
 
-      <span class="block mr-1 font-medium text-theme-sm">Roland </span>
+      <span class="block mr-1 font-medium text-theme-sm">{{ displayName }} </span>
 
       <ChevronDownIcon :class="{ 'rotate-180': dropdownOpen }" />
     </button>
@@ -22,10 +22,10 @@
     >
       <div>
         <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-          Roland Zogjani
+          {{ profile?.fullName || 'Kandidat' }}
         </span>
         <span class="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-          048567729
+          {{ phoneNumber }}
         </span>
       </div>
 
@@ -65,11 +65,25 @@
 <script setup>
 import { ChevronDownIcon, LogoutIcon, SettingsIcon, UserCircleIcon } from '@/icons'
 import { RouterLink, useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 const router = useRouter()
+
+const profile = computed(() => authStore.profile)
+
+const displayName = computed(() => {
+  const fullName = authStore.fullName
+  if (!fullName) return 'Kandidat'
+  
+  const parts = fullName.split(' ')
+  return parts[0] || 'Kandidat'
+})
+
+const phoneNumber = computed(() => authStore.phoneNumber || '')
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
@@ -81,6 +95,7 @@ const closeDropdown = () => {
 
 const signOut = () => {
   closeDropdown()
+  authStore.signOut()
   router.push('/signin')
 }
 

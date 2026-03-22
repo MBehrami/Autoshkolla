@@ -22,12 +22,625 @@ namespace AdminApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AdminApi.Models.Candidate.Candidate", b =>
+                {
+                    b.Property<int>("CandidateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CandidateId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DateOfBirth")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("DocWithdrawalAmount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DocWithdrawalDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("DrivingPaymentAmount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DrivingPaymentDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("InstructorId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ParentName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PersonalNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PlaceOfBirth")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("PracticalHours")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SerialNumber")
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<int>("TotalServiceAmount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VehicleType")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("CandidateId");
+
+                    b.ToTable("Candidates");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Candidate.CandidateInstallment", b =>
+                {
+                    b.Property<int>("InstallmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InstallmentId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InstallmentDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("InstallmentNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("InstallmentId");
+
+                    b.ToTable("CandidateInstallments");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Candidate.Category", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'8', '1', '', '', 'False', '1'");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("CategoryId");
+
+                    b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1,
+                            AddedBy = 1,
+                            CategoryName = "A1",
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 883, DateTimeKind.Local).AddTicks(274),
+                            IsActive = true,
+                            IsMigrationData = true
+                        },
+                        new
+                        {
+                            CategoryId = 2,
+                            AddedBy = 1,
+                            CategoryName = "A2",
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 883, DateTimeKind.Local).AddTicks(278),
+                            IsActive = true,
+                            IsMigrationData = true
+                        },
+                        new
+                        {
+                            CategoryId = 3,
+                            AddedBy = 1,
+                            CategoryName = "A",
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 883, DateTimeKind.Local).AddTicks(279),
+                            IsActive = true,
+                            IsMigrationData = true
+                        },
+                        new
+                        {
+                            CategoryId = 4,
+                            AddedBy = 1,
+                            CategoryName = "B",
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 883, DateTimeKind.Local).AddTicks(280),
+                            IsActive = true,
+                            IsMigrationData = true
+                        },
+                        new
+                        {
+                            CategoryId = 5,
+                            AddedBy = 1,
+                            CategoryName = "B+E",
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 883, DateTimeKind.Local).AddTicks(282),
+                            IsActive = true,
+                            IsMigrationData = true
+                        },
+                        new
+                        {
+                            CategoryId = 6,
+                            AddedBy = 1,
+                            CategoryName = "C1",
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 883, DateTimeKind.Local).AddTicks(283),
+                            IsActive = true,
+                            IsMigrationData = true
+                        },
+                        new
+                        {
+                            CategoryId = 7,
+                            AddedBy = 1,
+                            CategoryName = "C",
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 883, DateTimeKind.Local).AddTicks(284),
+                            IsActive = true,
+                            IsMigrationData = true
+                        });
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Candidate.DrivingSession", b =>
+                {
+                    b.Property<int>("DrivingSessionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DrivingSessionId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DrivingDate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("DrivingTime")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Examiner")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("InstructorUserId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PaymentAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PaymentDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DrivingSessionId");
+
+                    b.ToTable("DrivingSessions");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Candidate.PracticalLesson", b =>
+                {
+                    b.Property<int>("PracticalLessonId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PracticalLessonId"));
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EndTime")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("InstructorUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LessonDate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Time")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Vehicle")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("PracticalLessonId");
+
+                    b.ToTable("PracticalLessons");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.CandidateAccount", b =>
+                {
+                    b.Property<int>("CandidateAccountId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CandidateAccountId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastLoginDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PasswordSalt")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("ValidTo")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("CandidateAccountId");
+
+                    b.HasIndex("CandidateId")
+                        .IsUnique()
+                        .HasFilter("[CandidateId] IS NOT NULL");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
+                    b.ToTable("CandidateAccounts");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.Exam", b =>
+                {
+                    b.Property<int>("ExamId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExamId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExamCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PassPercent")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("ExamId");
+
+                    b.HasIndex("ExamCategoryId");
+
+                    b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.ExamCategory", b =>
+                {
+                    b.Property<int>("ExamCategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExamCategoryId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ExamCategoryId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("ExamCategories");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.ExamQuestion", b =>
+                {
+                    b.Property<int>("ExamQuestionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExamQuestionId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("ExamQuestionId");
+
+                    b.HasIndex("ExamId");
+
+                    b.ToTable("ExamQuestions");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.ExamQuestionOption", b =>
+                {
+                    b.Property<int>("ExamQuestionOptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExamQuestionOptionId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamQuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OptionText")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("ExamQuestionOptionId");
+
+                    b.HasIndex("ExamQuestionId");
+
+                    b.ToTable("ExamQuestionOptions");
+                });
+
             modelBuilder.Entity("AdminApi.Models.Menu.AppMenu", b =>
                 {
                     b.Property<int>("MenuID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'11', '1', '', '', 'False', '1'");
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'15', '1', '', '', 'False', '1'");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MenuID"));
 
@@ -79,7 +692,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8032),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9407),
                             IconClass = "mdi-menu",
                             IsActive = false,
                             IsMigrationData = true,
@@ -93,7 +706,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8036),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9411),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -107,7 +720,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 3,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8039),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9412),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -121,7 +734,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 4,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8042),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9414),
                             IconClass = "mdi-account",
                             IsActive = false,
                             IsMigrationData = true,
@@ -135,7 +748,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 5,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8044),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9416),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -149,7 +762,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 6,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8046),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9417),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -163,7 +776,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 7,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8049),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9419),
                             IconClass = "mdi-history",
                             IsActive = false,
                             IsMigrationData = true,
@@ -177,7 +790,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 8,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8051),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9421),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -191,7 +804,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 9,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8055),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9423),
                             IconClass = "",
                             IsActive = false,
                             IsMigrationData = true,
@@ -205,7 +818,7 @@ namespace AdminApi.Migrations
                         {
                             MenuID = 10,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8083),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9424),
                             IconClass = "mdi-home",
                             IsActive = true,
                             IsMigrationData = true,
@@ -217,37 +830,9 @@ namespace AdminApi.Migrations
                         },
                         new
                         {
-                            MenuID = 11,
-                            AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8085),
-                            IconClass = "mdi-frequently-asked-questions",
-                            IsActive = false,
-                            IsMigrationData = true,
-                            IsSubMenu = 0,
-                            MenuTitle = "FAQ",
-                            ParentID = 0,
-                            SortOrder = 5,
-                            URL = "/faq"
-                        },
-                        new
-                        {
-                            MenuID = 12,
-                            AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8088),
-                            IconClass = "mdi-contacts",
-                            IsActive = false,
-                            IsMigrationData = true,
-                            IsSubMenu = 0,
-                            MenuTitle = "Contact",
-                            ParentID = 0,
-                            SortOrder = 6,
-                            URL = "/contact"
-                        },
-                        new
-                        {
                             MenuID = 13,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8090),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9426),
                             IconClass = "mdi-cog",
                             IsActive = false,
                             IsMigrationData = true,
@@ -256,6 +841,34 @@ namespace AdminApi.Migrations
                             ParentID = 0,
                             SortOrder = 7,
                             URL = "/settings"
+                        },
+                        new
+                        {
+                            MenuID = 14,
+                            AddedBy = 1,
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9427),
+                            IconClass = "mdi-account-group",
+                            IsActive = true,
+                            IsMigrationData = true,
+                            IsSubMenu = 0,
+                            MenuTitle = "Candidates",
+                            ParentID = 0,
+                            SortOrder = 8,
+                            URL = "/candidates"
+                        },
+                        new
+                        {
+                            MenuID = 15,
+                            AddedBy = 1,
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9429),
+                            IconClass = "mdi-account-tie",
+                            IsActive = true,
+                            IsMigrationData = true,
+                            IsSubMenu = 0,
+                            MenuTitle = "Instructors",
+                            ParentID = 0,
+                            SortOrder = 9,
+                            URL = "/instructors"
                         });
                 });
 
@@ -300,7 +913,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupID = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(6753),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(8192),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupName = "Super Admin Group"
@@ -309,7 +922,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupID = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(6805),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(8237),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupName = "User Group"
@@ -321,7 +934,7 @@ namespace AdminApi.Migrations
                     b.Property<int>("MenuGroupWiseMenuMappingId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'9', '1', '', '', 'False', '1'");
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'13', '1', '', '', 'False', '1'");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MenuGroupWiseMenuMappingId"));
 
@@ -352,7 +965,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8413),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9636),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -362,7 +975,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8421),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9638),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -372,7 +985,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 3,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8424),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9639),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -382,7 +995,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 4,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8426),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9641),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -392,7 +1005,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 5,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8428),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9642),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -402,7 +1015,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 6,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8430),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9644),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -412,7 +1025,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 7,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8432),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9645),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -422,7 +1035,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 8,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8434),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9646),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -432,7 +1045,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 9,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8436),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9648),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -442,7 +1055,7 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 10,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8438),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9649),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -452,42 +1065,32 @@ namespace AdminApi.Migrations
                         {
                             MenuGroupWiseMenuMappingId = 11,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8439),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9650),
+                            IsActive = true,
+                            IsMigrationData = true,
+                            MenuGroupId = 1,
+                            MenuId = 14
+                        },
+                        new
+                        {
+                            MenuGroupWiseMenuMappingId = 12,
+                            AddedBy = 1,
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9652),
+                            IsActive = true,
+                            IsMigrationData = true,
+                            MenuGroupId = 1,
+                            MenuId = 15
+                        },
+                        new
+                        {
+                            MenuGroupWiseMenuMappingId = 13,
+                            AddedBy = 1,
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9653),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 2,
                             MenuId = 10
                         });
-                });
-
-            modelBuilder.Entity("AdminApi.Models.Others.Contacts", b =>
-                {
-                    b.Property<int>("ContactId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactId"));
-
-                    b.Property<DateTime>("DateAdded")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("ContactId");
-
-                    b.ToTable("Contacts");
                 });
 
             modelBuilder.Entity("AdminApi.Models.Others.ErrorLog", b =>
@@ -524,69 +1127,6 @@ namespace AdminApi.Migrations
                     b.HasKey("ErrorLogId");
 
                     b.ToTable("ErrorLogs");
-                });
-
-            modelBuilder.Entity("AdminApi.Models.Others.Faq", b =>
-                {
-                    b.Property<int>("FaqId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'3', '1', '', '', 'False', '1'");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FaqId"));
-
-                    b.Property<int>("AddedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DateAdded")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsMigrationData")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("LastUpdatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("LastUpdatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("FaqId");
-
-                    b.ToTable("Faqs");
-
-                    b.HasData(
-                        new
-                        {
-                            FaqId = 1,
-                            AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8942),
-                            Description = "Vue Admin is a single page admin template developed by Vue with .Net core 8 API. It’s covered most common features that you need to start a project.",
-                            IsActive = true,
-                            IsMigrationData = true,
-                            Title = "What are the purposes of this app?"
-                        },
-                        new
-                        {
-                            FaqId = 2,
-                            AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8945),
-                            Description = "The most amazing part of this template is, you have five popular Relational database connectivity options here. You have flexibility to choose Sql server, Mysql, Sqlite, PostgreSql and Oracle 12c+.",
-                            IsActive = true,
-                            IsMigrationData = true,
-                            Title = "Why this app differs from others?"
-                        });
                 });
 
             modelBuilder.Entity("AdminApi.Models.Others.SiteSettings", b =>
@@ -830,7 +1370,7 @@ namespace AdminApi.Migrations
                             ContactUsTelephone = "+xx (xx) xxxxx-xxxx",
                             ContactUsText = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iste explicabo commodi quisquam asperiores dolore ad enim provident veniam perferendis voluptate, perspiciatis. ",
                             CopyRightText = "© 2024 Copyright Vue Admin",
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(8725),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9862),
                             DefaultEmail = "",
                             FaviconPath = "",
                             Feature1Detail = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
@@ -882,6 +1422,194 @@ namespace AdminApi.Migrations
                             WelcomeEmailHeader = "Welcome Header",
                             WelcomeEmailSubject = "Welcome"
                         });
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Report.DailyReportEntry", b =>
+                {
+                    b.Property<int>("DailyReportEntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DailyReportEntryId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EntryDate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("EntryType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ReversalOfEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SerialNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SourceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("DailyReportEntryId");
+
+                    b.ToTable("DailyReportEntries");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Report.DailyReportStatus", b =>
+                {
+                    b.Property<int>("DailyReportStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DailyReportStatusId"));
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ClosedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReportDate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("DailyReportStatusId");
+
+                    b.ToTable("DailyReportStatuses");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Schedule.ScheduleEvent", b =>
+                {
+                    b.Property<int>("ScheduleEventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ScheduleEventId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EndTime")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("EventDate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("InstructorUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("StartTime")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ScheduleEventId");
+
+                    b.ToTable("ScheduleEvents");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.User.InstructorProfile", b =>
+                {
+                    b.Property<int>("InstructorProfileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InstructorProfileId"));
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LicenseNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LicensePhotoPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LicenseValidityDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ParentName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PersonalNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("ScheduleType")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("InstructorProfileId");
+
+                    b.ToTable("InstructorProfiles");
                 });
 
             modelBuilder.Entity("AdminApi.Models.User.LogHistory", b =>
@@ -972,7 +1700,7 @@ namespace AdminApi.Migrations
                         {
                             UserRoleId = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7121),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(8534),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 1,
@@ -982,7 +1710,7 @@ namespace AdminApi.Migrations
                         {
                             UserRoleId = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7125),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(8537),
                             IsActive = true,
                             IsMigrationData = true,
                             MenuGroupId = 2,
@@ -1071,7 +1799,7 @@ namespace AdminApi.Migrations
                         {
                             UserId = 1,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7701),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9051),
                             Email = "admin@vueadmin.com",
                             FullName = "John Doe",
                             IsActive = true,
@@ -1085,7 +1813,7 @@ namespace AdminApi.Migrations
                         {
                             UserId = 2,
                             AddedBy = 1,
-                            DateAdded = new DateTime(2025, 7, 25, 23, 5, 56, 423, DateTimeKind.Local).AddTicks(7707),
+                            DateAdded = new DateTime(2026, 3, 9, 22, 51, 11, 882, DateTimeKind.Local).AddTicks(9057),
                             Email = "user@vueadmin.com",
                             FullName = "Helen Smith",
                             IsActive = true,
@@ -1095,6 +1823,176 @@ namespace AdminApi.Migrations
                             PasswordSalt = "gLtMyAEbVeLjZGj312VXyg==",
                             UserRoleId = 2
                         });
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Vehicle.Vehicle", b =>
+                {
+                    b.Property<int>("VehicleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Brand")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CertificateNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ChassisNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExpiryDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMigrationData")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("LastUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastUpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("RegistrationDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("VehicleId");
+
+                    b.ToTable("Vehicles");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Vehicle.VehicleFuel", b =>
+                {
+                    b.Property<int>("VehicleFuelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleFuelId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FillDate")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("FuelAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("FuelType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("StaffUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VehicleFuelId");
+
+                    b.ToTable("VehicleFuels");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.Vehicle.VehicleService", b =>
+                {
+                    b.Property<int>("VehicleServiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleServiceId"));
+
+                    b.Property<int>("AddedBy")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ServiceDate")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VehicleServiceId");
+
+                    b.ToTable("VehicleServices");
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.CandidateAccount", b =>
+                {
+                    b.HasOne("AdminApi.Models.Candidate.Candidate", null)
+                        .WithMany()
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.Exam", b =>
+                {
+                    b.HasOne("AdminApi.Models.ETestimi.ExamCategory", null)
+                        .WithMany()
+                        .HasForeignKey("ExamCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.ExamQuestion", b =>
+                {
+                    b.HasOne("AdminApi.Models.ETestimi.Exam", null)
+                        .WithMany()
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AdminApi.Models.ETestimi.ExamQuestionOption", b =>
+                {
+                    b.HasOne("AdminApi.Models.ETestimi.ExamQuestion", null)
+                        .WithMany()
+                        .HasForeignKey("ExamQuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

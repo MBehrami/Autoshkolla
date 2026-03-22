@@ -48,14 +48,14 @@
         <router-link to="/dashboard" class="flex items-center">
           <img
             class="dark:hidden"
-            src="/images/logo/logo.svg"
+            src="/images/logo/linda_logo.png"
             alt="Logo"
             width="150"
             height="40"
           />
           <img
             class="hidden dark:block"
-            src="/images/logo/logo-dark.svg"
+            src="/images/logo/linda_logo.png"
             alt="Logo"
             width="150"
             height="40"

@@ -192,7 +192,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetEvents failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -215,7 +215,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -243,7 +243,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -276,44 +276,44 @@ namespace AdminApi.Controllers
 
                 // ── Validation ──
                 if (string.IsNullOrWhiteSpace(req.EventDate))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Date is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data eshte e detyrueshme." });
                 if (string.IsNullOrWhiteSpace(req.StartTime))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Start time is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e fillimit eshte e detyrueshme." });
                 if (string.IsNullOrWhiteSpace(req.EndTime))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "End time is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e mbarimit eshte e detyrueshme." });
                 if (req.CandidateId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati eshte i detyrueshem." });
                 if (req.VehicleId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Vehicle is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti eshte i detyrueshem." });
 
                 // Date format
                 string date = req.EventDate.Trim();
                 if (!Regex.IsMatch(date, @"^\d{2}\.\d{2}\.\d{4}$") ||
                     !DateTime.TryParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format (dd.MM.yyyy)." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem (dd.MM.yyyy)." });
 
                 // Time format
                 string startT = req.StartTime.Trim();
                 string endT = req.EndTime.Trim();
                 if (!TimeSpan.TryParse(startT, out var startTs) || !TimeSpan.TryParse(endT, out var endTs))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid time format (HH:mm)." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i ores eshte i pavlefshem (HH:mm)." });
                 if (endTs <= startTs)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "End time must be after start time." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e mbarimit duhet te jete pas ores se fillimit." });
 
                 // Instructor: auto-assign self
                 int instructorId = role == "Instructor" ? currentUserId : req.InstructorUserId;
                 if (instructorId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Instructor is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Instruktori eshte i detyrueshem." });
 
                 // Candidate exists
                 var candidate = await _context.Candidates.FindAsync(req.CandidateId);
                 if (candidate == null)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate not found." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet." });
 
                 // Vehicle exists and active
                 var vehicle = await _context.Vehicles.FindAsync(req.VehicleId);
                 if (vehicle == null || !vehicle.IsActive)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Vehicle not found or inactive." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti nuk u gjet ose eshte joaktiv." });
 
                 // ── Conflict check ──
                 var conflictMsg = await CheckConflicts(date, startT, endT, instructorId, req.VehicleId, excludeId: null);
@@ -341,7 +341,7 @@ namespace AdminApi.Controllers
                 return Ok(new
                 {
                     status = "success",
-                    responseMsg = "Schedule event created.",
+                    responseMsg = "Ngjarja e orarit u krijua.",
                     data = new
                     {
                         id = ev.ScheduleEventId,
@@ -363,7 +363,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateEvent failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -381,15 +381,15 @@ namespace AdminApi.Controllers
 
                 var ev = await _context.ScheduleEvents.FindAsync(id);
                 if (ev == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Event not found." });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Ngjarja nuk u gjet." });
 
                 // Instructor can only edit their own events
                 if (role == "Instructor" && ev.AddedBy != currentUserId)
-                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "You can only edit events you created." });
+                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Mund te ndryshoni vetem ngjarjet qe i keni krijuar ju." });
 
                 // Validation
                 if (string.IsNullOrWhiteSpace(req.EventDate) || string.IsNullOrWhiteSpace(req.StartTime) || string.IsNullOrWhiteSpace(req.EndTime))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Date and times are required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data dhe oret jane te detyrueshme." });
 
                 string date = req.EventDate.Trim();
                 string startT = req.StartTime.Trim();
@@ -397,18 +397,18 @@ namespace AdminApi.Controllers
 
                 if (!Regex.IsMatch(date, @"^\d{2}\.\d{2}\.\d{4}$") ||
                     !DateTime.TryParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem." });
                 if (!TimeSpan.TryParse(startT, out var startTs) || !TimeSpan.TryParse(endT, out var endTs))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid time format." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i ores eshte i pavlefshem." });
                 if (endTs <= startTs)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "End time must be after start time." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e mbarimit duhet te jete pas ores se fillimit." });
 
                 int instructorId = role == "Instructor" ? currentUserId : req.InstructorUserId;
                 if (instructorId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Instructor is required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Instruktori eshte i detyrueshem." });
 
                 if (req.CandidateId <= 0 || req.VehicleId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate and Vehicle are required." });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati dhe automjeti jane te detyrueshem." });
 
                 // Conflict check (exclude self)
                 var conflictMsg = await CheckConflicts(date, startT, endT, instructorId, req.VehicleId, excludeId: id);
@@ -433,7 +433,7 @@ namespace AdminApi.Controllers
                 return Ok(new
                 {
                     status = "success",
-                    responseMsg = "Event updated.",
+                    responseMsg = "Ngjarja u perditesua.",
                     data = new
                     {
                         id = ev.ScheduleEventId,
@@ -455,7 +455,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "UpdateEvent failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -473,20 +473,20 @@ namespace AdminApi.Controllers
 
                 var ev = await _context.ScheduleEvents.FindAsync(id);
                 if (ev == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Event not found." });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Ngjarja nuk u gjet." });
 
                 if (role == "Instructor" && ev.AddedBy != currentUserId)
-                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "You can only delete events you created." });
+                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Mund te fshini vetem ngjarjet qe i keni krijuar ju." });
 
                 _context.ScheduleEvents.Remove(ev);
                 await _context.SaveChangesAsync();
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Event deleted." });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Ngjarja u fshi." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "DeleteEvent failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -511,9 +511,9 @@ namespace AdminApi.Controllers
                 if (!overlaps) continue;
 
                 if (e.InstructorUserId == instructorId)
-                    return $"Instructor conflict: already booked {e.StartTime}–{e.EndTime} on {date}.";
+                    return $"Konflikt instruktori: i rezervuar tashme {e.StartTime}–{e.EndTime} me date {date}.";
                 if (e.VehicleId == vehicleId)
-                    return $"Vehicle conflict: already booked {e.StartTime}–{e.EndTime} on {date}.";
+                    return $"Konflikt automjeti: i rezervuar tashme {e.StartTime}–{e.EndTime} me date {date}.";
             }
 
             // Also check driving sessions for vehicle/instructor overlap
@@ -531,12 +531,14 @@ namespace AdminApi.Controllers
                 if (!overlaps) continue;
 
                 if (s.InstructorUserId.HasValue && s.InstructorUserId.Value == instructorId)
-                    return $"Instructor conflict with driving session at {s.DrivingTime} on {date}.";
+                    return $"Konflikt instruktori me seancen e vozitjes ne {s.DrivingTime} me date {date}.";
                 if (s.VehicleId == vehicleId)
-                    return $"Vehicle conflict with driving session at {s.DrivingTime} on {date}.";
+                    return $"Konflikt automjeti me seancen e vozitjes ne {s.DrivingTime} me date {date}.";
             }
 
             return null; // No conflicts
         }
     }
 }
+
+

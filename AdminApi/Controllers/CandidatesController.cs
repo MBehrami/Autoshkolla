@@ -151,7 +151,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -168,7 +168,7 @@ namespace AdminApi.Controllers
                 int totalInstallments = request.Installments.Sum(i => i.Amount);
                 if (totalInstallments > request.TotalServiceAmount)
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Sum of installments must not exceed Total service amount." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Shuma e kesteve nuk duhet te tejkaloje shumen totale te sherbimit." });
                 }
 
                 // Create candidate
@@ -274,11 +274,11 @@ namespace AdminApi.Controllers
                     }
                 }
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -392,7 +392,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "GetCandidatesList failed");
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -441,10 +441,10 @@ namespace AdminApi.Controllers
                                       }).FirstOrDefaultAsync();
 
                 if (candidate == null)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet" });
 
                 if (role == "Instructor" && candidate.InstructorId != currentUserId)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Not authorized to view this candidate" });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Nuk jeni te autorizuar ta shihni kete kandidat" });
 
                 // ── Instructor: return only limited fields ──
                 if (role == "Instructor")
@@ -619,7 +619,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -635,14 +635,14 @@ namespace AdminApi.Controllers
                 var existingCandidate = await _candidateRepo.SelectById(candidateId);
                 if (existingCandidate == null)
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet" });
                 }
 
                 // Validate installments
                 int totalInstallments = request.Installments.Sum(i => i.Amount);
                 if (totalInstallments > request.TotalServiceAmount)
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Sum of installments must not exceed Total service amount." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Shuma e kesteve nuk duhet te tejkaloje shumen totale te sherbimit." });
                 }
 
                 // Track old values for daily report diff
@@ -741,11 +741,11 @@ namespace AdminApi.Controllers
                     catch (Exception autoEx) { _logger.LogWarning(autoEx, "Auto daily report (DrivingPayment update) failed"); }
                 }
 
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Updated" });
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U perditesua me sukses" });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -762,9 +762,9 @@ namespace AdminApi.Controllers
                 var role = User.FindFirst("role")?.Value ?? "";
                 var candidate = await _context.Candidates.FindAsync(candidateId);
                 if (candidate == null)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet" });
                 if (role == "Instructor" && candidate.InstructorId != currentUserId)
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Not authorized" });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Nuk jeni te autorizuar" });
 
                 var query = _context.PracticalLessons.Where(l => l.CandidateId == candidateId);
                 if (role == "Instructor")
@@ -788,7 +788,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -808,26 +808,26 @@ namespace AdminApi.Controllers
 
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
                 if (currentUserId == 0)
-                    return Unauthorized(new Confirmation { Status = "error", ResponseMsg = "Invalid token – user id missing" });
+                    return Unauthorized(new Confirmation { Status = "error", ResponseMsg = "Token i pavlefshem - mungon ID e perdoruesit" });
 
                 var role = User.FindFirst("role")?.Value ?? "";
                 var candidate = await _context.Candidates.FindAsync(request.CandidateId);
                 if (candidate == null)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet" });
                 if (role == "Instructor" && candidate.InstructorId != currentUserId)
-                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Not authorized to add lessons for this candidate" });
+                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Nuk jeni te autorizuar te shtoni ore per kete kandidat" });
 
                 // Parse and validate required fields
                 if (string.IsNullOrWhiteSpace(request.Time) || string.IsNullOrWhiteSpace(request.LessonDate))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Date and Time are required" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data dhe ora jane te detyrueshme" });
 
                 // Validate date format dd.MM.yyyy (max 10 chars)
                 var lessonDate = request.LessonDate.Trim();
                 if (lessonDate.Length > 10 || !System.Text.RegularExpressions.Regex.IsMatch(lessonDate, @"^\d{2}\.\d{2}\.\d{4}$"))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid date format. Use dd.MM.yyyy" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem. Perdorni dd.MM.yyyy" });
 
                 if (!TimeSpan.TryParse(request.Time, out var startTs))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Invalid time format. Use HH:mm" });
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i ores eshte i pavlefshem. Perdorni HH:mm" });
 
                 var endTs = startTs.Add(TimeSpan.FromMinutes(45));
                 var endTime = $"{endTs.Hours:D2}:{endTs.Minutes:D2}";
@@ -850,9 +850,9 @@ namespace AdminApi.Controllers
                     if (overlaps)
                     {
                         if (existing.InstructorUserId == currentUserId)
-                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Overlap: you already have a lesson at {existing.Time}–{existing.EndTime ?? exEnd.ToString(@"hh\:mm")} on {request.LessonDate}" });
+                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Mbivendosje: ju tashme keni nje ore ne {existing.Time}–{existing.EndTime ?? exEnd.ToString(@"hh\:mm")} me date {request.LessonDate}" });
                         if (!string.IsNullOrEmpty(request.Vehicle) && existing.Vehicle == request.Vehicle)
-                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Overlap: vehicle '{request.Vehicle}' is booked at {existing.Time}–{existing.EndTime ?? exEnd.ToString(@"hh\:mm")} on {request.LessonDate}" });
+                            return BadRequest(new Confirmation { Status = "error", ResponseMsg = $"Mbivendosje: automjeti '{request.Vehicle}' eshte i rezervuar ne {existing.Time}–{existing.EndTime ?? exEnd.ToString(@"hh\:mm")} me date {request.LessonDate}" });
                     }
                 }
 
@@ -878,7 +878,7 @@ namespace AdminApi.Controllers
                 return Ok(new
                 {
                     status = "success",
-                    responseMsg = "Lesson added",
+                    responseMsg = "Ora u shtua",
                     lesson = new
                     {
                         practicalLessonId = lesson.PracticalLessonId,
@@ -895,7 +895,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "AddPracticalLesson failed");
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Failed to save lesson. " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e ores deshtoi. " + ex.Message });
             }
         }
 
@@ -944,12 +944,12 @@ namespace AdminApi.Controllers
                                   }).FirstOrDefaultAsync();
 
                 if (data == null)
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Candidate not found" });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet" });
 
                 // ── Locate template ──
                 string templatePath = Path.Combine(_env.ContentRootPath, "Resources", "Templates", "aplikacioni.pdf");
                 if (!System.IO.File.Exists(templatePath))
-                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "PDF template not found" });
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Shablloni PDF nuk u gjet" });
 
                 // ── Generate stamped PDF ──
                 using var ms = new MemoryStream();
@@ -1061,7 +1061,7 @@ namespace AdminApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "DownloadApplication failed for candidate {Id}", id);
-                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Failed to generate application PDF: " + ex.Message });
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Gjenerimi i PDF-se se aplikimit deshtoi: " + ex.Message });
             }
         }
 
@@ -1089,8 +1089,10 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
     }
 }
+
+

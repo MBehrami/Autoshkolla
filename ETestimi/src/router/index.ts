@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -150,6 +151,7 @@ const router = createRouter({
       component: () => import('../views/Auth/Signin.vue'),
       meta: {
         title: 'Signin',
+        public: true,
       },
     },
     {
@@ -166,6 +168,19 @@ const router = createRouter({
 export default router
 
 router.beforeEach((to, from, next) => {
-  document.title = `Vue.js ${to.meta.title} | TailAdmin - Vue.js Tailwind CSS Dashboard Template`
+  const authStore = useAuthStore()
+  const authed = authStore.isAuthenticated
+
+  if (to.path === '/signin' && authed) {
+    next('/dashboard')
+    return
+  }
+
+  if (!to.meta?.public && !authed) {
+    next('/signin')
+    return
+  }
+
+  document.title = `${to.meta.title || 'ETestimi - Autoshkolla Linda'} | ETestimi - Autoshkolla Linda`
   next()
 })

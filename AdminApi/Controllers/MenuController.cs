@@ -158,7 +158,7 @@ namespace AdminApi.Controllers
                         MenuId=model.MenuId,IsActive=true,DateAdded=DateTime.Now,AddedBy=model.AddedBy};
 
                         var obj=await _menuGroupWiseMenuMappingRepo.Insert(objAssign);
-                        return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Assigned" });                          
+                        return Ok(new Confirmation { Status = "success", ResponseMsg = "U caktua me sukses" });                          
                     }
                 }
                 else if(model.IsSelected==false)
@@ -166,15 +166,15 @@ namespace AdminApi.Controllers
                     if(objCheck!=null)
                     {
                         var obj=await _menuGroupWiseMenuMappingRepo.Delete(objCheck.MenuGroupWiseMenuMappingId); 
-                        return Ok(new Confirmation { Status = "delete", ResponseMsg = "Successfully UnAssigned" });                                             
+                        return Ok(new Confirmation { Status = "delete", ResponseMsg = "U caktimi u hoq me sukses" });                                             
                     }
                 }
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Something Unexpected" });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim i papritur" });
                
             }
             catch(Exception ex)
             {
-                return Accepted(new Confirmation { Status = "unknown", ResponseMsg = ex.Message });  
+                return Accepted(new Confirmation { Status = "unknown", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });  
             }
             
         }
@@ -197,7 +197,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -224,7 +224,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -242,7 +242,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -256,11 +256,11 @@ namespace AdminApi.Controllers
             try
             {      
                 await _menuRepo.Delete(id);
-                return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Deleted" });                                             
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "U fshi me sukses" });                                             
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -281,26 +281,26 @@ namespace AdminApi.Controllers
                 {                  
                     model.DateAdded=DateTime.Now;
                     var obj=await _menuRepo.Insert(model);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                                     
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                                     
                 }
                 else if(objCheck.MenuTitle==model.MenuTitle)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Menu Title" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Titulli i menus eshte i dyfishte" });
                 }
                 else if(objCheck.SortOrder==model.SortOrder)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Order No." });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Numri i renditjes eshte i dyfishte." });
                 }
                 else if(model.SortOrder<=0)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Order No. can't be lest than or equal to 0" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Numri i renditjes nuk mund te jete me i vogel ose i barabarte me 0" });
                 }
                 
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Something Unexpected" });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim i papritur" });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -319,15 +319,15 @@ namespace AdminApi.Controllers
 
                 if(objCheck!=null && objCheck.MenuTitle!=objMenu.MenuTitle)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Menu Title" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Titulli i menus eshte i dyfishte" });
                 }
                 else if(model.ParentID==0 && model.SortOrder<=0)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Order No. must greater than 0" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Numri i renditjes duhet te jete me i madh se 0" });
                 }
                 else if(objSortOrderCheck!=null && objSortOrderCheck.SortOrder!=objMenu.SortOrder)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Order No." });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Numri i renditjes eshte i dyfishte." });
                 }                   
                 else
                 {                        
@@ -341,12 +341,12 @@ namespace AdminApi.Controllers
                     objMenu.LastUpdatedBy=model.LastUpdatedBy;
                     objMenu.LastUpdatedDate=DateTime.Now;
                     await _context.SaveChangesAsync();
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Updated" });                        
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U perditesua me sukses" });                        
                 }                                                                                 
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -366,7 +366,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -384,7 +384,7 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -401,16 +401,16 @@ namespace AdminApi.Controllers
                 if(checkList.Count==0)
                 {
                     await _menuGroupRepo.Delete(id);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Deleted" });
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U fshi me sukses" });
                 }
                 else
                 {
-                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "This menu group has assinged user role. Not allowed to delete." });
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ky grup menuje ka role perdoruesi te caktuara. Fshirja nuk lejohet." });
                 }                                                          
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
 
@@ -429,17 +429,17 @@ namespace AdminApi.Controllers
                     model.DateAdded=DateTime.Now;
                     model.IsActive=true;                   
                     await _menuGroupRepo.Insert(model);
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });        
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });        
                 }
                 else if(objCheck!=null)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Menu Group name" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Emri i grupit te menus eshte i dyfishte" });
                 }
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Something Unexpected" });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim i papritur" });
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -457,7 +457,7 @@ namespace AdminApi.Controllers
 
                 if(objCheck!=null && objCheck.MenuGroupName!=objMenuGroup.MenuGroupName)
                 {
-                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Duplicate Menu Group name" });
+                    return Accepted(new Confirmation { Status = "duplicate", ResponseMsg = "Emri i grupit te menus eshte i dyfishte" });
                 }
                 else
                 {
@@ -465,13 +465,13 @@ namespace AdminApi.Controllers
                     objMenuGroup.LastUpdatedBy=model.LastUpdatedBy;
                     objMenuGroup.LastUpdatedDate=DateTime.Now;
                     await _context.SaveChangesAsync();
-                    return Ok(new Confirmation { Status = "success", ResponseMsg = "Successfully Saved" });                      
+                    return Ok(new Confirmation { Status = "success", ResponseMsg = "U ruajt me sukses" });                      
                 }              
            
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });             
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });             
             }
         }
 
@@ -489,8 +489,10 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {              
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = ex.Message });
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
     }
 }
+
+

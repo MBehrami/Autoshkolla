@@ -63,9 +63,9 @@
             </div>
 
             <div class="lg:col-span-2 flex justify-end">
-                <button type="submit"
-                    class="inline-flex justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600">
-                    Ruaj fjalëkalimin
+                <button type="submit" :disabled="isSubmitting"
+                    class="inline-flex justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60 disabled:cursor-not-allowed">
+                    {{ isSubmitting ? 'Duke ruajtur...' : 'Ruaj fjalëkalimin' }}
                 </button>
             </div>
         </form>
@@ -76,7 +76,9 @@
 import { ref } from 'vue'
 import Alert from '@/components/ui/Alert.vue'
 import { EyeIcon, EyeCloseIcon } from '@/icons'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -85,8 +87,9 @@ const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const isSubmitting = ref(false)
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
     errorMessage.value = ''
     successMessage.value = ''
 
@@ -105,10 +108,17 @@ const handleSubmit = () => {
         return
     }
 
-    successMessage.value = 'Fjalëkalimi u ndryshua me sukses.'
-
-    currentPassword.value = ''
-    newPassword.value = ''
-    confirmPassword.value = ''
+    isSubmitting.value = true
+    try {
+        await authStore.changePassword(currentPassword.value, newPassword.value)
+        successMessage.value = 'Fjalëkalimi u ndryshua me sukses.'
+        currentPassword.value = ''
+        newPassword.value = ''
+        confirmPassword.value = ''
+    } catch (error) {
+        errorMessage.value = error.message || 'Ndodhi një gabim gjatë ndryshimit të fjalëkalimit.'
+    } finally {
+        isSubmitting.value = false
+    }
 }
 </script>
