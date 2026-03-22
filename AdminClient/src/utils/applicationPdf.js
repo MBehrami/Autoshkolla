@@ -195,7 +195,7 @@ export function generateApplicationHtml(candidate) {
   const firstName = esc(c.firstName || "");
   const dob = esc(c.dateOfBirth || "");
   const pob = esc(c.placeOfBirth || "");
-  const municipality = esc(c.municipality || "");
+  const municipality = esc(c.municipality || c.address || "");
 
   const personal = buildPersonalNumberBoxes(c.personalNumber, 10);
   const category = c.categoryName || c.category || "";

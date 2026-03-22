@@ -88,7 +88,7 @@
                     </v-col>
                 </v-row>
                 <!-- Contact -->
-                <h3 class="form-section-title">Numri i telefonit & adresa</h3>
+                <h3 class="form-section-title">Numri i telefonit & komuna</h3>
                 <v-row class="form-row">
                     <v-col cols="12" md="4">
                         <v-text-field
@@ -109,7 +109,7 @@
                     <v-col cols="12" md="4">
                         <v-text-field
                             v-model="candidateForm.address"
-                            label="Adresa"
+                            label="Komuna"
                             variant="outlined"
                             clearable
                         ></v-text-field>
@@ -843,49 +843,52 @@ onMounted(() => {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: white;
+    background: #ffffff;
     padding: 16px 24px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    border-bottom: 1px solid #e2e8f0;
+    color: #1e293b;
 }
 
 .sticky-footer {
     position: sticky;
     bottom: 0;
     z-index: 10;
-    background: white;
-    padding: 16px 24px;
-    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    background: #ffffff;
+    padding: 14px 24px;
+    border-top: 1px solid #e2e8f0;
 }
 
 .candidate-form-body {
-    max-height: 70vh;
+    max-height: 72vh;
     overflow-y: auto;
-    padding: 24px 28px;
+    padding: 20px 24px;
 }
 
 .form-section-title {
-    font-size: 0.95rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.7);
-    margin: 20px 0 12px 0;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin: 24px 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .form-section-title:first-child {
-    margin-top: 0;
+    margin-top: 4px;
 }
 
 .form-row {
-    margin: 0 -6px;
+    margin: 0 -4px;
 }
 
 .form-row :deep(.v-col) {
-    padding: 6px 12px;
+    padding: 6px 10px;
 }
 
 :deep(.v-card-text) {
-    padding: 24px 28px;
+    padding: 20px 24px;
 }
 
 :deep(.v-text-field),
@@ -899,6 +902,27 @@ onMounted(() => {
 }
 
 :deep(.v-col) {
-    padding: 8px 12px;
+    padding: 6px 10px;
+}
+
+@media (max-width: 600px) {
+    .candidate-form-body {
+        max-height: 80vh;
+        padding: 14px 12px;
+    }
+    .sticky-header {
+        padding: 12px 16px;
+    }
+    .sticky-footer {
+        padding: 10px 16px;
+    }
+    .form-section-title {
+        font-size: 0.75rem;
+        margin: 18px 0 10px 0;
+    }
+    .form-row :deep(.v-col),
+    :deep(.v-col) {
+        padding: 4px 6px;
+    }
 }
 </style>

@@ -1,60 +1,60 @@
 <template>
-    <div class="vehicles-container">
-        <!-- ─── Stats Cards ─── -->
-        <v-row class="mb-4">
-            <v-col cols="12" sm="3">
+    <div class="page-container">
+        <div class="page-header mb-4">
+            <div class="page-title">Raporti Ditor</div>
+        </div>
+        <!-- ─── Stats Cards — horizontally scrollable on mobile ─── -->
+        <div class="stats-scroll-wrap mb-4">
+            <div class="stats-scroll">
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="primary" size="48">
-                            <v-icon icon="mdi-calendar-today" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="primary" size="44">
+                            <v-icon icon="mdi-calendar-today" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ selectedDateDisplay }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Selected Date</div>
+                            <div class="text-h6 font-weight-bold">{{ selectedDateDisplay }}</div>
+                            <div class="text-caption text-medium-emphasis">Data e zgjedhur</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="3">
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="success" size="48">
-                            <v-icon icon="mdi-cash-plus" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="success" size="44">
+                            <v-icon icon="mdi-cash-plus" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ formatCurrency(totals.incomeTotal) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Income (Hyrjet)</div>
+                            <div class="text-h6 font-weight-bold">{{ formatCurrency(totals.incomeTotal) }}</div>
+                            <div class="text-caption text-medium-emphasis">Hyrjet</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="3">
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="error" size="48">
-                            <v-icon icon="mdi-cash-minus" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="error" size="44">
+                            <v-icon icon="mdi-cash-minus" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ formatCurrency(totals.expenseTotal) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Expenses (Daljet)</div>
+                            <div class="text-h6 font-weight-bold">{{ formatCurrency(totals.expenseTotal) }}</div>
+                            <div class="text-caption text-medium-emphasis">Daljet</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="3">
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar :color="totals.balance >= 0 ? 'info' : 'warning'" size="48">
-                            <v-icon icon="mdi-scale-balance" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar :color="totals.balance >= 0 ? 'info' : 'warning'" size="44">
+                            <v-icon icon="mdi-scale-balance" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ formatCurrency(totals.balance) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Balance</div>
+                            <div class="text-h6 font-weight-bold">{{ formatCurrency(totals.balance) }}</div>
+                            <div class="text-caption text-medium-emphasis">Balanca</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-        </v-row>
+            </div>
+        </div>
 
         <!-- ─── Filters Row ─── -->
         <v-card elevation="2" rounded="lg" class="mb-4">
@@ -64,7 +64,7 @@
                     <v-col cols="12" sm="2">
                         <v-menu v-model="dateMenu" :close-on-content-click="false" transition="scale-transition">
                             <template v-slot:activator="{ props }">
-                                <v-text-field v-bind="props" v-model="selectedDateDisplay" label="Date (dd.MM.yyyy)"
+                                <v-text-field v-bind="props" v-model="selectedDateDisplay" label="Data"
                                     readonly prepend-inner-icon="mdi-calendar" variant="outlined" density="compact"
                                     hide-details clearable @click:clear="clearDateFilter"></v-text-field>
                             </template>
@@ -73,33 +73,33 @@
                     </v-col>
                     <!-- Month -->
                     <v-col cols="6" sm="2">
-                        <v-select v-model="filterMonth" :items="monthOptions" label="Month" variant="outlined"
+                        <v-select v-model="filterMonth" :items="monthOptions" label="Muaji" variant="outlined"
                             density="compact" hide-details clearable></v-select>
                     </v-col>
                     <!-- Year -->
                     <v-col cols="6" sm="2">
-                        <v-select v-model="filterYear" :items="yearOptions" label="Year" variant="outlined"
+                        <v-select v-model="filterYear" :items="yearOptions" label="Viti" variant="outlined"
                             density="compact" hide-details clearable></v-select>
                     </v-col>
                     <!-- Search -->
                     <v-col cols="12" sm="3">
-                        <v-text-field v-model="searchText" label="Search by name" prepend-inner-icon="mdi-magnify"
+                        <v-text-field v-model="searchText" label="Kërko sipas emrit" prepend-inner-icon="mdi-magnify"
                             variant="outlined" density="compact" hide-details clearable
                             @keyup.enter="loadEntries"></v-text-field>
                     </v-col>
                     <!-- Apply -->
                     <v-col cols="12" sm="3" class="d-flex ga-2 align-center">
                         <v-btn color="primary" variant="elevated" @click="loadEntries" prepend-icon="mdi-filter">
-                            Filter
+                            Filtro
                         </v-btn>
                         <!-- Day status -->
                         <v-chip :color="dayStatus === 'Closed' ? 'error' : 'success'" variant="tonal" size="small" class="ml-2">
                             <v-icon start :icon="dayStatus === 'Closed' ? 'mdi-lock' : 'mdi-lock-open'" size="14"></v-icon>
-                            {{ dayStatus }}
+                            {{ dayStatus === 'Closed' ? 'Mbyllur' : 'Hapur' }}
                         </v-chip>
                         <v-btn v-if="selectedDateDisplay" :color="dayStatus === 'Closed' ? 'success' : 'warning'" variant="tonal" size="small"
                             @click="toggleDayStatus" :prepend-icon="dayStatus === 'Closed' ? 'mdi-lock-open-variant' : 'mdi-lock'">
-                            {{ dayStatus === 'Closed' ? 'Reopen' : 'Close Day' }}
+                            {{ dayStatus === 'Closed' ? 'Rihap' : 'Mbyll' }}
                         </v-btn>
                     </v-col>
                 </v-row>
@@ -111,12 +111,12 @@
             <v-tabs v-model="activeTab" color="primary" grow>
                 <v-tab value="Income">
                     <v-icon start icon="mdi-cash-plus"></v-icon>
-                    Hyrjet (Income)
+                    Hyrjet
                     <v-chip size="x-small" color="success" variant="tonal" class="ml-2">{{ incomeEntries.length }}</v-chip>
                 </v-tab>
                 <v-tab value="Expense">
                     <v-icon start icon="mdi-cash-minus"></v-icon>
-                    Daljet (Expenses)
+                    Daljet
                     <v-chip size="x-small" color="error" variant="tonal" class="ml-2">{{ expenseEntries.length }}</v-chip>
                 </v-tab>
             </v-tabs>
@@ -126,7 +126,7 @@
             <div class="d-flex align-center justify-end pa-3 ga-2">
                 <v-btn color="primary" variant="elevated" prepend-icon="mdi-plus"
                     @click="openCreateDialog" :disabled="dayStatus === 'Closed' && !!selectedDateDisplay">
-                    Add Entry
+                    Regjistro hyrje
                 </v-btn>
                 <v-btn color="success" variant="tonal" prepend-icon="mdi-file-excel" @click="exportExcel">
                     Excel
@@ -161,10 +161,10 @@
                                     icon variant="tonal" size="36" color="warning"
                                     @click="openReverseDialog(item)" :disabled="dayStatus === 'Closed' && !!selectedDateDisplay">
                                     <v-icon size="20">mdi-undo-variant</v-icon>
-                                    <v-tooltip activator="parent" location="top">Reverse</v-tooltip>
+                                    <v-tooltip activator="parent" location="top">E kthyer</v-tooltip>
                                 </v-btn>
                                 <v-chip v-if="item.reversalOfEntryId" size="x-small" color="warning" variant="tonal">
-                                    Reversed
+                                    E kthyer
                                 </v-chip>
                             </div>
                         </template>
@@ -195,10 +195,10 @@
                                     icon variant="tonal" size="36" color="warning"
                                     @click="openReverseDialog(item)" :disabled="dayStatus === 'Closed' && !!selectedDateDisplay">
                                     <v-icon size="20">mdi-undo-variant</v-icon>
-                                    <v-tooltip activator="parent" location="top">Reverse</v-tooltip>
+                                    <v-tooltip activator="parent" location="top">E kthyer</v-tooltip>
                                 </v-btn>
                                 <v-chip v-if="item.reversalOfEntryId" size="x-small" color="warning" variant="tonal">
-                                    Reversed
+                                    E kthyer
                                 </v-chip>
                             </div>
                         </template>
@@ -212,7 +212,7 @@
             <v-card rounded="lg">
                 <v-card-title class="d-flex align-center ga-2 pa-4">
                     <v-icon icon="mdi-plus-circle" color="primary"></v-icon>
-                    <span>New {{ activeTab === 'Income' ? 'Income' : 'Expense' }} Entry</span>
+                    <span>Regjistro {{ activeTab === 'Income' ? 'hyrje' : 'dalje' }}</span>
                 </v-card-title>
                 <v-divider></v-divider>
                 <v-card-text class="pa-5">
@@ -221,7 +221,7 @@
                         <v-col cols="12" sm="6">
                             <v-menu v-model="formDateMenu" :close-on-content-click="false" transition="scale-transition">
                                 <template v-slot:activator="{ props }">
-                                    <v-text-field v-bind="props" v-model="formDate" label="Date *"
+                                    <v-text-field v-bind="props" v-model="formDate" label="Data"
                                         readonly prepend-inner-icon="mdi-calendar" variant="outlined"
                                         density="compact"></v-text-field>
                                 </template>
@@ -230,28 +230,28 @@
                             </v-menu>
                         </v-col>
                         <v-col cols="12" sm="6">
-                            <v-text-field v-model="formFullName" label="Full Name *" variant="outlined"
+                            <v-text-field v-model="formFullName" label="Emri i plotë" variant="outlined"
                                 density="compact" prepend-inner-icon="mdi-account"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6">
-                            <v-text-field v-model.number="formAmount" label="Amount *" type="number"
+                            <v-text-field v-model.number="formAmount" label="Shuma" type="number"
                                 variant="outlined" density="compact" prepend-inner-icon="mdi-cash"
                                 min="0.01" step="0.01"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6">
-                            <v-select v-model="formEntryType" :items="['Income', 'Expense']" label="Type *"
+                            <v-select v-model="formEntryType" :items="['Hyrje', 'Dalje']" label="Lloji"
                                 variant="outlined" density="compact" prepend-inner-icon="mdi-tag"></v-select>
                         </v-col>
                         <v-col cols="12">
-                            <v-text-field v-model="formDescription" label="Description / Reason *" variant="outlined"
+                            <v-text-field v-model="formDescription" label="Përshkrimi" variant="outlined"
                                 density="compact" prepend-inner-icon="mdi-text"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-card-text>
                 <v-card-actions class="pa-4">
                     <v-spacer></v-spacer>
-                    <v-btn variant="text" @click="createDialog = false">Cancel</v-btn>
-                    <v-btn color="primary" variant="elevated" :loading="saving" @click="saveEntry">Save</v-btn>
+                    <v-btn variant="text" @click="createDialog = false">Anulo</v-btn>
+                    <v-btn color="primary" variant="elevated" :loading="saving" @click="saveEntry">Ruaj</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -261,7 +261,7 @@
             <v-card rounded="lg">
                 <v-card-title class="d-flex align-center ga-2 pa-4">
                     <v-icon icon="mdi-undo-variant" color="warning"></v-icon>
-                    <span>Reverse Entry #{{ reverseTarget?.serialNumber }}</span>
+                    <span>E kthyer #{{ reverseTarget?.serialNumber }}</span>
                 </v-card-title>
                 <v-divider></v-divider>
                 <v-card-text class="pa-5">
@@ -279,7 +279,7 @@
                 <v-card-actions class="pa-4">
                     <v-spacer></v-spacer>
                     <v-btn variant="text" @click="reverseDialog = false">Cancel</v-btn>
-                    <v-btn color="warning" variant="elevated" :loading="reversing" @click="doReverse">Confirm Reversal</v-btn>
+                    <v-btn color="warning" variant="elevated" :loading="reversing" @click="doReverse">Konfirmo rikthimin</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -364,12 +364,12 @@ const expenseEntries = computed(() => allEntries.value.filter(e => e.entryType =
 
 const tableHeaders = [
     { title: '#', key: 'serialNumber', width: '60px' },
-    { title: 'Date', key: 'entryDate', width: '110px' },
-    { title: 'Full Name', key: 'fullName' },
-    { title: 'Amount', key: 'amount', width: '120px' },
-    { title: 'Description', key: 'description' },
-    { title: 'Source', key: 'sourceType', width: '130px' },
-    { title: 'Actions', key: 'actions', sortable: false, width: '100px' },
+    { title: 'Data', key: 'entryDate', width: '110px' },
+    { title: 'Emri i plotë', key: 'fullName' },
+    { title: 'Shuma', key: 'amount', width: '120px' },
+    { title: 'Përshkrimi', key: 'description' },
+    { title: 'Burimi', key: 'sourceType', width: '130px' },
+    { title: 'Veprimet', key: 'actions', sortable: false, width: '100px' },
 ];
 
 function loadEntries() {
@@ -591,14 +591,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.vehicles-container {
-    padding: 16px;
-    max-width: 1400px;
-    margin: 0 auto;
+/* ─── Stats horizontal scroll ─── */
+.stats-scroll-wrap {
+    width: 100%;
+}
+
+.stats-scroll {
+    display: flex;
+    gap: 16px;
 }
 
 .stat-card {
+    border-radius: 12px;
     transition: transform 0.15s ease;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .stat-card:hover {
@@ -617,9 +624,42 @@ onMounted(() => {
 }
 
 @media (max-width: 600px) {
-    .vehicles-container {
-        padding: 8px !important;
+    .stats-scroll-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-left: -12px;
+        margin-right: -12px;
+        padding: 0 12px;
     }
+
+    .stats-scroll {
+        min-width: max-content;
+        gap: 10px;
+        padding-bottom: 4px;
+    }
+
+    .stat-card {
+        flex: 0 0 auto;
+        min-width: 160px;
+    }
+
+    .stat-card :deep(.v-card-text) {
+        padding: 10px 12px !important;
+    }
+
+    .stat-card :deep(.text-h6) {
+        font-size: 0.95rem !important;
+    }
+
+    .stat-card :deep(.v-avatar) {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .stat-card :deep(.v-avatar .v-icon) {
+        font-size: 18px !important;
+    }
+
     .ledger-table :deep(thead th),
     .ledger-table :deep(td) {
         padding: 6px 8px !important;

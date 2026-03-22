@@ -1,99 +1,94 @@
 <template>
-    <div class="candidates-container">
-        <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Kandidatët</div>
+    <div class="page-container">
+        <!-- Page Header -->
+        <div class="page-header d-flex flex-wrap align-center justify-space-between ga-3">
+            <div>
+                <div class="page-title">Kandidatët</div>
+                <div class="page-subtitle">Menaxhoni listën e të gjithë kandidatëve</div>
+            </div>
+            <v-dialog v-model="dialog" max-width="1200" scrollable>
+                <template v-slot:activator="{ props: activatorProps }">
+                    <v-btn v-if="!isInstructor" v-bind="activatorProps" color="primary" variant="flat"
+                        class="text-none" prepend-icon="mdi-plus" size="default">
+                        Regjistro kandidatë
+                    </v-btn>
+                </template>
+                <CandidateForm
+                    v-model="dialog"
+                    :candidate="editedCandidate"
+                    :candidate-id="editedCandidateId"
+                    :is-edit="editedIndex > -1"
+                    @saved="handleSaved"
+                />
+            </v-dialog>
         </div>
-        <v-data-table
-            :headers="headers"
-            :items="items"
-            :loading="loading"
-            class="elevation-2 candidates-table"
-        >
-            <template v-slot:top>
-                <v-toolbar density="comfortable" flat class="candidates-toolbar">
-                    <div class="candidates-actions-wrap">
-                        <div class="candidates-export-group">
-                            <v-btn class="candidates-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
-                                <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
-                                    name="candidates.xlsx">Excel</download-excel>
-                            </v-btn>
-                            <v-btn class="candidates-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
-                                <download-excel :data="items" :fields="headersExcel" type="csv"
-                                    name="candidates.csv">CSV</download-excel>
-                            </v-btn>
-                            <v-btn class="candidates-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
-                                @click.stop="exportPdf">PDF</v-btn>
-                        </div>
-                        <div class="candidates-filters-wrap">
-                            <v-text-field
-                                v-model="searchText"
-                                label="Kërko (Emri, Numri personal)"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                clearable
-                                class="candidates-filter-search"
-                                @update:model-value="handleSearch"
-                            ></v-text-field>
-                            <v-select
-                                v-model="selectedCategory"
-                                :items="categories"
-                                item-title="categoryName"
-                                item-value="categoryId"
-                                label="Kategoria"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                clearable
-                                class="candidates-filter-category"
-                                @update:model-value="handleFilter"
-                            ></v-select>
-                            <v-select
-                                v-model="selectedYear"
-                                :items="years"
-                                label="Viti"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                clearable
-                                class="candidates-filter-year"
-                                @update:model-value="handleFilter"
-                            ></v-select>
-                            <v-dialog v-model="dialog" max-width="1200" scrollable>
-                                <template v-slot:activator="{ props: activatorProps }">
-                                    <v-btn v-if="!isInstructor" v-bind="activatorProps" color="primary" variant="elevated"
-                                        class="candidates-add-btn text-none" prepend-icon="mdi-plus">
-                                        Regjistro kandidatë
-                                    </v-btn>
-                                </template>
-                                <CandidateForm
-                                    v-model="dialog"
-                                    :candidate="editedCandidate"
-                                    :candidate-id="editedCandidateId"
-                                    :is-edit="editedIndex > -1"
-                                    @saved="handleSaved"
-                                />
-                            </v-dialog>
-                        </div>
-                    </div>
-                </v-toolbar>
-            </template>
-            <template v-slot:item.actions="{ item }">
-                <div class="d-flex align-center ga-1">
-                    <v-btn icon variant="tonal" color="primary" size="36" @click.stop="viewItem(item)">
-                        <v-icon size="20">mdi-eye</v-icon>
-                        <v-tooltip activator="parent" location="top">Shiko</v-tooltip>
+
+        <!-- Table Card -->
+        <v-card class="table-card">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="export-group">
+                    <v-btn variant="tonal" color="success" size="small" class="text-none" prepend-icon="mdi-file-excel">
+                        <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
+                            name="candidates.xlsx">Excel</download-excel>
                     </v-btn>
-                    <v-btn icon variant="tonal" color="secondary" size="36" @click.stop="editItem(item)">
-                        <v-icon size="20">mdi-pencil</v-icon>
-                        <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
-                    </v-btn>
+                    <v-btn variant="tonal" color="error" size="small" class="text-none" prepend-icon="mdi-file-pdf-box"
+                        @click.stop="exportPdf">PDF</v-btn>
                 </div>
-            </template>
-        </v-data-table>
-        <v-dialog v-model="viewDialog" max-width="1000" scrollable>
-            <CandidateDetails v-if="viewDialog" :candidate-id="viewingCandidateId" @close="viewDialog = false" />
-        </v-dialog>
+                <v-spacer></v-spacer>
+                <div class="filter-inputs">
+                    <v-text-field
+                        v-model="searchText"
+                        label="Kërko (Emri, Numri personal)"
+                        prepend-inner-icon="mdi-magnify"
+                        clearable
+                        class="filter-field filter-field--search"
+                        @update:model-value="handleSearch"
+                    ></v-text-field>
+                    <v-select
+                        v-model="selectedCategory"
+                        :items="categories"
+                        item-title="categoryName"
+                        item-value="categoryId"
+                        label="Kategoria"
+                        clearable
+                        class="filter-field filter-field--category"
+                        @update:model-value="handleFilter"
+                    ></v-select>
+                    <v-select
+                        v-model="selectedYear"
+                        :items="years"
+                        label="Viti"
+                        clearable
+                        class="filter-field filter-field--year"
+                        @update:model-value="handleFilter"
+                    ></v-select>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <v-data-table
+                :headers="headers"
+                :items="items"
+                :loading="loading"
+                class="candidates-table"
+                items-per-page="15"
+            >
+                <template v-slot:item.actions="{ item }">
+                    <div class="d-flex align-center ga-1">
+                        <v-btn icon variant="text" color="primary" class="action-btn" @click.stop="viewItem(item)">
+                            <v-icon size="18">mdi-eye-outline</v-icon>
+                            <v-tooltip activator="parent" location="top">Shiko</v-tooltip>
+                        </v-btn>
+                        <v-btn icon variant="text" color="secondary" class="action-btn" @click.stop="editItem(item)">
+                            <v-icon size="18">mdi-pencil-outline</v-icon>
+                            <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
+                        </v-btn>
+                    </div>
+                </template>
+            </v-data-table>
+        </v-card>
+
         <v-dialog v-model="instructorEditDialog" max-width="900" scrollable persistent>
             <CandidateInstructorEdit
                 v-if="instructorEditDialog && instructorEditCandidateId"
@@ -114,12 +109,13 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DownloadExcel from 'vue-json-excel3';
 import CandidateForm from '@/components/candidate/CandidateForm.vue';
-import CandidateDetails from '@/components/candidate/CandidateDetails.vue';
 import CandidateInstructorEdit from '@/components/candidate/CandidateInstructorEdit.vue';
+import { useRouter } from 'vue-router';
 
 const candidateStore = useCandidateStore()
 const settingStore = useSettingStore()
 const { loading } = storeToRefs(candidateStore)
+const router = useRouter()
 
 const isInstructor = computed(() => {
     try {
@@ -138,8 +134,8 @@ const headersAdmin = [
     { title: 'Kategoria', key: 'categoryName' },
     { title: 'Instruktori', key: 'instructorName' },
     { title: 'Lloji i vetures', key: 'vehicleType' },
-    { title: 'Orët praktike', key: 'practicalHours' },
-    { title: 'Pagesa e shërbimit', key: 'totalServiceAmount' },
+    { title: 'Orët praktike', key: 'practicalHoursDisplay' },
+    { title: 'Pagesa e shërbimit', key: 'servicePaymentDisplay' },
     { title: 'Veprimet', key: 'actions', sortable: false }
 ]
 
@@ -167,8 +163,8 @@ const headersExcelAdmin = {
     'Kategoria': 'categoryName',
     'Instruktori': 'instructorName',
     'Lloji i vetures': 'vehicleType',
-    'Orët praktike': 'practicalHours',
-    'Pagesa e shërbimit': 'totalServiceAmount',
+    'Orët praktike': 'practicalHoursDisplay',
+    'Pagesa e shërbimit': 'servicePaymentDisplay',
 }
 
 const headersExcelInstructor = {
@@ -193,7 +189,7 @@ const categories = ref([])
 const years = ref([])
 const searchText = ref('')
 const selectedCategory = ref(null)
-const selectedYear = ref(null)
+const selectedYear = ref(new Date().getFullYear())
 const dialog = ref(false)
 const viewDialog = ref(false)
 const viewingCandidateId = ref(null)
@@ -226,15 +222,18 @@ const exportPdf = () => {
         if (isInstructor.value) {
             return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.vehicleType, row.practicalLessonCount, row.completedHours, row.remainingHours]
         }
-        return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHours, row.totalServiceAmount]
+        return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHoursDisplay, row.servicePaymentDisplay]
     })
     autoTable(doc, { head: [pdfHeaders], body: bodyRows })
     doc.save('candidates.pdf')
 }
 
-// Normalize one row: camelCase keys + id for v-data-table (default item-value is "id")
 function normalizeCandidate(row) {
     if (!row || typeof row !== 'object') return null
+    const practicalHours = row.practicalHours ?? row.PracticalHours ?? 0
+    const completedHours = row.completedHours ?? row.CompletedHours ?? 0
+    const totalServiceAmount = row.totalServiceAmount ?? row.TotalServiceAmount ?? 0
+    const totalPaidAmount = row.totalPaidAmount ?? row.TotalPaidAmount ?? 0
     return {
         id: row.candidateId ?? row.CandidateId,
         candidateId: row.candidateId ?? row.CandidateId,
@@ -245,10 +244,13 @@ function normalizeCandidate(row) {
         categoryName: row.categoryName ?? row.CategoryName ?? '',
         instructorName: row.instructorName ?? row.InstructorName ?? '',
         vehicleType: row.vehicleType ?? row.VehicleType ?? '',
-        practicalHours: row.practicalHours ?? row.PracticalHours ?? 0,
-        totalServiceAmount: row.totalServiceAmount ?? row.TotalServiceAmount ?? 0,
+        practicalHours,
+        totalServiceAmount,
+        totalPaidAmount,
+        practicalHoursDisplay: `${practicalHours} / ${completedHours}`,
+        servicePaymentDisplay: `${totalServiceAmount} / ${totalPaidAmount}`,
         practicalLessonCount: row.practicalLessonCount ?? row.PracticalLessonCount ?? 0,
-        completedHours: row.completedHours ?? row.CompletedHours ?? 0,
+        completedHours,
         remainingHours: row.remainingHours ?? row.RemainingHours ?? 0
     }
 }
@@ -320,10 +322,9 @@ const loadYears = () => {
         })
 }
 
-// Actions
+// Actions — navigate to dedicated pages
 const viewItem = (item) => {
-    viewingCandidateId.value = item.candidateId
-    viewDialog.value = true
+    router.push(`/candidates/${item.candidateId}`)
 }
 
 const editItem = (item) => {
@@ -332,13 +333,7 @@ const editItem = (item) => {
         instructorEditDialog.value = true
         return
     }
-    editedCandidateId.value = item.candidateId
-    candidateStore.getCandidateDetails(item.candidateId)
-        .then((response) => {
-            editedCandidate.value = response.data
-            editedIndex.value = items.value.indexOf(item)
-            dialog.value = true
-        })
+    router.push(`/candidates/${item.candidateId}/edit`)
 }
 
 const handleSaved = () => {
@@ -348,7 +343,7 @@ const handleSaved = () => {
     editedCandidateId.value = null
     searchText.value = ''
     selectedCategory.value = null
-    selectedYear.value = null
+    selectedYear.value = new Date().getFullYear()
     loadCandidates()
 }
 
@@ -375,187 +370,65 @@ watch(dialog, (newVal) => {
 </script>
 
 <style scoped>
-.candidates-container {
-    width: 100%;
-    padding: 16px 20px;
-    margin: 0;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
-    min-height: 100%;
-}
-
-.candidates-table {
-    width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.candidates-toolbar {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.candidates-actions-wrap {
-    width: 100%;
+.filter-inputs {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.candidates-export-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.candidates-action-btn {
-    border-radius: 12px;
-}
-
-.candidates-filters-wrap {
-    margin-left: auto;
-    display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
 }
 
-.candidates-add-btn {
-    min-height: 40px;
-    border-radius: 12px;
+.filter-field--search {
+    min-width: 240px;
 }
 
-.candidates-toolbar :deep(.v-btn),
-.candidates-toolbar :deep(.v-field) {
-    border-radius: 4px !important;
-}
-
-.candidates-filter-search {
-    min-width: 260px;
-}
-
-.candidates-filter-category {
+.filter-field--category {
     min-width: 160px;
 }
 
-.candidates-filter-year {
-    min-width: 120px;
+.filter-field--year {
+    min-width: 110px;
 }
 
-.candidates-table :deep(.v-data-table__wrapper) {
-    width: 100%;
+.candidates-table {
+    border: none !important;
+    box-shadow: none !important;
 }
 
-.candidates-table :deep(thead th) {
-    font-weight: 600;
-    font-size: 13px;
-    padding: 14px 16px !important;
-    background: #f5f5f5;
-    color: #424242;
-}
+@media (max-width: 960px) {
+    .filter-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
 
-.candidates-table :deep(tbody td) {
-    padding: 12px 16px !important;
-    font-size: 14px;
-}
-
-.candidates-table :deep(.v-toolbar) {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-}
-
-.candidates-table :deep(.v-toolbar__content) {
-    height: auto !important;
-    min-height: 0 !important;
-}
-
-@media (max-width: 1024px) and (min-width: 601px) {
-    .candidates-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .filter-inputs {
         width: 100%;
     }
 
-    .candidates-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .candidates-filter-search,
-    .candidates-filter-category,
-    .candidates-filter-year {
-        width: 100%;
+    .filter-field--search,
+    .filter-field--category,
+    .filter-field--year {
         min-width: 0;
-    }
-
-    .candidates-add-btn {
-        width: 100%;
-        grid-column: 1 / -1;
-        min-height: 44px;
+        flex: 1;
     }
 }
 
 @media (max-width: 600px) {
-    .candidates-container {
-        padding: 8px !important;
+    .filter-inputs {
+        flex-direction: column;
     }
 
-    .candidates-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .filter-field--search,
+    .filter-field--category,
+    .filter-field--year {
         width: 100%;
     }
 
-    .candidates-export-group {
+    .export-group {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
     }
 
-    .candidates-action-btn {
-        width: 100%;
-        min-width: 0;
-        min-height: 40px;
-        padding-inline: 8px;
-    }
-
-    .candidates-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .candidates-filter-search,
-    .candidates-filter-category,
-    .candidates-filter-year {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .candidates-add-btn {
-        width: 100%;
-        min-height: 44px;
-    }
-
-    .candidates-table :deep(thead th),
-    .candidates-table :deep(tbody td) {
-        padding: 6px 8px !important;
-        font-size: 0.75rem !important;
-    }
-
-    .candidates-table :deep(.v-toolbar) {
-        padding: 8px !important;
-        flex-wrap: wrap;
+    .export-group .v-btn {
+        flex: 1;
     }
 }
 </style>

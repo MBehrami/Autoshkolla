@@ -1,216 +1,248 @@
 <template>
-    <div class="vehicles-container">
-        <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Vozitjet</div>
+    <div class="page-container">
+        <div class="page-header mb-6">
+            <div class="page-title">Vozitjet</div>
         </div>
-        <!-- ─── Stats Cards ─── -->
-        <v-row class="mb-4">
-            <v-col cols="12" sm="4">
+        <!-- ─── Stats Cards — horizontally scrollable on mobile ─── -->
+        <div class="stats-scroll-wrap mb-4">
+            <div class="stats-scroll">
+                <v-menu v-model="calendarMenu" :close-on-content-click="false" location="bottom" min-width="auto">
+                    <template v-slot:activator="{ props: menuProps }">
+                        <v-card class="stat-card stat-card--date" elevation="2" rounded="lg" v-bind="menuProps">
+                            <v-card-text class="d-flex align-center ga-3">
+                                <v-avatar color="primary" size="44">
+                                    <v-icon icon="mdi-calendar-today" color="white" size="22"></v-icon>
+                                </v-avatar>
+                                <div>
+                                    <div class="text-h6 font-weight-bold">{{ selectedDateDisplay }}</div>
+                                    <div class="text-caption text-medium-emphasis">Kliko për të ndryshuar</div>
+                                </div>
+                                <v-icon icon="mdi-chevron-down" size="18" class="ml-auto text-medium-emphasis"></v-icon>
+                            </v-card-text>
+                        </v-card>
+                    </template>
+                    <v-date-picker v-model="calendarDate" color="primary" @update:model-value="handleDateChange"></v-date-picker>
+                </v-menu>
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="primary" size="48">
-                            <v-icon icon="mdi-calendar-today" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="info" size="44">
+                            <v-icon icon="mdi-account-group" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ selectedDateDisplay }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Data e zgjedhur</div>
+                            <div class="text-h6 font-weight-bold">{{ stats.totalSessions }}</div>
+                            <div class="text-caption text-medium-emphasis">Vozitjet</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="4">
+
                 <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="info" size="48">
-                            <v-icon icon="mdi-account-group" color="white" size="24"></v-icon>
+                    <v-card-text class="d-flex align-center ga-3">
+                        <v-avatar color="success" size="44">
+                            <v-icon icon="mdi-cash" color="white" size="22"></v-icon>
                         </v-avatar>
                         <div>
-                            <div class="text-h5 font-weight-bold">{{ stats.totalSessions }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Vozitjet të planifikuara</div>
+                            <div class="text-h6 font-weight-bold">{{ formatCurrency(stats.totalPayments) }}</div>
+                            <div class="text-caption text-medium-emphasis">Pagesat</div>
                         </div>
                     </v-card-text>
                 </v-card>
-            </v-col>
-            <v-col cols="12" sm="4">
-                <v-card class="stat-card" elevation="2" rounded="lg">
-                    <v-card-text class="d-flex align-center ga-4">
-                        <v-avatar color="success" size="48">
-                            <v-icon icon="mdi-cash" color="white" size="24"></v-icon>
-                        </v-avatar>
-                        <div>
-                            <div class="text-h5 font-weight-bold">{{ formatCurrency(stats.totalPayments) }}</div>
-                            <div class="text-body-2 text-medium-emphasis">Shuma e pagesave</div>
+            </div>
+        </div>
+
+        <!-- ─── Sessions table ─── -->
+        <v-row>
+            <v-col cols="12">
+                <v-card class="table-card">
+                    <div class="filter-bar">
+                        <div class="export-group">
+                            <v-btn variant="tonal" color="success" size="small" class="text-none" prepend-icon="mdi-file-excel">
+                                <download-excel :data="sessions" :fields="headersExcel" type="xlsx"
+                                    worksheet="all-data" name="driving-sessions.xlsx">Excel</download-excel>
+                            </v-btn>
+                            <v-btn variant="tonal" color="error" size="small" class="text-none" prepend-icon="mdi-file-pdf-box"
+                                @click.stop="exportPdf">PDF</v-btn>
                         </div>
-                    </v-card-text>
+                        <v-spacer></v-spacer>
+                        <div class="filter-inputs">
+                            <v-select
+                                v-model="filterStatus"
+                                :items="statusFilterOptions"
+                                item-title="label"
+                                item-value="value"
+                                label="Statusi"
+                                clearable
+                                class="filter-field filter-field--status"
+                                @update:model-value="loadSessions"
+                            ></v-select>
+                            <v-menu v-model="fromDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                <template v-slot:activator="{ props: menuProps }">
+                                    <v-text-field
+                                        :model-value="fromDateDisplay"
+                                        label="Nga data"
+                                        prepend-inner-icon="mdi-calendar"
+                                        readonly
+                                        clearable
+                                        class="filter-field filter-field--date"
+                                        v-bind="menuProps"
+                                        @click:clear="clearFromDate"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="fromDateModel" color="primary" @update:model-value="handleFromDate"></v-date-picker>
+                            </v-menu>
+                            <v-menu v-model="toDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                <template v-slot:activator="{ props: menuProps }">
+                                    <v-text-field
+                                        :model-value="toDateDisplay"
+                                        label="Deri në datë"
+                                        prepend-inner-icon="mdi-calendar"
+                                        readonly
+                                        clearable
+                                        class="filter-field filter-field--date"
+                                        v-bind="menuProps"
+                                        @click:clear="clearToDate"
+                                    ></v-text-field>
+                                </template>
+                                <v-date-picker v-model="toDateModel" color="primary" @update:model-value="handleToDate"></v-date-picker>
+                            </v-menu>
+                            <div class="action-btn-group">
+                                <v-btn
+                                    color="primary"
+                                    variant="flat"
+                                    class="text-none action-btn-half"
+                                    prepend-icon="mdi-plus"
+                                    size="small"
+                                    @click="openCreateDialog"
+                                >
+                                    Regjistro vozitjen
+                                </v-btn>
+                                <v-btn
+                                    color="warning"
+                                    variant="flat"
+                                    class="text-none action-btn-half"
+                                    prepend-icon="mdi-cash-plus"
+                                    size="small"
+                                    @click="openPaymentDialog"
+                                >
+                                    Regjistro pagesën
+                                </v-btn>
+                            </div>
+                        </div>
+                    </div>
+
+                    <v-data-table
+                        :headers="headers"
+                        :items="sessions"
+                        :loading="loading"
+                        no-data-text="Nuk ka vozitje për këtë datë"
+                    >
+                        <template v-slot:[`item.drivingTime`]="{ item }">
+                            <v-chip size="small" color="primary" variant="tonal">
+                                <v-icon start icon="mdi-clock-outline" size="14"></v-icon>
+                                {{ item.drivingTime }}
+                            </v-chip>
+                        </template>
+
+                        <template v-slot:[`item.paymentAmount`]="{ item }">
+                            {{ formatCurrency(item.paymentAmount) }}
+                        </template>
+
+                        <template v-slot:[`item.vehicleDisplay`]="{ item }">
+                            <v-chip size="small" variant="outlined" color="grey-darken-1">
+                                <v-icon start icon="mdi-car" size="14"></v-icon>
+                                {{ item.vehicleDisplay }}
+                            </v-chip>
+                        </template>
+
+                        <template v-slot:[`item.status`]="{ item }">
+                            <v-chip v-if="item.status" size="small" :color="statusColor(item.status)" variant="tonal">
+                                {{ item.status }}
+                            </v-chip>
+                            <span v-else class="text-medium-emphasis text-body-2">—</span>
+                        </template>
+
+                        <template v-slot:[`item.examiner`]="{ item }">
+                            <span v-if="item.examiner">{{ item.examiner }}</span>
+                            <span v-else class="text-medium-emphasis text-body-2">—</span>
+                        </template>
+
+                        <template v-slot:[`item.actions`]="{ item }">
+                            <div class="d-flex align-center ga-1">
+                                <v-btn icon variant="text" color="primary" class="action-btn" @click="openEditDialog(item)">
+                                    <v-icon size="18">mdi-pencil-outline</v-icon>
+                                    <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
+                                </v-btn>
+                                <v-btn v-if="isAdmin" icon variant="text" color="error" class="action-btn" @click="confirmDelete(item)">
+                                    <v-icon size="18">mdi-delete-outline</v-icon>
+                                    <v-tooltip activator="parent" location="top">Fshi</v-tooltip>
+                                </v-btn>
+                            </div>
+                        </template>
+                    </v-data-table>
                 </v-card>
             </v-col>
         </v-row>
 
-        <!-- ─── Main layout: Calendar + Sessions ─── -->
-        <v-row class="ds-main-row">
-            <!-- Left: Calendar -->
-            <v-col cols="12" md="4" class="ds-calendar-col">
+        <!-- ─── Waiting List ─── -->
+        <v-row class="mt-4">
+            <v-col cols="12">
                 <v-card elevation="2" rounded="lg">
-                    <v-card-title class="d-flex align-center ga-2 pa-4">
-                        <v-icon icon="mdi-calendar" color="primary"></v-icon>
-                        <span>Kalendar</span>
+                    <v-card-title class="d-flex flex-wrap align-center ga-2 pa-4">
+                        <v-icon icon="mdi-clipboard-clock-outline" color="warning"></v-icon>
+                        <span>Lista e pritjes</span>
+                        <v-chip class="ml-1" size="small" color="warning" variant="tonal">{{ filteredWaitingList.length }}</v-chip>
+                        <v-spacer></v-spacer>
+                        <v-text-field
+                            v-model="waitingSearch"
+                            placeholder="Kërko sipas emrit..."
+                            prepend-inner-icon="mdi-magnify"
+                            variant="outlined"
+                            density="compact"
+                            hide-details
+                            clearable
+                            class="waiting-search"
+                        ></v-text-field>
                     </v-card-title>
                     <v-divider></v-divider>
-                    <v-date-picker
-                        v-model="calendarDate"
-                        color="primary"
-                        show-adjacent-months
-                        class="calendar-picker"
-                        @update:model-value="handleDateChange"
-                    ></v-date-picker>
-                    <v-card-text class="text-center text-body-2 text-medium-emphasis py-2">
-                        Kliko një datë për të shikuar vozitjet
-                    </v-card-text>
-                </v-card>
-            </v-col>
-
-            <!-- Right: Sessions table -->
-            <v-col cols="12" md="8" class="ds-table-col">
-                <v-data-table
-                    :headers="headers"
-                    :items="sessions"
-                    :loading="loading"
-                    class="elevation-2 vehicles-table"
-                    no-data-text="Nuk ka vozitje për këtë datë"
-                >
-                    <template v-slot:top>
-                        <v-toolbar density="comfortable" flat class="vehicles-toolbar">
-                            <div class="vehicles-actions-wrap">
-                                <div class="vehicles-export-group">
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
-                                        <download-excel :data="sessions" :fields="headersExcel" type="xlsx"
-                                            worksheet="all-data" name="driving-sessions.xlsx">Excel</download-excel>
-                                    </v-btn>
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
-                                        <download-excel :data="sessions" :fields="headersExcel" type="csv"
-                                            name="driving-sessions.csv">CSV</download-excel>
-                                    </v-btn>
-                                    <v-btn class="vehicles-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
-                                        @click.stop="exportPdf">PDF</v-btn>
-                                </div>
-                                <div class="vehicles-filters-wrap">
-                                    <!-- Status filter -->
-                                    <v-select
-                                        v-model="filterStatus"
-                                        :items="statusFilterOptions"
-                                        item-title="label"
-                                        item-value="value"
-                                        label="Statusi"
-                                        variant="outlined"
-                                        density="compact"
-                                        hide-details
-                                        class="ds-filter-status"
-                                        @update:model-value="loadSessions"
-                                    ></v-select>
-
-                                    <!-- Date range: From -->
-                                    <v-menu v-model="fromDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
-                                        <template v-slot:activator="{ props: menuProps }">
-                                            <v-text-field
-                                                :model-value="fromDateDisplay"
-                                                label="Nga data"
-                                                variant="outlined"
-                                                density="compact"
-                                                prepend-inner-icon="mdi-calendar"
-                                                readonly
-                                                hide-details
-                                                clearable
-                                                class="ds-filter-date"
-                                                v-bind="menuProps"
-                                                @click:clear="clearFromDate"
-                                            ></v-text-field>
-                                        </template>
-                                        <v-date-picker v-model="fromDateModel" color="primary" @update:model-value="handleFromDate"></v-date-picker>
-                                    </v-menu>
-
-                                    <!-- Date range: To -->
-                                    <v-menu v-model="toDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
-                                        <template v-slot:activator="{ props: menuProps }">
-                                            <v-text-field
-                                                :model-value="toDateDisplay"
-                                                label="Deri në datë"
-                                                variant="outlined"
-                                                density="compact"
-                                                prepend-inner-icon="mdi-calendar"
-                                                readonly
-                                                hide-details
-                                                clearable
-                                                class="ds-filter-date"
-                                                v-bind="menuProps"
-                                                @click:clear="clearToDate"
-                                            ></v-text-field>
-                                        </template>
-                                        <v-date-picker v-model="toDateModel" color="primary" @update:model-value="handleToDate"></v-date-picker>
-                                    </v-menu>
-
-                                    <v-btn
-                                        color="primary"
-                                        variant="elevated"
-                                        class="vehicles-add-btn text-none"
-                                        prepend-icon="mdi-plus"
-                                        @click="openCreateDialog"
-                                    >
-                                        Regjistro vozitjen
-                                    </v-btn>
-                                </div>
+                    <v-data-table
+                        :headers="waitingHeaders"
+                        :items="filteredWaitingList"
+                        :loading="waitingLoading"
+                        class="waiting-table"
+                        no-data-text="Nuk ka kandidatë në listën e pritjes"
+                        density="comfortable"
+                    >
+                        <template v-slot:[`item.paymentAmount`]="{ item }">
+                            <span v-if="item.paymentAmount > 0" class="font-weight-medium" style="color:#10b981">{{ formatCurrency(item.paymentAmount) }} &euro;</span>
+                            <span v-else class="text-medium-emphasis">–</span>
+                        </template>
+                        <template v-slot:[`item.actions`]="{ item }">
+                            <div class="d-flex align-center ga-1">
+                                <v-btn
+                                    variant="tonal"
+                                    color="primary"
+                                    size="small"
+                                    prepend-icon="mdi-calendar-plus"
+                                    class="text-none"
+                                    @click="assignFromWaitingList(item)"
+                                >
+                                    Cakto datën
+                                </v-btn>
+                                <v-btn
+                                    v-if="isAdmin"
+                                    icon
+                                    variant="text"
+                                    color="error"
+                                    size="small"
+                                    @click="confirmWaitingDelete(item)"
+                                >
+                                    <v-icon size="18">mdi-delete-outline</v-icon>
+                                    <v-tooltip activator="parent" location="top">Fshi nga lista</v-tooltip>
+                                </v-btn>
                             </div>
-                        </v-toolbar>
-                    </template>
-
-                    <!-- Time slot with badge -->
-                    <template v-slot:[`item.drivingTime`]="{ item }">
-                        <v-chip size="small" color="primary" variant="tonal">
-                            <v-icon start icon="mdi-clock-outline" size="14"></v-icon>
-                            {{ item.drivingTime }}
-                        </v-chip>
-                    </template>
-
-                    <!-- Payment amount -->
-                    <template v-slot:[`item.paymentAmount`]="{ item }">
-                        {{ formatCurrency(item.paymentAmount) }}
-                    </template>
-
-                    <!-- Vehicle display -->
-                    <template v-slot:[`item.vehicleDisplay`]="{ item }">
-                        <v-chip size="small" variant="outlined" color="grey-darken-1">
-                            <v-icon start icon="mdi-car" size="14"></v-icon>
-                            {{ item.vehicleDisplay }}
-                        </v-chip>
-                    </template>
-
-                    <!-- Status chip -->
-                    <template v-slot:[`item.status`]="{ item }">
-                        <v-chip v-if="item.status" size="small" :color="statusColor(item.status)" variant="tonal">
-                            {{ item.status }}
-                        </v-chip>
-                        <span v-else class="text-medium-emphasis text-body-2">—</span>
-                    </template>
-
-                    <!-- Examiner -->
-                    <template v-slot:[`item.examiner`]="{ item }">
-                        <span v-if="item.examiner">{{ item.examiner }}</span>
-                        <span v-else class="text-medium-emphasis text-body-2">—</span>
-                    </template>
-
-                    <!-- Actions -->
-                    <template v-slot:[`item.actions`]="{ item }">
-                        <div class="d-flex align-center ga-1">
-                            <v-btn icon variant="tonal" color="primary" size="36" @click="openEditDialog(item)">
-                                <v-icon size="20">mdi-pencil</v-icon>
-                                <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
-                            </v-btn>
-                            <v-btn v-if="isAdmin" icon variant="tonal" color="error" size="36" @click="confirmDelete(item)">
-                                <v-icon size="20">mdi-delete</v-icon>
-                                <v-tooltip activator="parent" location="top">Fshi</v-tooltip>
-                            </v-btn>
-                        </div>
-                    </template>
-                </v-data-table>
+                        </template>
+                    </v-data-table>
+                </v-card>
             </v-col>
         </v-row>
 
@@ -225,7 +257,17 @@
                 <v-card-text class="pa-6">
                     <v-form ref="formRef" @submit.prevent="saveSession">
                         <v-row>
-                            <v-col cols="12" md="6">
+                            <v-col cols="12">
+                                <v-switch
+                                    v-model="manualEntry"
+                                    label="Kandidati nuk gjendet? Shkruaj manualisht"
+                                    color="primary"
+                                    density="compact"
+                                    hide-details
+                                    class="mb-2"
+                                ></v-switch>
+                            </v-col>
+                            <v-col v-if="!manualEntry" cols="12" md="6">
                                 <v-autocomplete
                                     v-model="form.candidateId"
                                     :items="candidateOptions"
@@ -234,9 +276,20 @@
                                     label="Kandidati *"
                                     variant="outlined"
                                     density="compact"
-                                    :rules="[v => !!v || 'Required']"
-                                    prepend-inner-icon="mdi-account"
+                                    :rules="[v => !!v || 'Zgjidhni kandidatin']"
+                                    prepend-inner-icon="mdi-account-search"
+                                    no-data-text="Nuk u gjet – aktivizo shkruaj manualisht"
                                 ></v-autocomplete>
+                            </v-col>
+                            <v-col v-if="manualEntry" cols="12" md="6">
+                                <v-text-field
+                                    v-model="form.manualCandidateName"
+                                    label="Emri dhe Mbiemri i kandidatit *"
+                                    variant="outlined"
+                                    density="compact"
+                                    :rules="[v => !!v || 'Shkruani emrin']"
+                                    prepend-inner-icon="mdi-account-edit"
+                                ></v-text-field>
                             </v-col>
                             <v-col cols="12" md="6">
                                 <v-select
@@ -256,13 +309,16 @@
                                     <template v-slot:activator="{ props: menuProps }">
                                         <v-text-field
                                             :model-value="form.drivingDate"
-                                            label="Data e vozitjes *"
+                                            label="Data e vozitjes"
                                             variant="outlined"
                                             density="compact"
                                             prepend-inner-icon="mdi-calendar"
                                             readonly
-                                            :rules="[v => !!v || 'Required']"
+                                            clearable
+                                            hint="Pa datë → lista e pritjes"
+                                            persistent-hint
                                             v-bind="menuProps"
+                                            @click:clear="form.drivingDate = ''"
                                         ></v-text-field>
                                     </template>
                                     <v-date-picker v-model="drivingDateModel" color="primary" @update:model-value="handleDrivingDate"></v-date-picker>
@@ -272,10 +328,12 @@
                                 <v-select
                                     v-model="form.drivingTime"
                                     :items="timeSlots"
-                                    label="Ora e vozitjes *"
+                                    label="Ora e vozitjes"
                                     variant="outlined"
                                     density="compact"
-                                    :rules="[v => !!v || 'Required']"
+                                    clearable
+                                    hint="Pa orë → lista e pritjes"
+                                    persistent-hint
                                     prepend-inner-icon="mdi-clock-outline"
                                 ></v-select>
                             </v-col>
@@ -309,6 +367,9 @@
                                 </v-menu>
                             </v-col>
                         </v-row>
+                        <v-alert v-if="!form.drivingDate && !form.drivingTime" type="info" variant="tonal" density="compact" class="mt-3 mb-0">
+                            <strong>Listë pritjeje:</strong> Pa datë/orë kandidati shtohet automatikisht në listën e pritjes.
+                        </v-alert>
                         <v-alert v-if="formError" type="error" density="compact" class="mt-2 mb-0" closable @click:close="formError = ''">
                             {{ formError }}
                         </v-alert>
@@ -326,7 +387,7 @@
         </v-dialog>
 
         <!-- ─── Edit Driving Session Dialog ─── -->
-        <v-dialog v-model="editDialog" max-width="500" scrollable>
+        <v-dialog v-model="editDialog" max-width="600" scrollable>
             <v-card rounded="lg">
                 <v-card-title class="d-flex align-center ga-2 pa-4">
                     <v-icon icon="mdi-pencil" color="primary"></v-icon>
@@ -341,22 +402,43 @@
                             <div class="font-weight-medium">{{ editTarget?.candidateName }}</div>
                         </v-col>
                         <v-col cols="6">
-                            <div class="text-body-2 text-medium-emphasis">Data / Ora</div>
-                            <div class="font-weight-medium">{{ editTarget?.drivingDate }} {{ editTarget?.drivingTime }}</div>
-                        </v-col>
-                        <v-col cols="6">
                             <div class="text-body-2 text-medium-emphasis">Automjeti</div>
                             <div class="font-weight-medium">{{ editTarget?.vehicleDisplay }}</div>
-                        </v-col>
-                        <v-col cols="6">
-                            <div class="text-body-2 text-medium-emphasis">Pagesa</div>
-                            <div class="font-weight-medium">{{ formatCurrency(editTarget?.paymentAmount) }}</div>
                         </v-col>
                     </v-row>
                     <v-divider class="mb-4"></v-divider>
                     <v-form ref="editFormRef" @submit.prevent="saveEdit">
                         <v-row>
-                            <v-col cols="12">
+                            <v-col cols="12" md="6">
+                                <v-menu v-model="editDrivingDateMenu" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                    <template v-slot:activator="{ props: menuProps }">
+                                        <v-text-field
+                                            :model-value="editForm.drivingDate"
+                                            label="Data e vozitjes"
+                                            variant="outlined"
+                                            density="compact"
+                                            prepend-inner-icon="mdi-calendar"
+                                            readonly
+                                            clearable
+                                            v-bind="menuProps"
+                                            @click:clear="editForm.drivingDate = ''"
+                                        ></v-text-field>
+                                    </template>
+                                    <v-date-picker v-model="editDrivingDateModel" color="primary" @update:model-value="handleEditDrivingDate"></v-date-picker>
+                                </v-menu>
+                            </v-col>
+                            <v-col cols="12" md="6">
+                                <v-select
+                                    v-model="editForm.drivingTime"
+                                    :items="timeSlots"
+                                    label="Ora e vozitjes"
+                                    variant="outlined"
+                                    density="compact"
+                                    clearable
+                                    prepend-inner-icon="mdi-clock-outline"
+                                ></v-select>
+                            </v-col>
+                            <v-col cols="12" md="6">
                                 <v-select
                                     v-model="editForm.status"
                                     :items="statusOptions"
@@ -369,7 +451,7 @@
                                     prepend-inner-icon="mdi-flag-outline"
                                 ></v-select>
                             </v-col>
-                            <v-col cols="12">
+                            <v-col cols="12" md="6">
                                 <v-text-field
                                     v-model="editForm.examiner"
                                     label="Egzamineri"
@@ -407,6 +489,140 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <!-- Waiting list delete confirm -->
+        <v-dialog v-model="waitingDeleteDialog" max-width="440">
+            <v-card rounded="lg">
+                <v-card-title class="d-flex align-center ga-2 pa-4">
+                    <v-icon icon="mdi-delete-alert" color="error"></v-icon>
+                    <span>Fshi nga lista e pritjes</span>
+                </v-card-title>
+                <v-divider></v-divider>
+                <v-card-text class="pa-5">
+                    <div v-if="waitingDeleteTarget" class="mb-2">
+                        <span class="font-weight-medium">{{ waitingDeleteTarget.candidateName }}</span>
+                        <span v-if="waitingDeleteTarget.paymentAmount > 0" class="text-medium-emphasis ml-1">
+                            ({{ formatCurrency(waitingDeleteTarget.paymentAmount) }} &euro;)
+                        </span>
+                    </div>
+                    Jeni të sigurt që dëshironi të fshini këtë regjistrim nga lista e pritjes?
+                </v-card-text>
+                <v-card-actions class="pa-4">
+                    <v-spacer></v-spacer>
+                    <v-btn variant="text" @click="waitingDeleteDialog = false">Anulo</v-btn>
+                    <v-btn color="error" variant="elevated" :loading="waitingDeleting" @click="doWaitingDelete">Fshi</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+
+        <!-- ─── Register Payment Dialog (advance payment → waiting list) ─── -->
+        <v-dialog v-model="paymentDialog" max-width="560" scrollable>
+            <v-card rounded="lg">
+                <v-card-title class="d-flex align-center ga-2 pa-4">
+                    <v-icon icon="mdi-cash-plus" color="warning"></v-icon>
+                    <span>Regjistro pagesën e vozitjes</span>
+                </v-card-title>
+                <v-divider></v-divider>
+                <v-card-text class="pa-6">
+                    <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+                        Kandidati do të shtohet automatikisht në <strong>Listën e pritjes</strong> pas regjistrimit të pagesës.
+                    </v-alert>
+                    <v-form ref="paymentFormRef" @submit.prevent="savePayment">
+                        <v-row>
+                            <v-col cols="12">
+                                <v-switch
+                                    v-model="paymentManual"
+                                    label="Kandidati nuk gjendet? Shkruaj manualisht"
+                                    color="primary"
+                                    density="compact"
+                                    hide-details
+                                    class="mb-2"
+                                ></v-switch>
+                            </v-col>
+                            <v-col v-if="!paymentManual" cols="12">
+                                <v-autocomplete
+                                    v-model="paymentForm.candidateId"
+                                    :items="candidateOptions"
+                                    item-title="fullName"
+                                    item-value="candidateId"
+                                    label="Kandidati *"
+                                    variant="outlined"
+                                    density="compact"
+                                    :rules="[v => !!v || 'Zgjidhni kandidatin']"
+                                    prepend-inner-icon="mdi-account-search"
+                                    no-data-text="Nuk u gjet – aktivizo shkruaj manualisht"
+                                ></v-autocomplete>
+                            </v-col>
+                            <v-col v-if="paymentManual" cols="12">
+                                <v-text-field
+                                    v-model="paymentForm.manualCandidateName"
+                                    label="Emri dhe Mbiemri i kandidatit *"
+                                    variant="outlined"
+                                    density="compact"
+                                    :rules="[v => !!v || 'Shkruani emrin']"
+                                    prepend-inner-icon="mdi-account-edit"
+                                ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                                <v-select
+                                    v-model="paymentForm.vehicleId"
+                                    :items="vehicleOptions"
+                                    item-title="label"
+                                    item-value="vehicleId"
+                                    label="Automjeti *"
+                                    variant="outlined"
+                                    density="compact"
+                                    :rules="[v => !!v || 'Zgjidhni automjetin']"
+                                    prepend-inner-icon="mdi-car"
+                                ></v-select>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                                <v-text-field
+                                    v-model.number="paymentForm.paymentAmount"
+                                    label="Shuma e pagesës *"
+                                    variant="outlined"
+                                    density="compact"
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    :rules="[v => v > 0 || 'Vendosni shumën']"
+                                    prepend-inner-icon="mdi-cash"
+                                ></v-text-field>
+                            </v-col>
+                            <v-col cols="12" sm="6">
+                                <v-menu v-model="paymentDateMenuAdv" :close-on-content-click="false" location="bottom" transition="scale-transition" min-width="auto">
+                                    <template v-slot:activator="{ props: menuProps }">
+                                        <v-text-field
+                                            :model-value="paymentForm.paymentDate"
+                                            label="Data e pagesës"
+                                            variant="outlined"
+                                            density="compact"
+                                            prepend-inner-icon="mdi-calendar"
+                                            readonly
+                                            clearable
+                                            v-bind="menuProps"
+                                            @click:clear="paymentForm.paymentDate = ''"
+                                        ></v-text-field>
+                                    </template>
+                                    <v-date-picker v-model="paymentDateModelAdv" color="primary" @update:model-value="handlePaymentDateAdv"></v-date-picker>
+                                </v-menu>
+                            </v-col>
+                        </v-row>
+                        <v-alert v-if="paymentError" type="error" density="compact" class="mt-2 mb-0" closable @click:close="paymentError = ''">
+                            {{ paymentError }}
+                        </v-alert>
+                    </v-form>
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions class="pa-4">
+                    <v-spacer></v-spacer>
+                    <v-btn variant="text" @click="paymentDialog = false">Anulo</v-btn>
+                    <v-btn color="warning" variant="elevated" :loading="paymentSaving" @click="savePayment">
+                        Regjistro pagesën
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
@@ -432,8 +648,9 @@ const isAdmin = computed(() => {
     } catch { return false; }
 });
 
-// ─── Calendar ───
+// ─── Date picker ───
 const calendarDate = ref(new Date());
+const calendarMenu = ref(false);
 const selectedDateStr = ref(formatDate(new Date()));
 const selectedDateDisplay = computed(() => selectedDateStr.value);
 
@@ -453,7 +670,7 @@ function formatDate(value) {
 
 function handleDateChange(v) {
     selectedDateStr.value = formatDate(v);
-    // When clicking a calendar date, clear date-range filters and use calendar mode
+    calendarMenu.value = false;
     fromDateDisplay.value = '';
     fromDateModel.value = null;
     toDateDisplay.value = '';
@@ -638,8 +855,11 @@ const saving = ref(false);
 const formRef = ref(null);
 const formError = ref('');
 
+const manualEntry = ref(false);
+
 const form = ref({
     candidateId: null,
+    manualCandidateName: '',
     vehicleId: null,
     drivingDate: '',
     drivingTime: null,
@@ -652,8 +872,17 @@ const drivingDateModel = ref(null);
 const paymentDateMenu = ref(false);
 const paymentDateModel = ref(null);
 
-function openCreateDialog() {
-    form.value = { candidateId: null, vehicleId: null, drivingDate: '', drivingTime: null, paymentAmount: 0, paymentDate: '' };
+function openCreateDialog(prefill = null) {
+    manualEntry.value = false;
+    form.value = {
+        candidateId: prefill?.candidateId ?? null,
+        manualCandidateName: '',
+        vehicleId: null,
+        drivingDate: '',
+        drivingTime: null,
+        paymentAmount: 0,
+        paymentDate: '',
+    };
     drivingDateModel.value = null;
     paymentDateModel.value = null;
     formError.value = '';
@@ -704,6 +933,57 @@ function loadDropdowns() {
         .catch(() => { vehicleOptions.value = []; });
 }
 
+// ─── Waiting List ───
+const waitingList = ref([]);
+const waitingLoading = ref(false);
+const waitingSearch = ref('');
+
+const filteredWaitingList = computed(() => {
+    const q = (waitingSearch.value || '').trim().toLowerCase();
+    if (!q) return waitingList.value;
+    return waitingList.value.filter(w => {
+        const name = (w.candidateName || '').toLowerCase();
+        return name.includes(q);
+    });
+});
+
+const waitingHeaders = [
+    { title: 'Kandidati', key: 'candidateName' },
+    { title: 'Automjeti', key: 'vehicleDisplay' },
+    { title: 'Pagesa', key: 'paymentAmount', width: '110px' },
+    { title: 'Data e pagesës', key: 'paymentDate', width: '130px' },
+    { title: 'Regjistruar', key: 'dateAddedDisplay', width: '130px' },
+    { title: 'Veprimet', key: 'actions', sortable: false, width: '160px' },
+];
+
+function loadWaitingList() {
+    waitingLoading.value = true;
+    store.getWaitingList()
+        .then((res) => {
+            const raw = res?.data?.data ?? [];
+            waitingList.value = raw.map(w => ({
+                drivingSessionId: w.drivingSessionId ?? w.DrivingSessionId,
+                candidateId: w.candidateId ?? w.CandidateId,
+                candidateName: w.candidateName ?? w.CandidateName ?? w.manualCandidateName ?? '',
+                manualCandidateName: w.manualCandidateName ?? w.ManualCandidateName ?? '',
+                vehicleId: w.vehicleId ?? w.VehicleId,
+                vehicleDisplay: `${w.vehiclePlate ?? w.VehiclePlate ?? ''}${w.vehicleBrand ? ' – ' + w.vehicleBrand : ''}`,
+                drivingDate: w.drivingDate ?? w.DrivingDate ?? '',
+                drivingTime: w.drivingTime ?? w.DrivingTime ?? '',
+                paymentAmount: w.paymentAmount ?? w.PaymentAmount ?? 0,
+                paymentDate: w.paymentDate ?? w.PaymentDate ?? '',
+                status: w.status ?? w.Status ?? '',
+                dateAddedDisplay: w.dateAdded ? new Date(w.dateAdded).toLocaleDateString('sq-AL') : '',
+            }));
+        })
+        .catch(() => { waitingList.value = []; })
+        .finally(() => { waitingLoading.value = false; });
+}
+
+function assignFromWaitingList(item) {
+    openEditDialog(item);
+}
+
 async function saveSession() {
     formError.value = '';
     const valid = await formRef.value?.validate();
@@ -711,14 +991,20 @@ async function saveSession() {
 
     saving.value = true;
     try {
-        const res = await store.createDrivingSession({
-            candidateId: form.value.candidateId,
+        const payload = {
             vehicleId: form.value.vehicleId,
             drivingDate: form.value.drivingDate,
             drivingTime: form.value.drivingTime,
             paymentAmount: form.value.paymentAmount || 0,
             paymentDate: form.value.paymentDate || null,
-        });
+        };
+        if (manualEntry.value) {
+            payload.candidateId = null;
+            payload.manualCandidateName = form.value.manualCandidateName;
+        } else {
+            payload.candidateId = form.value.candidateId;
+        }
+        const res = await store.createDrivingSession(payload);
         const body = res?.data;
         if (body?.status === 'error') {
             formError.value = body.responseMsg || 'An error occurred';
@@ -729,11 +1015,88 @@ async function saveSession() {
         dialog.value = false;
         loadSessions();
         loadStats();
+        loadWaitingList();
     } catch (err) {
         const msg = err?.response?.data?.responseMsg || err?.response?.data?.ResponseMsg || 'Failed to create session';
         formError.value = msg;
     } finally {
         saving.value = false;
+    }
+}
+
+// ─── Payment-only dialog (advance payment → waiting list) ───
+const paymentDialog = ref(false);
+const paymentSaving = ref(false);
+const paymentFormRef = ref(null);
+const paymentError = ref('');
+const paymentManual = ref(false);
+const paymentDateMenuAdv = ref(false);
+const paymentDateModelAdv = ref(null);
+
+const paymentForm = ref({
+    candidateId: null,
+    manualCandidateName: '',
+    vehicleId: null,
+    paymentAmount: 0,
+    paymentDate: '',
+});
+
+function openPaymentDialog() {
+    paymentManual.value = false;
+    paymentForm.value = {
+        candidateId: null,
+        manualCandidateName: '',
+        vehicleId: null,
+        paymentAmount: 0,
+        paymentDate: formatDate(new Date()),
+    };
+    paymentDateModelAdv.value = new Date();
+    paymentError.value = '';
+    paymentDialog.value = true;
+}
+
+function handlePaymentDateAdv(v) {
+    paymentForm.value.paymentDate = formatDate(v);
+    nextTick(() => { paymentDateMenuAdv.value = false; });
+}
+
+async function savePayment() {
+    paymentError.value = '';
+    const valid = await paymentFormRef.value?.validate();
+    if (!valid?.valid) return;
+
+    paymentSaving.value = true;
+    try {
+        const payload = {
+            vehicleId: paymentForm.value.vehicleId,
+            drivingDate: null,
+            drivingTime: null,
+            paymentAmount: paymentForm.value.paymentAmount || 0,
+            paymentDate: paymentForm.value.paymentDate || null,
+        };
+        if (paymentManual.value) {
+            payload.candidateId = null;
+            payload.manualCandidateName = paymentForm.value.manualCandidateName;
+        } else {
+            payload.candidateId = paymentForm.value.candidateId;
+        }
+        const res = await store.createDrivingSession(payload);
+        const body = res?.data;
+        if (body?.status === 'error') {
+            paymentError.value = body.responseMsg || 'Ndodhi një gabim';
+            paymentSaving.value = false;
+            return;
+        }
+        settingStore.toggleSnackbar({ status: true, msg: 'Pagesa u regjistrua me sukses! Kandidati u shtua në listën e pritjes.' });
+        paymentDialog.value = false;
+        loadWaitingList();
+        loadSessions();
+        loadStats();
+    } catch (err) {
+        const msg = err?.response?.data?.responseMsg || err?.response?.data?.ResponseMsg || 'Dështoi regjistrimi i pagesës';
+        paymentError.value = msg;
+    } finally {
+        paymentSaving.value = false;
     }
 }
 
@@ -745,16 +1108,31 @@ const editError = ref('');
 const editTarget = ref(null);
 
 const editForm = ref({
+    drivingDate: '',
+    drivingTime: null,
     status: null,
     examiner: '',
 });
+const editDrivingDateMenu = ref(false);
+const editDrivingDateModel = ref(null);
+
+function handleEditDrivingDate(val) {
+    if (val) {
+        const d = new Date(val);
+        editForm.value.drivingDate = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+    }
+    editDrivingDateMenu.value = false;
+}
 
 function openEditDialog(item) {
     editTarget.value = item;
     editForm.value = {
+        drivingDate: item.drivingDate || '',
+        drivingTime: item.drivingTime || null,
         status: item.status || null,
         examiner: item.examiner || '',
     };
+    editDrivingDateModel.value = null;
     editError.value = '';
     editDialog.value = true;
 }
@@ -764,6 +1142,8 @@ async function saveEdit() {
     editSaving.value = true;
     try {
         const res = await store.updateDrivingSession(editTarget.value.drivingSessionId, {
+            drivingDate: editForm.value.drivingDate || null,
+            drivingTime: editForm.value.drivingTime || null,
             status: editForm.value.status || null,
             examiner: editForm.value.examiner || null,
         });
@@ -777,6 +1157,7 @@ async function saveEdit() {
         editDialog.value = false;
         loadSessions();
         loadStats();
+        loadWaitingList();
     } catch (err) {
         const msg = err?.response?.data?.responseMsg || err?.response?.data?.ResponseMsg || 'Failed to update session';
         editError.value = msg;
@@ -811,6 +1192,31 @@ async function doDelete() {
     }
 }
 
+// ─── Waiting List Delete ───
+const waitingDeleteDialog = ref(false);
+const waitingDeleting = ref(false);
+const waitingDeleteTarget = ref(null);
+
+function confirmWaitingDelete(item) {
+    waitingDeleteTarget.value = item;
+    waitingDeleteDialog.value = true;
+}
+
+async function doWaitingDelete() {
+    if (!waitingDeleteTarget.value) return;
+    waitingDeleting.value = true;
+    try {
+        await store.deleteDrivingSession(waitingDeleteTarget.value.drivingSessionId);
+        settingStore.toggleSnackbar({ status: true, msg: 'U fshi nga lista e pritjes' });
+        waitingDeleteDialog.value = false;
+        loadWaitingList();
+    } catch {
+        settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjatë fshirjes' });
+    } finally {
+        waitingDeleting.value = false;
+    }
+}
+
 // ─── PDF Export ───
 function exportPdf() {
     const doc = new jsPDF({ orientation: 'landscape' });
@@ -829,21 +1235,26 @@ onMounted(() => {
     loadSessions();
     loadStats();
     loadDropdowns();
+    loadWaitingList();
 });
 </script>
 
 <style scoped>
-.vehicles-container {
+/* ─── Stats horizontal scroll ─── */
+.stats-scroll-wrap {
     width: 100%;
-    padding: 16px 20px;
-    margin: 0;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
-    min-height: 100%;
+}
+
+.stats-scroll {
+    display: flex;
+    gap: 16px;
 }
 
 .stat-card {
     border-radius: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.15s, box-shadow 0.15s;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .stat-card:hover {
@@ -851,211 +1262,149 @@ onMounted(() => {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
 }
 
-.calendar-picker {
-    width: 100%;
+.stat-card--date {
+    cursor: pointer;
 }
 
-.calendar-picker :deep(.v-date-picker) {
-    width: 100%;
-}
-
-.vehicles-table {
-    width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.vehicles-toolbar {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.vehicles-actions-wrap {
-    width: 100%;
+.filter-inputs {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.vehicles-export-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.vehicles-action-btn {
-    border-radius: 4px !important;
-}
-
-.vehicles-filters-wrap {
-    margin-left: auto;
-    display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
 }
 
-.vehicles-add-btn {
-    min-height: 40px;
-    border-radius: 4px !important;
-}
-
-.vehicles-toolbar :deep(.v-btn),
-.vehicles-toolbar :deep(.v-field) {
-    border-radius: 4px !important;
-}
-
-.ds-filter-status {
+.filter-field--status {
     min-width: 140px;
     max-width: 160px;
 }
 
-.ds-filter-date {
+.filter-field--date {
     min-width: 140px;
     max-width: 160px;
 }
 
-.vehicles-table :deep(.v-data-table__wrapper) {
-    width: 100%;
-    overflow: visible !important;
-    max-height: none !important;
+.action-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
-.vehicles-table :deep(.v-table__wrapper) {
-    overflow: visible !important;
-    max-height: none !important;
+.action-btn-half {
+    white-space: nowrap;
 }
 
-.vehicles-table :deep(thead th) {
+.waiting-search {
+    max-width: 260px;
+    min-width: 160px;
+}
+
+.waiting-table :deep(thead th) {
     font-weight: 600;
     font-size: 13px;
     padding: 14px 16px !important;
-    background: #f5f5f5;
+    background: #fff8e1;
     color: #424242;
 }
 
-.vehicles-table :deep(tbody td) {
+.waiting-table :deep(tbody td) {
     padding: 12px 16px !important;
     font-size: 14px;
 }
 
-.vehicles-table :deep(.v-toolbar) {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-}
-
-.vehicles-table :deep(.v-toolbar__content) {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-}
-
-.vehicles-table :deep(.v-btn) {
-    border-radius: 4px !important;
-}
-
+/* ─── Tablet ─── */
 @media (max-width: 960px) {
-    .vehicles-container {
-        padding: 0 !important;
+    .filter-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
     }
 
-    .ds-main-row > .ds-calendar-col,
-    .ds-main-row > .ds-table-col {
-        flex: 0 0 100% !important;
-        max-width: 100% !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
-}
-
-@media (max-width: 1024px) and (min-width: 601px) {
-    .vehicles-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .filter-inputs {
         width: 100%;
     }
 
-    .vehicles-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .ds-filter-status,
-    .ds-filter-date {
-        width: 100%;
+    .filter-field--status,
+    .filter-field--date {
         min-width: 0;
         max-width: 100%;
-    }
-
-    .vehicles-add-btn {
-        width: 100%;
-        grid-column: 1 / -1;
-        min-height: 44px;
+        flex: 1;
     }
 }
 
+/* ─── Mobile ─── */
 @media (max-width: 600px) {
-    .vehicles-container {
-        padding: 8px !important;
+    .stats-scroll-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-left: -12px;
+        margin-right: -12px;
+        padding: 0 12px;
     }
 
-    .ds-main-row > .ds-calendar-col,
-    .ds-main-row > .ds-table-col {
-        padding-left: 4px !important;
-        padding-right: 4px !important;
-    }
-
-    .vehicles-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
+    .stats-scroll {
+        min-width: max-content;
         gap: 10px;
+        padding-bottom: 4px;
+    }
+
+    .stat-card {
+        flex: 0 0 auto;
+        min-width: 180px;
+    }
+
+    .stat-card :deep(.v-card-text) {
+        padding: 10px 12px !important;
+    }
+
+    .stat-card :deep(.text-h6) {
+        font-size: 0.95rem !important;
+    }
+
+    .stat-card :deep(.v-avatar) {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .stat-card :deep(.v-avatar .v-icon) {
+        font-size: 18px !important;
+    }
+
+    .filter-inputs {
+        flex-direction: column;
+    }
+
+    .filter-field--status,
+    .filter-field--date {
         width: 100%;
     }
 
-    .vehicles-export-group {
+    .export-group {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
     }
 
-    .vehicles-action-btn {
+    .export-group .v-btn {
+        flex: 1;
+    }
+
+    .action-btn-group {
         width: 100%;
+        display: flex;
+        gap: 6px;
+    }
+
+    .action-btn-half {
+        flex: 1 1 0;
         min-width: 0;
-        min-height: 40px;
-        padding-inline: 8px;
+        font-size: 0.75rem !important;
+        padding: 0 8px !important;
     }
 
-    .vehicles-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .action-btn-half :deep(.v-btn__prepend) {
+        margin-inline-end: 4px;
     }
 
-    .ds-filter-status,
-    .ds-filter-date {
-        width: 100%;
-        min-width: 0 !important;
-        max-width: 100% !important;
-    }
-
-    .vehicles-add-btn {
-        width: 100%;
-        min-height: 44px;
-    }
-
-    .vehicles-toolbar {
-        flex-wrap: wrap;
-        padding: 8px !important;
+    .waiting-search {
+        max-width: 100%;
+        min-width: 0;
     }
 }
 </style>

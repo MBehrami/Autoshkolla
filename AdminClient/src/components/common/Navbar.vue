@@ -1,101 +1,174 @@
 <template>
-    <v-navigation-drawer v-model="drawer" class="sidebar-drawer" elevation="1" :width="smAndDown ? 280 : 300">
+    <!-- ═══ Sidebar ═══ -->
+    <v-navigation-drawer v-model="drawer" class="sidebar" :width="smAndDown ? 260 : 260" elevation="0">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+            <v-img src="/linda_logo.png" max-width="110" max-height="48" contain class="sidebar-brand-logo"></v-img>
+        </div>
+
+        <!-- Profile -->
+        <div class="sidebar-profile">
+            <v-avatar size="40" class="sidebar-profile-avatar">
+                <v-img :src="profileImage"></v-img>
+            </v-avatar>
+            <div class="sidebar-profile-info">
+                <div class="sidebar-profile-name">{{ profileInfo.obj.fullName }}</div>
+                <div class="sidebar-profile-role">{{ profileInfo.obj.roleName }}</div>
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Navigation -->
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-label">Menu</div>
+            <v-list density="compact" class="sidebar-menu" nav>
+                <template v-for="item in menus" :key="item.id">
+                    <!-- Single item -->
+                    <v-list-item
+                        v-if="!(item.childItems && item.childItems.length)"
+                        :to="item.route"
+                        @click="item.route && smAndDown && (drawer = false)"
+                        active-class="sidebar-item--active"
+                        class="sidebar-item"
+                        rounded="lg"
+                    >
+                        <template v-slot:prepend>
+                            <v-icon size="20" class="sidebar-item-icon">{{ item.icon }}</v-icon>
+                        </template>
+                        <v-list-item-title class="sidebar-item-text">{{ item.title }}</v-list-item-title>
+                    </v-list-item>
+
+                    <!-- Group item -->
+                    <v-list-group v-else :value="item.title" class="sidebar-group">
+                        <template v-slot:activator="{ props }">
+                            <v-list-item v-bind="props" active-class="sidebar-item--active" class="sidebar-item" rounded="lg">
+                                <template v-slot:prepend>
+                                    <v-icon size="20" class="sidebar-item-icon">{{ item.icon }}</v-icon>
+                                </template>
+                                <v-list-item-title class="sidebar-item-text">{{ item.title }}</v-list-item-title>
+                            </v-list-item>
+                        </template>
+                        <v-list-item
+                            v-for="val in item.childItems"
+                            :key="val.id"
+                            :to="val.route"
+                            @click="val.route && smAndDown && (drawer = false)"
+                            active-class="sidebar-item--active"
+                            class="sidebar-item sidebar-item--child"
+                            rounded="lg"
+                        >
+                            <template v-slot:prepend>
+                                <div class="sidebar-child-dot"></div>
+                            </template>
+                            <v-list-item-title class="sidebar-item-text">{{ val.title }}</v-list-item-title>
+                        </v-list-item>
+                    </v-list-group>
+                </template>
+            </v-list>
+        </div>
+
+        <!-- Bottom sign-out (mobile) -->
         <template v-if="smAndDown" v-slot:append>
-            <div class="d-flex justify-center py-2">
-                <v-btn text="Sign Out" variant="text" prepend-icon="mdi-logout" class="text-capitalize"
-                    style="color: #546E7A;" @click.stop="dialogSignout = true">
+            <div class="sidebar-bottom">
+                <v-btn block variant="text" prepend-icon="mdi-logout" class="sidebar-signout-btn text-none"
+                    @click.stop="dialogSignout = true">
+                    Dalje
                 </v-btn>
             </div>
         </template>
-        <v-list class="sidebar-profile-list">
-            <v-list-item>
-                <template v-slot:prepend>
-                    <v-avatar><v-img :src="profileImage"></v-img></v-avatar>
-                </template>
-                <template v-slot:title>
-                    <div class="sidebar-profile-name">{{ profileInfo.obj.fullName }}</div>
-                </template>
-                <template v-slot:subtitle>
-                    <div class="sidebar-profile-role">{{ profileInfo.obj.roleName }}</div>
-                </template>
-            </v-list-item>
-        </v-list>
-        <v-divider></v-divider>
-        <v-list density="default" class="sidebar-menu-list">
-            <template v-for="item in menus" :key="item.id">
-                <v-list-item v-if="!(item.childItems && item.childItems.length)" :to="item.route"
-                    @click="item.route && smAndDown && (drawer = false)"
-                    active-class="sidebar-active-item">
-                    <v-list-item-title class="sidebar-item-title">{{ item.title }}</v-list-item-title>
-                    <template v-slot:prepend>
-                        <v-icon class="sidebar-item-icon">{{ item.icon }}</v-icon>
-                    </template>
-                </v-list-item>
-
-                <v-list-group v-else :value="item.title">
-                    <template v-slot:activator="{ props }">
-                        <v-list-item v-bind="props" active-class="sidebar-active-item">
-                            <template v-slot:prepend>
-                                <v-icon class="sidebar-item-icon">{{ item.icon }}</v-icon>
-                            </template>
-                            <v-list-item-title class="sidebar-item-title">{{ item.title }}</v-list-item-title>
-                        </v-list-item>
-                    </template>
-                    <v-list-item v-for="val in item.childItems" :key="val.id" :to="val.route"
-                        @click="val.route && smAndDown && (drawer = false)"
-                        active-class="sidebar-active-item">
-                        <v-list-item-title class="sidebar-item-title">{{ val.title }}</v-list-item-title>
-                    </v-list-item>
-                </v-list-group>
-            </template>
-        </v-list>
     </v-navigation-drawer>
-    <v-app-bar elevation="1" class="app-top-bar">
+
+    <!-- ═══ Top Bar ═══ -->
+    <v-app-bar elevation="0" class="topbar" :height="64">
         <template v-slot:prepend>
-            <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+            <v-btn icon variant="text" class="topbar-toggle" @click.stop="drawer = !drawer">
+                <v-icon size="22">mdi-menu</v-icon>
+            </v-btn>
         </template>
-        <template v-slot:append>
-            <v-btn icon="mdi-lock" size="small" @click.stop="dialogLock = true"></v-btn>
-            <v-btn @click.stop="toggleFullScreen" size="small"
-                :icon="props.isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"></v-btn>
-            <v-menu>
-                <template v-slot:activator="{ props }">
-                    <v-btn text="Cilësimet" class="text-capitalize" v-bind="props" size="small">
-                        <template v-slot:prepend>
-                            <v-icon icon="mdi-menu-down" size="large"></v-icon>
-                        </template>
+
+        <v-spacer></v-spacer>
+
+        <div class="topbar-actions">
+            <v-btn icon variant="text" size="small" class="topbar-action-btn" @click.stop="dialogLock = true">
+                <v-icon size="20">mdi-lock-outline</v-icon>
+                <v-tooltip activator="parent" location="bottom">Kyçe</v-tooltip>
+            </v-btn>
+            <v-btn icon variant="text" size="small" class="topbar-action-btn" @click.stop="toggleFullScreen">
+                <v-icon size="20">{{ props.isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen' }}</v-icon>
+                <v-tooltip activator="parent" location="bottom">{{ props.isFullscreen ? 'Dil nga ekrani i plotë' : 'Ekrani i plotë' }}</v-tooltip>
+            </v-btn>
+
+            <div class="topbar-separator"></div>
+
+            <v-menu offset-y transition="slide-y-transition">
+                <template v-slot:activator="{ props: menuProps }">
+                    <v-btn variant="text" class="topbar-profile-btn text-none" v-bind="menuProps">
+                        <v-avatar size="32" class="mr-2">
+                            <v-img :src="profileImage"></v-img>
+                        </v-avatar>
+                        <span class="topbar-profile-name d-none d-sm-inline">{{ profileInfo.obj.fullName }}</span>
+                        <v-icon size="18" class="ml-1">mdi-chevron-down</v-icon>
                     </v-btn>
                 </template>
-                <v-list>
-                    <v-list-item v-for="(item, i) in personalizeSelect" :key="i" :value="item" :to="item.route">
-                        <v-list-item-title v-text="item.text"></v-list-item-title>
+                <v-list density="compact" min-width="180" rounded="lg" class="topbar-dropdown">
+                    <v-list-item v-for="(item, i) in personalizeSelect" :key="i" :value="item" :to="item.route" rounded="lg">
+                        <template v-slot:prepend>
+                            <v-icon size="18" class="mr-2">{{ item.icon || 'mdi-account-outline' }}</v-icon>
+                        </template>
+                        <v-list-item-title class="text-body-2">{{ item.text }}</v-list-item-title>
+                    </v-list-item>
+                    <v-divider class="my-1"></v-divider>
+                    <v-list-item v-if="mdAndUp" rounded="lg" @click.stop="dialogSignout = true">
+                        <template v-slot:prepend>
+                            <v-icon size="18" color="error" class="mr-2">mdi-logout</v-icon>
+                        </template>
+                        <v-list-item-title class="text-body-2 text-error">Dalje</v-list-item-title>
                     </v-list-item>
                 </v-list>
             </v-menu>
-            <v-btn v-if="mdAndUp" icon="mdi-logout" size="small" @click.stop="dialogSignout = true"></v-btn>
-        </template>
+        </div>
     </v-app-bar>
-        <v-dialog v-model="dialogSignout" max-width="320" persistent>
-        <v-card rounded="lg">
-            <v-card-title class="text-h6 pt-4">Dëshironi të largoheni?</v-card-title>
-            <v-card-text class="py-2 text-body-2 text-medium-emphasis">Shtypni Dalje për të larguar</v-card-text>
-            <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn variant="text" class="text-capitalize" @click.stop="dialogSignout = false">Qendro këtu</v-btn>
-                <v-btn variant="flat" color="error" class="text-capitalize" @click.stop="signOut">Dalje</v-btn>
+
+    <!-- Sign-out Dialog -->
+    <v-dialog v-model="dialogSignout" max-width="380" persistent>
+        <v-card rounded="xl" class="pa-2">
+            <v-card-text class="text-center pt-6 pb-2">
+                <v-avatar color="error" variant="tonal" size="56" class="mb-4">
+                    <v-icon icon="mdi-logout" size="28"></v-icon>
+                </v-avatar>
+                <div class="text-h6 font-weight-bold mb-1">Dëshironi të largoheni?</div>
+                <div class="text-body-2 text-medium-emphasis">Shtypni Dalje për të larguar</div>
+            </v-card-text>
+            <v-card-actions class="px-6 pb-4">
+                <v-btn block variant="text" class="text-none" @click.stop="dialogSignout = false">Qendro këtu</v-btn>
+                <v-btn block variant="flat" color="error" class="text-none" @click.stop="signOut">Dalje</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogLock" max-width="320" persistent>
-        <v-card rounded="lg">
-            <v-card-title class="d-flex justify-center pt-4"><v-avatar><v-img
-                        :src="profileImage"></v-img></v-avatar></v-card-title>
-            <v-card-text>
+
+    <!-- Lock Dialog -->
+    <v-dialog v-model="dialogLock" max-width="380" persistent>
+        <v-card rounded="xl" class="pa-2">
+            <v-card-text class="text-center pt-6">
+                <v-avatar size="64" class="mb-4">
+                    <v-img :src="profileImage"></v-img>
+                </v-avatar>
+                <div class="text-h6 font-weight-bold mb-4">{{ profileInfo.obj.fullName }}</div>
                 <v-form v-model="valid" @submit.prevent="lockOpen">
-                    <v-text-field v-model="signInForm.password" variant="outlined" type="password"
-                        :rules="passwordRules" required></v-text-field>
-                    <div class="d-flex justify-center"><v-btn :disabled="!valid" size="x-large" type="submit"
-                            icon="mdi-key" variant="text"></v-btn></div>
+                    <v-text-field
+                        v-model="signInForm.password"
+                        variant="outlined"
+                        type="password"
+                        label="Fjalëkalimi"
+                        :rules="passwordRules"
+                        required
+                        class="mb-2"
+                    ></v-text-field>
+                    <v-btn :disabled="!valid" block color="primary" variant="flat" type="submit" class="text-none">
+                        <v-icon start>mdi-lock-open-outline</v-icon>
+                        Hap
+                    </v-btn>
                 </v-form>
             </v-card-text>
         </v-card>
@@ -132,12 +205,12 @@ const signInForm = ref({
     password: ''
 })
 const linksAdmin = ref([
-    { text: 'Profili', route: '/profile' },
-    { text: 'Fjalëkalimi', route: '/password-change' }
+    { text: 'Profili', route: '/profile', icon: 'mdi-account-outline' },
+    { text: 'Fjalëkalimi', route: '/password-change', icon: 'mdi-key-outline' }
 ])
 const linksOthers = ref([
-    { text: 'Profili', route: '/profile' },
-    { text: 'Fjalëkalimi', route: '/password-change' }
+    { text: 'Profili', route: '/profile', icon: 'mdi-account-outline' },
+    { text: 'Fjalëkalimi', route: '/password-change', icon: 'mdi-key-outline' }
 ])
 const profileInfo = JSON.parse(localStorage.getItem('profile') || '{}')
 
@@ -148,9 +221,8 @@ const roleName = (typeof profileInfo?.obj?.roleName === 'string') ? profileInfo.
 const isSuperAdmin = roleName === 'SuperAdmin'
 const isAdmin = roleId === '1' || roleName === 'Admin'
 const isInstructor = roleId === '3' || roleName === 'Instructor'
-const isAdminLevel = isSuperAdmin || isAdmin  // either Admin or SuperAdmin
+const isAdminLevel = isSuperAdmin || isAdmin
 
-//open lock
 const lockOpen = () => {
     const obj = {
         ...signInForm.value,
@@ -169,26 +241,19 @@ const lockOpen = () => {
         })
 }
 
-//personalize menu selection depend on role
 const personalizeSelect = computed(() => {
     return isAdminLevel ? linksAdmin.value : linksOthers.value
 })
 
-//toggle full screen event emit
 const toggleFullScreen = () => {
     emits('toggle-screen', props.isFullscreen)
 }
 
-//profile image
 const profileImage = computed(() => {
     return profileInfo.obj.imagePath == null ? defaultImg : import.meta.env.VITE_API_URL + profileInfo.obj.imagePath
 })
 
-
 // ─── Build sidebar menu ───
-// SuperAdmin: FULL menu (all business + all system pages)
-// Admin:      Business modules only (no system pages like Error Log, Users, Menus, etc.)
-// Instructor: Candidates (own), Schedules, Vehicle Fuel only
 const buildMenu = (apiItems) => {
     const raw = apiItems || []
     let items = raw.map((item) => ({
@@ -201,7 +266,6 @@ const buildMenu = (apiItems) => {
     }))
 
     if (isSuperAdmin) {
-        // ── SuperAdmin: ensure ALL items exist ──
         const has = (route) => items.some(m =>
             (m.route || '').toLowerCase() === route ||
             (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === route)))
@@ -244,7 +308,6 @@ const buildMenu = (apiItems) => {
                 ]
             })
         }
-        // System pages (SuperAdmin only)
         if (!has('/users')) {
             items.push({
                 id: 50, title: 'System', icon: 'mdi-cog', route: '', order: 20,
@@ -260,13 +323,11 @@ const buildMenu = (apiItems) => {
             })
         }
     } else if (isAdmin) {
-        // ── Admin: business modules only, NO system pages ──
         const has = (route) => items.some(m =>
             (m.route || '').toLowerCase() === route ||
             (m.childItems && m.childItems.some(c => (c.route || '').toLowerCase() === route)))
         const hasTitle = (title) => items.some(m => m.title === title)
 
-        // Remove any system pages that might come from API
         const systemRoutes = ['/users', '/user-role', '/menu', '/menu-group', '/settings', '/error-log', '/browse-log']
         items = items.filter(m => !systemRoutes.includes((m.route || '').toLowerCase()))
         items.forEach(m => {
@@ -274,7 +335,6 @@ const buildMenu = (apiItems) => {
                 m.childItems = m.childItems.filter(c => !systemRoutes.includes((c.route || '').toLowerCase()))
             }
         })
-        // Remove empty groups after filtering
         items = items.filter(m => m.route || (m.childItems && m.childItems.length > 0))
 
         if (!has('/candidates') || !has('/driving-sessions')) {
@@ -312,13 +372,10 @@ const buildMenu = (apiItems) => {
             })
         }
     } else if (isInstructor) {
-        // ── Instructor: limited menu ──
-        // Remove Driving Sessions
         items = items.filter(m => (m.route || '').toLowerCase() !== '/driving-sessions')
         items.forEach(m => {
             if (m.childItems) m.childItems = m.childItems.filter(c => (c.route || '').toLowerCase() !== '/driving-sessions')
         })
-        // Remove system routes
         const systemRoutes = ['/users', '/user-role', '/menu', '/menu-group', '/settings', '/error-log', '/browse-log']
         items = items.filter(m => !systemRoutes.includes((m.route || '').toLowerCase()))
         items.forEach(m => {
@@ -342,7 +399,6 @@ const buildMenu = (apiItems) => {
     return items
 }
 
-// Fallback menu (used when API call fails)
 const getFallbackMenu = () => {
     if (isSuperAdmin) {
         return [
@@ -388,7 +444,6 @@ const getFallbackMenu = () => {
             ]}
         ]
     } else {
-        // Instructor fallback
         return [
             { id: 14, title: 'Kandidatet e Mi', icon: 'mdi-account-group', route: '/candidates', order: 1, childItems: [] },
             { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 2, childItems: [] },
@@ -397,7 +452,6 @@ const getFallbackMenu = () => {
     }
 }
 
-// Fetch sidebar from API then apply role-based logic
 menuStore.getSidebar(roleId)
     .then((res) => {
         menus.value = buildMenu(res.data)
@@ -407,7 +461,6 @@ menuStore.getSidebar(roleId)
         menus.value = getFallbackMenu()
     })
 
-//sign out
 const signOut = () => {
     userStore.updateHistory(localStorage.getItem('logCode'))
     userStore.signOut()
@@ -416,114 +469,257 @@ const signOut = () => {
 </script>
 
 <style>
-/* ─── Clean Gray Sidebar Theme ─── */
-.sidebar-drawer {
-    background: #F5F5F5 !important;
-    border-right: 1px solid #E0E0E0 !important;
-    color: #37474F !important;
+/* ═══════════════════════════════════════════════════════
+   Sidebar — Dark Navy Blue
+   ═══════════════════════════════════════════════════════ */
+.sidebar.v-navigation-drawer {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+    border-right: none !important;
+    color: #e2e8f0 !important;
 }
 
-.sidebar-drawer :deep(.v-list-item) {
-    min-height: 44px;
-    align-items: flex-start;
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 20px 16px;
 }
 
-.sidebar-drawer :deep(.v-list-item__prepend) {
-    padding-inline-end: 10px !important;
+.sidebar-brand-logo {
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
 }
 
-.sidebar-drawer :deep(.v-list-item__content) {
-    overflow: visible !important;
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    margin: 0 12px 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
 }
 
-.sidebar-drawer .v-list-item-title {
-    color: #37474F !important;
-    font-weight: 500;
-    font-size: 0.875rem;
-    white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    line-height: 1.25 !important;
-    word-break: break-word;
-}
-
-.sidebar-drawer .v-list-item-subtitle {
-    color: #78909C !important;
-}
-
-.sidebar-drawer .v-icon {
-    color: #607D8B !important;
-}
-
-.sidebar-drawer .v-divider {
-    border-color: #E0E0E0 !important;
-}
-
-.sidebar-profile-list {
-    background: #EEEEEE !important;
-    padding: 12px 0 !important;
+.sidebar-profile-avatar {
+    border: 2px solid rgba(255,255,255,0.15);
 }
 
 .sidebar-profile-name {
-    color: #263238 !important;
+    font-size: 0.8125rem;
     font-weight: 600;
-    font-size: 0.9rem;
+    color: #f1f5f9;
+    line-height: 1.3;
 }
 
 .sidebar-profile-role {
-    color: #78909C !important;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
+    color: #94a3b8;
+    font-weight: 500;
 }
 
-.sidebar-menu-list {
+.sidebar-profile-info {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.sidebar-profile-info .sidebar-profile-name,
+.sidebar-profile-info .sidebar-profile-role {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-divider {
+    height: 1px;
+    margin: 12px 20px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-nav {
+    padding: 0 12px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.sidebar-nav-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    padding: 8px 12px 6px;
+}
+
+/* Menu list reset */
+.sidebar-menu.v-list {
     background: transparent !important;
-    padding: 8px !important;
+    padding: 0 !important;
+    color: #cbd5e1 !important;
 }
 
-.sidebar-item-title {
-    padding-left: 0 !important;
+/* Menu items */
+.sidebar-item.v-list-item {
+    min-height: 40px !important;
+    margin-bottom: 2px;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+    color: #cbd5e1 !important;
+    transition: all 0.15s ease;
+}
+
+.sidebar-item.v-list-item:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #fff !important;
+}
+
+.sidebar-item--active.v-list-item {
+    background: rgba(37, 99, 235, 0.2) !important;
+    color: #fff !important;
+}
+
+.sidebar-item--active .sidebar-item-icon {
+    color: #60a5fa !important;
+}
+
+.sidebar-item--active .sidebar-item-text {
+    color: #fff !important;
+    font-weight: 600 !important;
 }
 
 .sidebar-item-icon {
-    padding-left: 0 !important;
+    color: #94a3b8 !important;
+    margin-inline-end: 12px !important;
+    opacity: 1 !important;
 }
 
-.sidebar-active-item {
-    background: #E0E0E0 !important;
-    border-radius: 8px;
+.sidebar-item-text {
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    color: #cbd5e1 !important;
+    white-space: normal !important;
+    line-height: 1.3 !important;
 }
 
-.sidebar-active-item .v-list-item-title {
-    color: #263238 !important;
-    font-weight: 600;
-}
-
-.sidebar-active-item .v-icon {
-    color: #455A64 !important;
-}
-
-.sidebar-drawer .v-list-group__items .v-list-item {
+/* Child items */
+.sidebar-item--child.v-list-item {
     padding-left: 20px !important;
 }
 
-.sidebar-drawer :deep(.sidebar-menu-list > .v-list-item),
-.sidebar-drawer :deep(.v-list-group__header) {
-    padding-inline-start: 16px !important;
-    padding-inline-end: 12px !important;
+.sidebar-child-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #475569;
+    margin-inline-end: 12px;
+    transition: background 0.15s;
 }
 
-.sidebar-drawer :deep(.v-list-group__header .v-list-item__prepend) {
-    margin-inline-end: 10px !important;
+.sidebar-item--active .sidebar-child-dot {
+    background: #60a5fa;
 }
 
-.sidebar-drawer .v-list-item:hover {
-    background: #EEEEEE !important;
-    border-radius: 8px;
+/* Group headers */
+.sidebar-group :deep(.v-list-group__header) {
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    color: #cbd5e1 !important;
 }
 
-/* App Bar clean style */
-.app-top-bar {
-    background: #FAFAFA !important;
-    border-bottom: 1px solid #E0E0E0 !important;
+.sidebar-group :deep(.v-list-group__header .v-list-item__append .v-icon) {
+    color: #64748b !important;
+    font-size: 18px !important;
+}
+
+.sidebar-group :deep(.v-list-group__items) {
+    padding-left: 8px;
+}
+
+/* Bottom sign-out */
+.sidebar-bottom {
+    padding: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-signout-btn {
+    color: #94a3b8 !important;
+    justify-content: flex-start;
+}
+
+.sidebar-signout-btn:hover {
+    color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* ─── Sidebar scrollbar ─── */
+.sidebar .v-navigation-drawer__content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar .v-navigation-drawer__content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Top Bar — Clean White
+   ═══════════════════════════════════════════════════════ */
+.topbar.v-app-bar {
+    background: #fff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+.topbar-toggle {
+    color: #475569 !important;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 8px;
+}
+
+.topbar-action-btn {
+    color: #64748b !important;
+}
+
+.topbar-action-btn:hover {
+    color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.06) !important;
+}
+
+.topbar-separator {
+    width: 1px;
+    height: 24px;
+    background: #e2e8f0;
+    margin: 0 8px;
+}
+
+.topbar-profile-btn {
+    color: #334155 !important;
+    padding: 4px 8px !important;
+    height: 44px !important;
+}
+
+.topbar-profile-name {
+    font-weight: 500;
+    font-size: 0.875rem;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-dropdown.v-list {
+    padding: 6px !important;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 4px 10px -6px rgba(0,0,0,0.05) !important;
+}
+
+.topbar-dropdown .v-list-item {
+    min-height: 38px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
 }
 </style>

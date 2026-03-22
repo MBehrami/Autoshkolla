@@ -1,77 +1,79 @@
 <template>
-    <div class="instructors-container">
-        <div class="mb-6">
-            <div class="text-h5 font-weight-bold text-grey-darken-3">Instruktorët</div>
+    <div class="page-container">
+        <div class="page-header d-flex flex-wrap align-center justify-space-between ga-3">
+            <div>
+                <div class="page-title">Instruktorët</div>
+                <div class="page-subtitle">Menaxhoni listën e instruktorëve</div>
+            </div>
+            <v-dialog v-model="dialog" max-width="1000" scrollable>
+                <template v-slot:activator="{ props: activatorProps }">
+                    <v-btn v-bind="activatorProps" color="primary" variant="flat"
+                        class="text-none" prepend-icon="mdi-plus" size="default">
+                        Regjistro Instruktor
+                    </v-btn>
+                </template>
+                <InstructorForm
+                    v-model="dialog"
+                    :instructor="editedInstructor"
+                    :instructor-id="editedInstructorId"
+                    :is-edit="editedIndex > -1"
+                    @saved="handleSaved"
+                />
+            </v-dialog>
         </div>
-        <v-data-table
-            :headers="headers"
-            :items="items"
-            :loading="loading"
-            class="elevation-2 instructors-table"
-        >
-            <template v-slot:top>
-                <v-toolbar density="comfortable" flat class="instructors-toolbar">
-                    <div class="instructors-actions-wrap">
-                        <div class="instructors-export-group">
-                            <v-btn class="instructors-action-btn text-none" variant="outlined" color="success" prepend-icon="mdi-file-excel">
-                                <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="instructors"
-                                    name="instructors.xlsx">Excel</download-excel>
-                            </v-btn>
-                            <v-btn class="instructors-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-word"
-                                @click.stop="exportWord">Word</v-btn>
-                        </div>
-                        <div class="instructors-filters-wrap">
-                            <v-text-field
-                                v-model="searchText"
-                                label="Kërko (Emri, Mbiemri)"
-                                variant="outlined"
-                                density="compact"
-                                hide-details
-                                clearable
-                                class="instructors-filter-search"
-                                @update:model-value="handleSearch"
-                            ></v-text-field>
-                            <v-dialog v-model="dialog" max-width="1000" scrollable>
-                                <template v-slot:activator="{ props: activatorProps }">
-                                    <v-btn v-bind="activatorProps" color="primary" variant="elevated"
-                                        class="instructors-add-btn text-none" prepend-icon="mdi-plus">
-                                        Regjistro Instruktor
-                                    </v-btn>
-                                </template>
-                                <InstructorForm
-                                    v-model="dialog"
-                                    :instructor="editedInstructor"
-                                    :instructor-id="editedInstructorId"
-                                    :is-edit="editedIndex > -1"
-                                    @saved="handleSaved"
-                                />
-                            </v-dialog>
-                        </div>
-                    </div>
-                </v-toolbar>
-            </template>
-            <template v-slot:item.isActive="{ item }">
-                <v-chip :color="item.isActive ? 'success' : 'default'" size="small" variant="flat">
-                    {{ item.isActive ? 'Active' : 'Inactive' }}
-                </v-chip>
-            </template>
-            <template v-slot:item.actions="{ item }">
-                <div class="d-flex align-center ga-1">
-                    <v-btn icon variant="tonal" color="primary" size="36" @click.stop="viewItem(item)">
-                        <v-icon size="20">mdi-eye</v-icon>
-                        <v-tooltip activator="parent" location="top">Shiko</v-tooltip>
+
+        <v-card class="table-card">
+            <div class="filter-bar">
+                <div class="export-group">
+                    <v-btn variant="tonal" color="success" size="small" class="text-none" prepend-icon="mdi-file-excel">
+                        <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="instructors"
+                            name="instructors.xlsx">Excel</download-excel>
                     </v-btn>
-                    <v-btn icon variant="tonal" color="secondary" size="36" @click.stop="editItem(item)">
-                        <v-icon size="20">mdi-pencil</v-icon>
-                        <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
-                    </v-btn>
-                    <v-btn icon variant="tonal" :color="item.isActive ? 'error' : 'success'" size="36" @click.stop="toggleActive(item)">
-                        <v-icon size="20">{{ item.isActive ? 'mdi-account-off' : 'mdi-account-check' }}</v-icon>
-                        <v-tooltip activator="parent" location="top">{{ item.isActive ? 'Deactivate' : 'Activate' }}</v-tooltip>
-                    </v-btn>
+                    <v-btn variant="tonal" color="error" size="small" class="text-none" prepend-icon="mdi-file-pdf-box"
+                        @click.stop="exportWord">PDF</v-btn>
                 </div>
-            </template>
-        </v-data-table>
+                <v-spacer></v-spacer>
+                <div class="filter-inputs">
+                    <v-text-field
+                        v-model="searchText"
+                        label="Kërko (Emri, Mbiemri)"
+                        prepend-inner-icon="mdi-magnify"
+                        clearable
+                        class="filter-field filter-field--search"
+                        @update:model-value="handleSearch"
+                    ></v-text-field>
+                </div>
+            </div>
+
+            <v-data-table
+                :headers="headers"
+                :items="items"
+                :loading="loading"
+            >
+                <template v-slot:item.isActive="{ item }">
+                    <v-chip :color="item.isActive ? 'success' : 'default'" size="small" variant="flat">
+                        {{ item.isActive ? 'Active' : 'Inactive' }}
+                    </v-chip>
+                </template>
+                <template v-slot:item.actions="{ item }">
+                    <div class="d-flex align-center ga-1">
+                        <v-btn icon variant="text" color="primary" class="action-btn" @click.stop="viewItem(item)">
+                            <v-icon size="18">mdi-eye-outline</v-icon>
+                            <v-tooltip activator="parent" location="top">Shiko</v-tooltip>
+                        </v-btn>
+                        <v-btn icon variant="text" color="secondary" class="action-btn" @click.stop="editItem(item)">
+                            <v-icon size="18">mdi-pencil-outline</v-icon>
+                            <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
+                        </v-btn>
+                        <v-btn icon variant="text" :color="item.isActive ? 'error' : 'success'" class="action-btn" @click.stop="toggleActive(item)">
+                            <v-icon size="18">{{ item.isActive ? 'mdi-account-off' : 'mdi-account-check' }}</v-icon>
+                            <v-tooltip activator="parent" location="top">{{ item.isActive ? 'Deactivate' : 'Activate' }}</v-tooltip>
+                        </v-btn>
+                    </div>
+                </template>
+            </v-data-table>
+        </v-card>
+
         <v-dialog v-model="viewDialog" max-width="900" scrollable>
             <InstructorDetails v-if="viewDialog" :instructor-id="viewingInstructorId" @close="viewDialog = false" />
         </v-dialog>
@@ -245,173 +247,48 @@ watch(dialog, (val) => {
 </script>
 
 <style scoped>
-.instructors-container {
-    width: 100%;
-    padding: 16px 20px;
-    margin: 0;
-    background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
-    min-height: 100%;
-}
-
-.instructors-table {
-    width: 100%;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.instructors-toolbar {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.instructors-actions-wrap {
-    width: 100%;
+.filter-inputs {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.instructors-export-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.instructors-action-btn {
-    border-radius: 4px !important;
-}
-
-.instructors-filters-wrap {
-    margin-left: auto;
-    display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
 }
 
-.instructors-add-btn {
-    min-height: 40px;
-    border-radius: 4px !important;
-}
-
-.instructors-filter-search {
+.filter-field--search {
     min-width: 280px;
 }
 
-.instructors-table :deep(.v-data-table__wrapper) {
-    width: 100%;
-}
-
-.instructors-table :deep(thead th) {
-    font-weight: 600;
-    font-size: 13px;
-    padding: 14px 16px !important;
-    background: #f5f5f5;
-    color: #424242;
-}
-
-.instructors-table :deep(tbody td) {
-    padding: 12px 16px !important;
-    font-size: 14px;
-}
-
-.instructors-table :deep(.v-toolbar) {
-    padding: 16px 24px !important;
-    min-height: 64px !important;
-}
-
-.instructors-toolbar :deep(.v-toolbar__content) {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-}
-
-.instructors-toolbar :deep(.v-btn),
-.instructors-toolbar :deep(.v-field) {
-    border-radius: 4px !important;
-}
-
-@media (max-width: 1024px) and (min-width: 601px) {
-    .instructors-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+@media (max-width: 960px) {
+    .filter-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
     }
 
-    .instructors-filters-wrap {
-        margin-left: 0;
+    .filter-inputs {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
     }
 
-    .instructors-filter-search {
-        width: 100%;
+    .filter-field--search {
         min-width: 0;
-    }
-
-    .instructors-add-btn {
-        width: 100%;
-        grid-column: 1 / -1;
+        flex: 1;
     }
 }
 
 @media (max-width: 600px) {
-    .instructors-container {
-        padding: 8px !important;
+    .filter-inputs {
+        flex-direction: column;
     }
 
-    .instructors-actions-wrap {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
+    .filter-field--search {
         width: 100%;
     }
 
-    .instructors-export-group {
+    .export-group {
         width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
     }
 
-    .instructors-action-btn {
-        width: 100%;
-        min-width: 0;
-        min-height: 40px;
-        padding-inline: 8px;
-    }
-
-    .instructors-filters-wrap {
-        margin-left: 0;
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .instructors-filter-search {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .instructors-add-btn {
-        width: 100%;
-        min-height: 44px;
-    }
-
-    .instructors-table :deep(thead th),
-    .instructors-table :deep(tbody td) {
-        padding: 6px 8px !important;
-        font-size: 0.75rem !important;
-    }
-    .instructors-table :deep(.v-toolbar) {
-        padding: 8px !important;
-        flex-wrap: wrap;
+    .export-group .v-btn {
+        flex: 1;
     }
 }
 </style>

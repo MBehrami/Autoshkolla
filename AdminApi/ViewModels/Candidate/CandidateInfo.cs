@@ -22,6 +22,7 @@ namespace AdminApi.ViewModels.Candidate
         public string? PaymentMethod { get; set; }
         public int? PracticalHours { get; set; }
         public int TotalServiceAmount { get; set; }
+        public int TotalPaidAmount { get; set; }
         public DateTime DateAdded { get; set; }
         public int? Year { get; set; } // For filtering by year
 

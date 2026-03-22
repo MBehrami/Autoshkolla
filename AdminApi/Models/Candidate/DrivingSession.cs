@@ -11,8 +11,12 @@ namespace AdminApi.Models.Candidate
         [Key]
         public int DrivingSessionId { get; set; }
 
-        [Required]
-        public int CandidateId { get; set; }
+        /// <summary>Nullable for manual-entry candidates not in the database.</summary>
+        public int? CandidateId { get; set; }
+
+        /// <summary>Name typed manually when candidate is not in the system.</summary>
+        [StringLength(200)]
+        public string? ManualCandidateName { get; set; }
 
         [Required]
         public int VehicleId { get; set; }
@@ -20,15 +24,13 @@ namespace AdminApi.Models.Candidate
         /// <summary>Instructor who created / is assigned to the session.</summary>
         public int? InstructorUserId { get; set; }
 
-        /// <summary>Driving date in dd.MM.yyyy format.</summary>
-        [Required]
+        /// <summary>Driving date in dd.MM.yyyy format. Null when on the waiting list.</summary>
         [StringLength(20)]
-        public string DrivingDate { get; set; } = string.Empty;
+        public string? DrivingDate { get; set; }
 
-        /// <summary>Start time HH:mm (e.g. 08:00, 08:15).</summary>
-        [Required]
+        /// <summary>Start time HH:mm (e.g. 08:00, 08:15). Null when on the waiting list.</summary>
         [StringLength(10)]
-        public string DrivingTime { get; set; } = string.Empty;
+        public string? DrivingTime { get; set; }
 
         /// <summary>Payment amount for this session.</summary>
         public decimal PaymentAmount { get; set; }

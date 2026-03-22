@@ -210,7 +210,7 @@ namespace AdminApi.Controllers
                             ? candidate.DocWithdrawalDate : DateTime.Now.ToString("dd.MM.yyyy");
                         await DailyReportsController.CreateAutoEntry(
                             _context, reportDate, "Income", candidateFullName,
-                            candidate.DocWithdrawalAmount.Value,
+                             candidate.DocWithdrawalAmount.Value,
                             "Terheqja e Dokumentave (Document Withdrawal)",
                             "CandidateDocWithdrawal", candidate.CandidateId, candidate.AddedBy);
                     }
@@ -295,12 +295,13 @@ namespace AdminApi.Controllers
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
                 var role = User.FindFirst("role")?.Value ?? "";
 
-                // Instructor: scope to own assigned candidates only
                 var query = from c in _context.Candidates
                            join cat in _context.Categories on c.CategoryId equals cat.CategoryId into catGroup
                            from cat in catGroup.DefaultIfEmpty()
                            join u in _context.Users on c.InstructorId equals u.UserId into instructorGroup
                            from instructor in instructorGroup.DefaultIfEmpty()
+                           join ip in _context.InstructorProfiles on c.InstructorId equals ip.UserId into ipGroup
+                           from instrProfile in ipGroup.DefaultIfEmpty()
                            select new CandidateInfo
                            {
                                CandidateId = c.CandidateId,
@@ -311,7 +312,9 @@ namespace AdminApi.Controllers
                                CategoryId = c.CategoryId,
                                CategoryName = cat != null ? cat.CategoryName : null,
                                InstructorId = c.InstructorId,
-                               InstructorName = instructor != null ? instructor.FullName : null,
+                               InstructorName = instrProfile != null && instrProfile.FirstName != null
+                                   ? instrProfile.FirstName
+                                   : (instructor != null ? instructor.FullName : null),
                                VehicleType = c.VehicleType,
                                PracticalHours = c.PracticalHours,
                                TotalServiceAmount = c.TotalServiceAmount,
@@ -375,6 +378,14 @@ namespace AdminApi.Controllers
                     instructorCountDict = instructorCounts.ToDictionary(x => x.CandidateId, x => x.Count);
                 }
 
+                // Sum installment payments per candidate
+                var installmentSums = await _context.CandidateInstallments
+                    .Where(i => candidateIds.Contains(i.CandidateId))
+                    .GroupBy(i => i.CandidateId)
+                    .Select(g => new { CandidateId = g.Key, Total = g.Sum(i => i.Amount) })
+                    .ToListAsync();
+                var paidDict = installmentSums.ToDictionary(x => x.CandidateId, x => x.Total);
+
                 foreach (var c in list)
                 {
                     c.PracticalLessonCount = countDict.GetValueOrDefault(c.CandidateId, 0);
@@ -382,6 +393,7 @@ namespace AdminApi.Controllers
                         ? instructorCountDict.GetValueOrDefault(c.CandidateId, 0)
                         : c.PracticalLessonCount;
                     c.RemainingHours = Math.Max(0, (c.PracticalHours ?? 0) - c.CompletedHours);
+                    c.TotalPaidAmount = paidDict.GetValueOrDefault(c.CandidateId, 0);
                 }
 
                 int totalRecords = list.Count;
@@ -597,9 +609,9 @@ namespace AdminApi.Controllers
                         payments.Add(new
                         {
                             type = "Driving Session",
-                            description = $"Session {ds.DrivingDate} {ds.DrivingTime} – {ds.vehiclePlate}",
+                            description = $"Session {ds.DrivingDate ?? "TBD"} {ds.DrivingTime ?? ""} – {ds.vehiclePlate}",
                             amount = ds.PaymentAmount,
-                            date = ds.PaymentDate ?? ds.DrivingDate,
+                            date = ds.PaymentDate ?? ds.DrivingDate ?? "",
                             status = ds.Status,
                             examiner = ds.Examiner,
                             sourceType = "DrivingSession",

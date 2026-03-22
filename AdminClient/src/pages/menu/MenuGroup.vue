@@ -12,10 +12,6 @@
                                 <download-excel :data="itemsMenuGroup" :fields="headersExcel" type="xlsx"
                                     worksheet="all-data" name="menu_group_excel.xlsx">Excel</download-excel>
                             </v-btn>
-                            <v-btn class="menu-group-action-btn text-none" variant="outlined" color="info" prepend-icon="mdi-file-delimited">
-                                <download-excel :data="itemsMenuGroup" :fields="headersExcel" type="csv"
-                                    name="menu_group_csv.xls">CSV</download-excel>
-                            </v-btn>
                             <v-btn class="menu-group-action-btn text-none" variant="outlined" color="error" prepend-icon="mdi-file-pdf-box"
                                 @click.stop="exportPdf">PDF</v-btn>
                         </div>

@@ -32,7 +32,7 @@
                         <v-text-field :model-value="candidate.phoneNumber" label="Phone Number" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4">
-                        <v-text-field :model-value="candidate.address" label="Address" variant="outlined" density="compact" readonly hide-details></v-text-field>
+                        <v-text-field :model-value="candidate.address" label="Komuna" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4">
                         <v-text-field :model-value="candidate.categoryName" label="Category" variant="outlined" density="compact" readonly hide-details></v-text-field>
