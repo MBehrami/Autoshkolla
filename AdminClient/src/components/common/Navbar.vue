@@ -299,6 +299,9 @@ const buildMenu = (apiItems) => {
                 ]
             })
         }
+        if (!has('/additional-lessons')) {
+            items.push({ id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] })
+        }
         if (!has('/daily-report')) {
             items.push({
                 id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11,
@@ -362,6 +365,9 @@ const buildMenu = (apiItems) => {
                 ]
             })
         }
+        if (!has('/additional-lessons')) {
+            items.push({ id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] })
+        }
         if (!has('/daily-report')) {
             items.push({
                 id: 30, title: 'Raportet', icon: 'mdi-chart-box', route: '', order: 11,
@@ -406,6 +412,7 @@ const getFallbackMenu = () => {
                 { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
                 { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
             ]},
+            { id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] },
             { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
             { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
                 { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
@@ -432,6 +439,7 @@ const getFallbackMenu = () => {
                 { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
                 { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
             ]},
+            { id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] },
             { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
             { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
                 { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
@@ -459,9 +467,13 @@ menuStore.getSidebar(roleId)
         menus.value = getFallbackMenu()
     })
 
-const signOut = () => {
-    userStore.updateHistory(localStorage.getItem('logCode'))
+const signOut = async () => {
+    userStore.loggingOut = true
+    try {
+        await userStore.updateHistory(localStorage.getItem('logCode'))
+    } catch { /* ignore — session cleanup proceeds regardless */ }
     userStore.signOut()
+    userStore.loggingOut = false
     router.push({ name: 'SignIn' })
 }
 </script>

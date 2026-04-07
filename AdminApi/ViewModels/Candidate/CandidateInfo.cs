@@ -30,5 +30,8 @@ namespace AdminApi.ViewModels.Candidate
         public int PracticalLessonCount { get; set; }
         public int CompletedHours { get; set; }
         public int RemainingHours { get; set; }
+
+        public bool IsAdditionalLesson { get; set; }
+        public int? AdditionalLessonId { get; set; }
     }
 }

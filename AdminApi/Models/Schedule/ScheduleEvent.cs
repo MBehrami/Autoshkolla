@@ -29,8 +29,8 @@ namespace AdminApi.Models.Schedule
         [Required]
         public int InstructorUserId { get; set; }
 
-        [Required]
-        public int CandidateId { get; set; }
+        public int? CandidateId { get; set; }
+        public int? AdditionalLessonId { get; set; }
 
         [Required]
         public int VehicleId { get; set; }

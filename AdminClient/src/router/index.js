@@ -25,6 +25,7 @@ import CandidateView from "@/pages/candidate/CandidateView.vue";
 import CandidateEdit from "@/pages/candidate/CandidateEdit.vue";
 import CandidateAccounts from "@/pages/etestimi/CandidateAccounts.vue";
 import ExamManagement from "@/pages/etestimi/ExamManagement.vue";
+import AdditionalLessons from "@/pages/additional-lessons/AdditionalLessons.vue";
 
 // Helper: get current user's role name from stored profile
 function getRoleName() {
@@ -107,15 +108,23 @@ const routes = [
     meta: { adminOnly: true },
   },
 
+  // ─── Additional Lessons (Admin + SuperAdmin) ───
+  {
+    path: "/additional-lessons",
+    name: "AdditionalLessons",
+    component: AdditionalLessons,
+    meta: { adminOnly: true },
+  },
+
   // ─── General pages ───
   { path: "/errors", name: "OtherError", component: OtherError, meta: { public: true } },
   { path: "/candidates", name: "Candidates", component: Candidates },
   { path: "/candidates/:id", name: "CandidateView", component: CandidateView, props: true },
   { path: "/candidates/:id/edit", name: "CandidateEdit", component: CandidateEdit, props: true },
-  { path: "/instructors", name: "Instructors", component: Instructors },
-  { path: "/vehicles", name: "Vehicles", component: Vehicles },
+  { path: "/instructors", name: "Instructors", component: Instructors, meta: { adminOnly: true } },
+  { path: "/vehicles", name: "Vehicles", component: Vehicles, meta: { adminOnly: true } },
   { path: "/vehicle-fuel", name: "VehicleFuel", component: VehicleFuel },
-  { path: "/vehicle-services", name: "VehicleServices", component: VehicleServices },
+  { path: "/vehicle-services", name: "VehicleServices", component: VehicleServices, meta: { adminOnly: true } },
   { path: "/schedules", name: "Schedules", component: Schedules },
   {
     path: "/password-reset/:ref",

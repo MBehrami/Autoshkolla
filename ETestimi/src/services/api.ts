@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:5002'
+const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? ''
 
 export const getApiBaseUrl = () => API_BASE
 

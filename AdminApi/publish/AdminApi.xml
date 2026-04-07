@@ -265,7 +265,7 @@
         </member>
         <member name="M:AdminApi.Controllers.UsersController.ChangeUserPassword(AdminApi.ViewModels.User.UserInfo)">
             <summary>
-            Change User Password
+            Change User Password (requires authentication)
             </summary>
         </member>
         <member name="M:AdminApi.Controllers.UsersController.UserStatus">
@@ -339,6 +339,39 @@
             <inheritdoc />
         </member>
         <member name="M:AdminApi.Migrations.initial.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:AdminApi.Migrations.candidatesandexas">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.candidatesandexas.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.candidatesandexas.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.candidatesandexas.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:AdminApi.Migrations.etestimi_manual_candidate_accounts">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.etestimi_manual_candidate_accounts.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.etestimi_manual_candidate_accounts.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.etestimi_manual_candidate_accounts.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:AdminApi.Migrations.AddImageGuidToExamQuestions">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.AddImageGuidToExamQuestions.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:AdminApi.Migrations.AddImageGuidToExamQuestions.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
             <inheritdoc />
         </member>
         <member name="P:AdminApi.Models.Candidate.Candidate.DocWithdrawalAmount">
@@ -466,6 +499,20 @@
             <summary>
             Placeholder model for future Vehicle Services (Serviset e Automjeteve).
             Fields and business logic to be defined.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Services.IFileService.SaveFileAsync(Microsoft.AspNetCore.Http.IFormFile,System.Collections.Generic.IEnumerable{System.String},System.Int64)">
+            <summary>
+            Saves a file asynchronously with validation
+            </summary>
+            <param name="file">The file to save</param>
+            <param name="allowedMimeTypes">List of allowed MIME types (optional - if null, all types allowed)</param>
+            <param name="maxFileSizeBytes">Maximum file size in bytes (default: 5 MB)</param>
+            <returns>Tuple with success status, file GUID, extension, and error message</returns>
+        </member>
+        <member name="M:AdminApi.Services.IFileService.DeleteFile(System.String,System.String)">
+            <summary>
+            Deletes a file by GUID and optional extension
             </summary>
         </member>
         <member name="P:AdminApi.ViewModels.Candidate.AddDrivingSessionRequest.ManualCandidateName">

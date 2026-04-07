@@ -69,6 +69,20 @@ export const useCandidateStore = defineStore("candidateStore", {
           });
       });
     },
+    getAdditionalLessonDetails(additionalLessonId) {
+      return new Promise((resolve, reject) => {
+        this.loading = true;
+        API.get(import.meta.env.VITE_API_URL + `/api/Candidates/GetAdditionalLessonDetails/${additionalLessonId}`)
+          .then((response) => {
+            this.loading = false;
+            resolve(response);
+          })
+          .catch((error) => {
+            this.loading = false;
+            reject(error);
+          });
+      });
+    },
     createCandidate(objCandidate) {
       return new Promise((resolve, reject) => {
         this.loading = true;

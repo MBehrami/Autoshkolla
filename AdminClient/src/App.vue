@@ -86,6 +86,11 @@ API.interceptors.response.use(
     const status = err?.response?.status || err?.request?.status || 0
     localStorage.setItem('http_error', status)
 
+    // During logout, suppress all error handling — signOut clears session itself
+    if (userStore.loggingOut) {
+      return Promise.reject(err)
+    }
+
     // ── 401 Unauthorized — clear session, redirect to sign-in (no full-page reload) ──
     if (status === 401) {
       localStorage.removeItem('profile')
@@ -93,7 +98,6 @@ API.interceptors.response.use(
       localStorage.removeItem('logCode')
       localStorage.removeItem('visible')
       userStore.visible = false
-      // Only redirect if not already on sign-in to avoid loops
       if (router.currentRoute.value.name !== 'SignIn') {
         router.replace({ name: 'SignIn' })
       }
@@ -102,12 +106,10 @@ API.interceptors.response.use(
 
     // ── Network error (status 0) — API/database unreachable ──
     if (status === 0) {
-      // Don't try to log to an unreachable API — just show a notification
       settingStore.toggleSnackbar({
         status: true,
         msg: 'Server is unreachable. Please check your connection and try again.'
       })
-      // Clear session and hide dashboard layout, then go to sign-in
       localStorage.removeItem('profile')
       localStorage.removeItem('userId')
       localStorage.removeItem('logCode')

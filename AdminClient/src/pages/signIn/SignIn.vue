@@ -59,62 +59,7 @@
                     </div>
                 </v-form>
 
-                <div class="login-footer">
-                    <button type="button" class="forgot-link" @click="forget = true">
-                        Keni harruar fjalëkalimin?
-                    </button>
-                </div>
-
-                <!-- Forgot Password Overlay -->
-                <v-expand-transition>
-                    <div v-if="forget" class="forgot-overlay">
-                        <div class="login-card-header">
-                            <v-img @click="switchToLanding" :src="logoSrc" max-width="60" class="cursor-pointer mx-auto mb-4"></v-img>
-                            <h1 class="login-title">Rivendos Fjalëkalimin</h1>
-                            <p class="login-subtitle">Shkruani email-in tuaj për të marrë linkun e rivendosjes</p>
-                        </div>
-
-                        <v-form v-model="forgetPasswordFormValid" @submit.prevent="submitForgetPasswordForm">
-                            <div class="login-fields">
-                                <div class="field-group">
-                                    <label class="field-label">Email</label>
-                                    <v-text-field
-                                        v-model="forgetEmail"
-                                        :rules="emailRules"
-                                        placeholder="emri@email.com"
-                                        variant="outlined"
-                                        density="comfortable"
-                                        prepend-inner-icon="mdi-email-outline"
-                                        hide-details="auto"
-                                        required
-                                        class="login-input"
-                                    ></v-text-field>
-                                </div>
-                            </div>
-
-                            <div class="forgot-actions">
-                                <v-btn
-                                    variant="outlined"
-                                    size="large"
-                                    color="#64748b"
-                                    class="login-btn flex-grow-1"
-                                    @click="forget = false"
-                                >
-                                    Mbyll
-                                </v-btn>
-                                <v-btn
-                                    :disabled="!forgetPasswordFormValid"
-                                    size="large"
-                                    color="#1e293b"
-                                    class="login-btn flex-grow-1"
-                                    type="submit"
-                                >
-                                    Dërgo
-                                </v-btn>
-                            </div>
-                        </v-form>
-                    </div>
-                </v-expand-transition>
+                
             </div>
 
             <p class="login-copyright">&copy; {{ new Date().getFullYear() }} Autoshkolla Linda</p>
@@ -135,8 +80,6 @@ const userStore=useUserStore()
 const {loading}=storeToRefs(userStore)
 const settingStore=useSettingStore()
 const signInFormValid=ref(false)
-const forgetPasswordFormValid=ref(false)
-const forget=ref(false)
 const showPassword=ref(false)
 const passwordRules = [
     (v) => !!v || 'Fjalëkalimi është i detyrueshëm',
@@ -147,7 +90,6 @@ const emailRules = [
     (v) => /.+@.+\..+/.test(v) || 'Email-i duhet të jetë i vlefshëm',
 ]
 const router=useRouter()
-const forgetEmail=ref('')
 const signInForm=ref({
     email:'',
     password:''
@@ -158,35 +100,6 @@ const logoSrc='/linda_logo.png'
 
 const switchToLanding=()=>{
     // landing page removed; stay on sign-in
-}
-
-const submitForgetPasswordForm=()=>{
-    if(appInitialData.defaultEmail=='' || appInitialData.password=='' || appInitialData.host=='' || appInitialData.port==null){
-        settingStore.toggleSnackbar({status:true,msg:'Cilësimet e email-it nuk janë konfiguruar ende! Konfiguroni ato dhe pastaj dërgoni email nga këtu.'})
-    }else{
-        userStore.userInfoForForgetPassword(forgetEmail.value)
-        .then((response)=>{
-            if(response.status==200){
-                const objEmail={
-                    toEmail:forgetEmail.value,
-                    logoPath:logoSrc.value,
-                    siteUrl:window.location.origin,
-                    siteTitle:appInitialData.siteTitle,
-                    resetLink:window.location.origin+'/password-reset/'+response.data.forgetPasswordRef
-                }
-                settingStore.passwordEmailSent(objEmail)
-                .then(response=>{
-                    if(response.status==200){
-                        settingStore.toggleSnackbar({status:true,msg:response.data.responseMsg})
-                    }else{
-                        settingStore.toggleSnackbar({status:true,msg:"Nuk mund të dërgohet email-i tani! Ju lutem provoni më vonë."})
-                    }                  
-                })
-            }else if(response.status==202){
-                settingStore.toggleSnackbar({status:true,msg:response.data.responseMsg})
-            }
-        })
-    }
 }
 
 const submitSignInForm=()=>{

@@ -19,19 +19,19 @@
                     <v-col cols="12" md="4">
                         <v-text-field :model-value="candidate.firstName" label="First Name" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
-                    <v-col cols="12" md="4">
+                    <v-col v-if="!isAdditionalLessonMode" cols="12" md="4">
                         <v-text-field :model-value="candidate.parentName" label="Parent Name" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4">
                         <v-text-field :model-value="candidate.lastName" label="Last Name" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
-                    <v-col cols="12" md="4">
+                    <v-col v-if="!isAdditionalLessonMode" cols="12" md="4">
                         <v-text-field :model-value="candidate.dateOfBirth" label="Date of Birth" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4">
                         <v-text-field :model-value="candidate.phoneNumber" label="Phone Number" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
-                    <v-col cols="12" md="4">
+                    <v-col v-if="!isAdditionalLessonMode" cols="12" md="4">
                         <v-text-field :model-value="candidate.address" label="Komuna" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
                     <v-col cols="12" md="4">
@@ -41,6 +41,7 @@
                         <v-text-field :model-value="candidate.vehicleType" label="Vehicle Type" variant="outlined" density="compact" readonly hide-details></v-text-field>
                     </v-col>
                 </v-row>
+                <v-chip v-if="isAdditionalLessonMode" color="info" variant="tonal" size="small" class="mt-2 mb-2">Orë Shtesë</v-chip>
 
                 <!-- Practical Lessons table with Nr. Rendor -->
                 <v-divider class="my-4"></v-divider>
@@ -156,13 +157,16 @@ import { useSettingStore } from '@/store/SettingStore';
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 
 const props = defineProps({
-    candidateId: { type: Number, required: true }
+    candidateId: { type: Number, default: null },
+    additionalLessonId: { type: Number, default: null }
 });
 
 const emit = defineEmits(['close', 'saved']);
 
 const candidateStore = useCandidateStore();
 const settingStore = useSettingStore();
+
+const isAdditionalLessonMode = computed(() => !!props.additionalLessonId);
 
 const candidate = ref(null);
 const practicalLessons = ref([]);
@@ -182,14 +186,13 @@ const timeSlots = (() => {
     const slots = [];
     for (let h = 7; h <= 20; h++) {
         for (let m = 0; m < 60; m += 15) {
-            if (h === 20 && m > 0) break; // stop at 20:00
+            if (h === 20 && m > 0) break;
             slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
         }
     }
     return slots;
 })();
 
-// Computed end time = start + 45 min
 const computedEndTime = computed(() => calcEndTime(newLessonTime.value));
 
 function calcEndTime(startTime) {
@@ -216,14 +219,12 @@ const sortedLessons = computed(() => {
 
 function formatDate(value) {
     if (!value) return '';
-    // Vuetify 3 date picker returns a Date object
     if (value instanceof Date) {
         const dd = String(value.getDate()).padStart(2, '0');
         const mm = String(value.getMonth() + 1).padStart(2, '0');
         const yyyy = value.getFullYear();
         return `${dd}.${mm}.${yyyy}`;
     }
-    // Fallback for ISO string "2026-02-08" or "2026-02-08T00:00:00"
     const str = String(value).split('T')[0];
     const parts = str.split('-');
     if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
@@ -249,7 +250,12 @@ const clearLessonDate = () => {
 const loadDetails = () => {
     loadError.value = '';
     detailsLoading.value = true;
-    candidateStore.getCandidateDetails(props.candidateId)
+
+    const promise = isAdditionalLessonMode.value
+        ? candidateStore.getAdditionalLessonDetails(props.additionalLessonId)
+        : candidateStore.getCandidateDetails(props.candidateId);
+
+    promise
         .then((response) => {
             candidate.value = response.data?.candidate ?? null;
             practicalLessons.value = response.data?.practicalLessons ?? [];
@@ -286,14 +292,22 @@ const addLesson = async () => {
     }
     addingLesson.value = true;
     try {
-        const response = await candidateStore.addPracticalLesson({
-            candidateId: props.candidateId,
+        const payload = {
             lessonDate: dateStr,
             time: newLessonTime.value,
             vehicle: newLessonVehicle.value || null
-        });
+        };
 
-        // Check response body for error
+        if (isAdditionalLessonMode.value) {
+            payload.additionalLessonId = props.additionalLessonId;
+            payload.candidateId = null;
+        } else {
+            payload.candidateId = props.candidateId;
+            payload.additionalLessonId = null;
+        }
+
+        const response = await candidateStore.addPracticalLesson(payload);
+
         const body = response?.data;
         if (body && body.status === 'error') {
             addError.value = body.responseMsg || 'Failed to save lesson';
@@ -301,16 +315,13 @@ const addLesson = async () => {
         }
 
         settingStore.toggleSnackbar({ status: true, msg: 'Lesson added successfully' });
-        // Reset form
         lessonDateDisplay.value = '';
         lessonDateModel.value = null;
         newLessonTime.value = null;
         newLessonVehicle.value = null;
-        // Refresh lessons list
         loadDetails();
         emit('saved');
     } catch (err) {
-        // err.response exists for 4xx/5xx
         const msg = err?.response?.data?.responseMsg || err?.response?.data?.ResponseMsg || err?.message || 'Error adding lesson';
         addError.value = msg;
     } finally {
@@ -320,15 +331,17 @@ const addLesson = async () => {
 
 const closeDialog = () => emit('close');
 
-watch(() => props.candidateId, () => {
-    if (props.candidateId) {
+const activeId = computed(() => props.additionalLessonId || props.candidateId);
+
+watch(activeId, () => {
+    if (activeId.value) {
         loadDetails();
         loadLessonVehicles();
     }
 }, { immediate: true });
 
 onMounted(() => {
-    if (props.candidateId) {
+    if (activeId.value) {
         loadDetails();
         loadLessonVehicles();
     }

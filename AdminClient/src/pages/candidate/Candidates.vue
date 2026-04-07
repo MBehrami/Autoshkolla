@@ -27,7 +27,7 @@
         <v-card class="table-card">
             <!-- Filter Bar -->
             <div class="filter-bar">
-                <div class="export-group">
+                <div v-if="!isInstructor" class="export-group">
                     <v-btn variant="tonal" color="success" size="small" class="text-none" prepend-icon="mdi-file-excel">
                         <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
                             name="candidates.xlsx">Excel</download-excel>
@@ -91,8 +91,9 @@
 
         <v-dialog v-model="instructorEditDialog" max-width="900" scrollable persistent>
             <CandidateInstructorEdit
-                v-if="instructorEditDialog && instructorEditCandidateId"
+                v-if="instructorEditDialog && (instructorEditCandidateId || instructorEditAdditionalLessonId)"
                 :candidate-id="instructorEditCandidateId"
+                :additional-lesson-id="instructorEditAdditionalLessonId"
                 @close="closeInstructorEdit"
                 @saved="loadCandidates"
             />
@@ -130,6 +131,7 @@ const headersAdmin = [
     { title: 'Nr. Rendor', key: 'serialNumber' },
     { title: 'Emri', key: 'firstName' },
     { title: 'Mbiemri', key: 'lastName' },
+    { title: 'Numri personal', key: 'personalNumber' },
     { title: 'Numri i telefonit', key: 'phoneNumber' },
     { title: 'Kategoria', key: 'categoryName' },
     { title: 'Instruktori', key: 'instructorName' },
@@ -159,6 +161,7 @@ const headersExcelAdmin = {
     'Nr. Rendor': 'serialNumber',
     'Emri': 'firstName',
     'Mbiemri': 'lastName',
+    'Numri personal': 'personalNumber',
     'Numri i telefonit': 'phoneNumber',
     'Kategoria': 'categoryName',
     'Instruktori': 'instructorName',
@@ -181,7 +184,7 @@ const headersExcelInstructor = {
 
 const headersExcel = computed(() => isInstructor.value ? headersExcelInstructor : headersExcelAdmin)
 
-const headersPdfAdmin = ['Serial Number', 'First Name', 'Last Name', 'Phone', 'Category', 'Instructor', 'Vehicle Type', 'Practical Hours', 'Total Amount']
+const headersPdfAdmin = ['Serial Number', 'First Name', 'Last Name', 'Personal Number', 'Phone', 'Category', 'Instructor', 'Vehicle Type', 'Practical Hours', 'Total Amount']
 const headersPdfInstructor = ['Serial Number', 'First Name', 'Last Name', 'Phone', 'Category', 'Vehicle Type', 'Practical Lessons', 'Completed Hours', 'Remaining Hours']
 
 const items = ref([])
@@ -195,6 +198,7 @@ const viewDialog = ref(false)
 const viewingCandidateId = ref(null)
 const instructorEditDialog = ref(false)
 const instructorEditCandidateId = ref(null)
+const instructorEditAdditionalLessonId = ref(null)
 const editedIndex = ref(-1)
 const editedCandidate = ref(null)
 const editedCandidateId = ref(null)
@@ -222,7 +226,7 @@ const exportPdf = () => {
         if (isInstructor.value) {
             return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.vehicleType, row.practicalLessonCount, row.completedHours, row.remainingHours]
         }
-        return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHoursDisplay, row.servicePaymentDisplay]
+        return [row.serialNumber, row.firstName, row.lastName, row.personalNumber, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHoursDisplay, row.servicePaymentDisplay]
     })
     autoTable(doc, { head: [pdfHeaders], body: bodyRows })
     doc.save('candidates.pdf')
@@ -234,12 +238,16 @@ function normalizeCandidate(row) {
     const completedHours = row.completedHours ?? row.CompletedHours ?? 0
     const totalServiceAmount = row.totalServiceAmount ?? row.TotalServiceAmount ?? 0
     const totalPaidAmount = row.totalPaidAmount ?? row.TotalPaidAmount ?? 0
+    const isAL = row.isAdditionalLesson ?? row.IsAdditionalLesson ?? false
     return {
-        id: row.candidateId ?? row.CandidateId,
+        id: isAL ? (row.additionalLessonId ?? row.AdditionalLessonId) : (row.candidateId ?? row.CandidateId),
         candidateId: row.candidateId ?? row.CandidateId,
+        additionalLessonId: row.additionalLessonId ?? row.AdditionalLessonId ?? null,
+        isAdditionalLesson: isAL,
         serialNumber: row.serialNumber ?? row.SerialNumber ?? '',
         firstName: row.firstName ?? row.FirstName ?? '',
         lastName: row.lastName ?? row.LastName ?? '',
+        personalNumber: row.personalNumber ?? row.PersonalNumber ?? '',
         phoneNumber: row.phoneNumber ?? row.PhoneNumber ?? '',
         categoryName: row.categoryName ?? row.CategoryName ?? '',
         instructorName: row.instructorName ?? row.InstructorName ?? '',
@@ -319,12 +327,24 @@ const loadYears = () => {
 
 // Actions — navigate to dedicated pages
 const viewItem = (item) => {
+    if (isInstructor.value && item.isAdditionalLesson) {
+        instructorEditCandidateId.value = null
+        instructorEditAdditionalLessonId.value = item.additionalLessonId
+        instructorEditDialog.value = true
+        return
+    }
     router.push(`/candidates/${item.candidateId}`)
 }
 
 const editItem = (item) => {
     if (isInstructor.value) {
-        instructorEditCandidateId.value = item.candidateId
+        if (item.isAdditionalLesson) {
+            instructorEditCandidateId.value = null
+            instructorEditAdditionalLessonId.value = item.additionalLessonId
+        } else {
+            instructorEditCandidateId.value = item.candidateId
+            instructorEditAdditionalLessonId.value = null
+        }
         instructorEditDialog.value = true
         return
     }
@@ -345,6 +365,7 @@ const handleSaved = () => {
 const closeInstructorEdit = () => {
     instructorEditDialog.value = false
     instructorEditCandidateId.value = null
+    instructorEditAdditionalLessonId.value = null
     loadCandidates()
 }
 

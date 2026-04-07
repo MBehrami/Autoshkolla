@@ -55,7 +55,10 @@ namespace AdminApi.Controllers
 
                 // ── Schedule Events ──
                 var scheduleEvents = await (from e in _context.ScheduleEvents
-                                            join c in _context.Candidates on e.CandidateId equals c.CandidateId
+                                            join c in _context.Candidates on e.CandidateId equals c.CandidateId into cg
+                                            from c in cg.DefaultIfEmpty()
+                                            join al in _context.AdditionalLessons on e.AdditionalLessonId equals al.AdditionalLessonId into alg
+                                            from al in alg.DefaultIfEmpty()
                                             join v in _context.Vehicles on e.VehicleId equals v.VehicleId
                                             join u in _context.Users on e.InstructorUserId equals u.UserId
                                             select new
@@ -66,8 +69,10 @@ namespace AdminApi.Controllers
                                                 e.EndTime,
                                                 e.InstructorUserId,
                                                 InstructorName = u.FullName,
-                                                e.CandidateId,
-                                                CandidateName = c.FirstName + " " + c.LastName,
+                                                CandidateId = e.CandidateId ?? 0,
+                                                CandidateName = c != null
+                                                    ? c.FirstName + " " + c.LastName
+                                                    : (al != null ? al.FirstName + " " + al.LastName : ""),
                                                 e.VehicleId,
                                                 VehiclePlate = v.PlateNumber,
                                                 VehicleBrand = v.Brand,

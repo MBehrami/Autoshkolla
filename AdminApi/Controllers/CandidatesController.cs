@@ -308,6 +308,7 @@ namespace AdminApi.Controllers
                                SerialNumber = c.SerialNumber,
                                FirstName = c.FirstName,
                                LastName = c.LastName,
+                               PersonalNumber = c.PersonalNumber,
                                PhoneNumber = c.PhoneNumber,
                                CategoryId = c.CategoryId,
                                CategoryName = cat != null ? cat.CategoryName : null,
@@ -360,22 +361,22 @@ namespace AdminApi.Controllers
                 // Collect lesson counts for all returned candidates in one query
                 var candidateIds = list.Select(c => c.CandidateId).ToList();
                 var lessonCounts = await _context.PracticalLessons
-                    .Where(l => candidateIds.Contains(l.CandidateId))
+                    .Where(l => l.CandidateId != null && candidateIds.Contains(l.CandidateId.Value))
                     .GroupBy(l => l.CandidateId)
                     .Select(g => new { CandidateId = g.Key, Count = g.Count() })
                     .ToListAsync();
-                var countDict = lessonCounts.ToDictionary(x => x.CandidateId, x => x.Count);
+                var countDict = lessonCounts.ToDictionary(x => x.CandidateId ?? 0, x => x.Count);
 
                 // For Instructor: also count only this instructor's lessons
                 Dictionary<int, int> instructorCountDict = new();
                 if (role == "Instructor")
                 {
                     var instructorCounts = await _context.PracticalLessons
-                        .Where(l => candidateIds.Contains(l.CandidateId) && l.InstructorUserId == currentUserId)
+                        .Where(l => l.CandidateId != null && candidateIds.Contains(l.CandidateId.Value) && l.InstructorUserId == currentUserId)
                         .GroupBy(l => l.CandidateId)
                         .Select(g => new { CandidateId = g.Key, Count = g.Count() })
                         .ToListAsync();
-                    instructorCountDict = instructorCounts.ToDictionary(x => x.CandidateId, x => x.Count);
+                    instructorCountDict = instructorCounts.ToDictionary(x => x.CandidateId ?? 0, x => x.Count);
                 }
 
                 // Sum installment payments per candidate
@@ -394,6 +395,61 @@ namespace AdminApi.Controllers
                         : c.PracticalLessonCount;
                     c.RemainingHours = Math.Max(0, (c.PracticalHours ?? 0) - c.CompletedHours);
                     c.TotalPaidAmount = paidDict.GetValueOrDefault(c.CandidateId, 0);
+                }
+
+                // For Instructor: also include Additional Lessons candidates assigned to this instructor
+                if (role == "Instructor")
+                {
+                    var alQuery = from al in _context.AdditionalLessons
+                                  join cat in _context.Categories on al.CategoryId equals cat.CategoryId into catGroup
+                                  from cat in catGroup.DefaultIfEmpty()
+                                  where al.InstructorId == currentUserId
+                                  select new { al, CategoryName = cat != null ? cat.CategoryName : null };
+
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        var s = search.ToLower();
+                        alQuery = alQuery.Where(x =>
+                            (x.al.FirstName != null && x.al.FirstName.ToLower().Contains(s)) ||
+                            (x.al.LastName != null && x.al.LastName.ToLower().Contains(s)));
+                    }
+
+                    if (categoryId.HasValue && categoryId.Value > 0)
+                        alQuery = alQuery.Where(x => x.al.CategoryId == categoryId.Value);
+
+                    var additionalList = await alQuery.ToListAsync();
+
+                    var alIds = additionalList.Select(x => x.al.AdditionalLessonId).ToList();
+                    var alLessonCounts = await _context.PracticalLessons
+                        .Where(l => l.AdditionalLessonId != null && alIds.Contains(l.AdditionalLessonId.Value) && l.InstructorUserId == currentUserId)
+                        .GroupBy(l => l.AdditionalLessonId)
+                        .Select(g => new { AdditionalLessonId = g.Key, Count = g.Count() })
+                        .ToListAsync();
+                    var alCountDict = alLessonCounts.ToDictionary(x => x.AdditionalLessonId ?? 0, x => x.Count);
+
+                    foreach (var x in additionalList)
+                    {
+                        var completedAl = alCountDict.GetValueOrDefault(x.al.AdditionalLessonId, 0);
+                        list.Add(new CandidateInfo
+                        {
+                            CandidateId = 0,
+                            AdditionalLessonId = x.al.AdditionalLessonId,
+                            IsAdditionalLesson = true,
+                            SerialNumber = "OSH",
+                            FirstName = x.al.FirstName,
+                            LastName = x.al.LastName,
+                            PhoneNumber = x.al.ContactNumber,
+                            CategoryId = x.al.CategoryId,
+                            CategoryName = x.CategoryName,
+                            VehicleType = x.al.VehicleType,
+                            PracticalHours = x.al.PracticalHours,
+                            TotalServiceAmount = (int)x.al.ServicePayment,
+                            DateAdded = x.al.DateAdded,
+                            PracticalLessonCount = completedAl,
+                            CompletedHours = completedAl,
+                            RemainingHours = Math.Max(0, (x.al.PracticalHours ?? 0) - completedAl)
+                        });
+                    }
                 }
 
                 int totalRecords = list.Count;
@@ -635,6 +691,95 @@ namespace AdminApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Get Additional Lesson candidate details for the instructor edit view.
+        /// </summary>
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetAdditionalLessonDetails(int id)
+        {
+            try
+            {
+                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+                var role = User.FindFirst("role")?.Value ?? "";
+
+                var al = await (from a in _context.AdditionalLessons
+                                join cat in _context.Categories on a.CategoryId equals cat.CategoryId into catGroup
+                                from cat in catGroup.DefaultIfEmpty()
+                                where a.AdditionalLessonId == id
+                                select new
+                                {
+                                    a.AdditionalLessonId,
+                                    SerialNumber = "OSH",
+                                    a.FirstName,
+                                    a.LastName,
+                                    PhoneNumber = a.ContactNumber,
+                                    a.CategoryId,
+                                    CategoryName = cat != null ? cat.CategoryName : null,
+                                    a.InstructorId,
+                                    a.VehicleType,
+                                    a.PracticalHours,
+                                    a.DateAdded
+                                }).FirstOrDefaultAsync();
+
+                if (al == null)
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Kandidati (orë shtesë) nuk u gjet" });
+
+                if (role == "Instructor" && al.InstructorId != currentUserId)
+                    return Accepted(new Confirmation { Status = "error", ResponseMsg = "Nuk jeni te autorizuar ta shihni kete kandidat" });
+
+                var lessonsQuery = _context.PracticalLessons
+                    .Where(l => l.AdditionalLessonId == id);
+
+                if (role == "Instructor")
+                    lessonsQuery = lessonsQuery.Where(l => l.InstructorUserId == currentUserId);
+
+                var practicalLessons = await (from l in lessonsQuery
+                                              join u in _context.Users on l.InstructorUserId equals u.UserId into uu
+                                              from u in uu.DefaultIfEmpty()
+                                              orderby l.LessonDate ascending, l.Time ascending
+                                              select new
+                                              {
+                                                  practicalLessonId = l.PracticalLessonId,
+                                                  additionalLessonId = l.AdditionalLessonId,
+                                                  instructorUserId = l.InstructorUserId,
+                                                  instructorName = u != null ? u.FullName : null,
+                                                  lessonDate = l.LessonDate,
+                                                  time = l.Time,
+                                                  endTime = l.EndTime,
+                                                  vehicle = l.Vehicle
+                                              }).ToListAsync();
+
+                return Ok(new
+                {
+                    candidate = new
+                    {
+                        CandidateId = 0,
+                        al.AdditionalLessonId,
+                        al.SerialNumber,
+                        al.FirstName,
+                        al.LastName,
+                        al.PhoneNumber,
+                        Address = (string?)null,
+                        al.VehicleType,
+                        al.CategoryId,
+                        al.CategoryName,
+                        al.PracticalHours,
+                        IsAdditionalLesson = true
+                    },
+                    installments = Array.Empty<object>(),
+                    practicalLessons = practicalLessons,
+                    drivingSessions = Array.Empty<object>(),
+                    payments = Array.Empty<object>()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetAdditionalLessonDetails failed for id {Id}", id);
+                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
+            }
+        }
+
         ///<summary>
         ///Update Candidate
         ///</summary>
@@ -823,10 +968,25 @@ namespace AdminApi.Controllers
                     return Unauthorized(new Confirmation { Status = "error", ResponseMsg = "Token i pavlefshem - mungon ID e perdoruesit" });
 
                 var role = User.FindFirst("role")?.Value ?? "";
-                var candidate = await _context.Candidates.FindAsync(request.CandidateId);
-                if (candidate == null)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet" });
-                if (role == "Instructor" && candidate.InstructorId != currentUserId)
+
+                // Support both regular candidates and Additional Lessons candidates
+                int? instructorIdOnRecord = null;
+                if (request.AdditionalLessonId.HasValue && request.AdditionalLessonId.Value > 0)
+                {
+                    var alCandidate = await _context.AdditionalLessons.FindAsync(request.AdditionalLessonId.Value);
+                    if (alCandidate == null)
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati (orë shtesë) nuk u gjet" });
+                    instructorIdOnRecord = alCandidate.InstructorId;
+                }
+                else
+                {
+                    var candidate = await _context.Candidates.FindAsync(request.CandidateId);
+                    if (candidate == null)
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet" });
+                    instructorIdOnRecord = candidate.InstructorId;
+                }
+
+                if (role == "Instructor" && instructorIdOnRecord != currentUserId)
                     return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Nuk jeni te autorizuar te shtoni ore per kete kandidat" });
 
                 // Parse and validate required fields
@@ -868,9 +1028,11 @@ namespace AdminApi.Controllers
                     }
                 }
 
+                bool isAdditionalLesson = request.AdditionalLessonId.HasValue && request.AdditionalLessonId.Value > 0;
                 var lesson = new PracticalLesson
                 {
-                    CandidateId = request.CandidateId,
+                    CandidateId = isAdditionalLesson ? null : request.CandidateId,
+                    AdditionalLessonId = isAdditionalLesson ? request.AdditionalLessonId : null,
                     InstructorUserId = currentUserId,
                     LessonDate = lessonDate,
                     Time = request.Time.Trim(),
@@ -879,9 +1041,39 @@ namespace AdminApi.Controllers
                     DateAdded = DateTime.UtcNow
                 };
                 _context.PracticalLessons.Add(lesson);
+
+                // Also create a ScheduleEvent so the calendar shows it under the instructor name
+                int vehicleId = 0;
+                if (!string.IsNullOrWhiteSpace(request.Vehicle))
+                {
+                    var vehicle = await _context.Vehicles
+                        .Where(v => v.PlateNumber == request.Vehicle || v.Brand == request.Vehicle)
+                        .FirstOrDefaultAsync();
+                    if (vehicle != null) vehicleId = vehicle.VehicleId;
+                }
+                if (vehicleId == 0)
+                {
+                    var firstVehicle = await _context.Vehicles.Where(v => v.IsActive).FirstOrDefaultAsync();
+                    if (firstVehicle != null) vehicleId = firstVehicle.VehicleId;
+                }
+
+                var scheduleEvent = new Models.Schedule.ScheduleEvent
+                {
+                    EventDate = lessonDate,
+                    StartTime = request.Time.Trim(),
+                    EndTime = endTime,
+                    InstructorUserId = currentUserId,
+                    CandidateId = isAdditionalLesson ? null : request.CandidateId,
+                    AdditionalLessonId = isAdditionalLesson ? request.AdditionalLessonId : null,
+                    VehicleId = vehicleId,
+                    Notes = null,
+                    AddedBy = currentUserId,
+                    DateAdded = DateTime.UtcNow
+                };
+                _context.ScheduleEvents.Add(scheduleEvent);
+
                 await _context.SaveChangesAsync();
 
-                // Return the created lesson so the UI can update immediately
                 var instructorName = await _context.Users
                     .Where(u => u.UserId == currentUserId)
                     .Select(u => u.FullName)

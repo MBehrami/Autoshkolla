@@ -9,6 +9,7 @@ export const useUserStore = defineStore("userStore", {
     visible: localStorage.getItem("visible") || false,
     registrationOpen: false,
     componentKey: 0,
+    loggingOut: false,
   }),
   getters: {},
   actions: {

@@ -19,7 +19,7 @@ export interface ApiErrorResponse {
 
 // Create axios instance
 const api = axios.create({
-  baseURL: (import.meta.env.VITE_API_URL as string)?.replace(/\/$/, '') || 'http://localhost:5002',
+  baseURL: import.meta.env.VITE_API_URL?.replace(/\/$/, ''),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

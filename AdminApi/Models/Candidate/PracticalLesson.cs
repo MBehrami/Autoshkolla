@@ -9,8 +9,8 @@ namespace AdminApi.Models.Candidate
     {
         [Key]
         public int PracticalLessonId { get; set; }
-        [Required]
-        public int CandidateId { get; set; }
+        public int? CandidateId { get; set; }
+        public int? AdditionalLessonId { get; set; }
         [Required]
         public int InstructorUserId { get; set; }
         /// <summary>Format dd.MM.yyyy</summary>

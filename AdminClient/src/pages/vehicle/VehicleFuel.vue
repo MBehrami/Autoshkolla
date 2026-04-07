@@ -21,7 +21,7 @@
 
         <v-card class="table-card">
             <div class="filter-bar">
-                <div class="export-group">
+                <div v-if="!isInstructor" class="export-group">
                     <v-btn variant="tonal" color="success" size="small" class="text-none" prepend-icon="mdi-file-excel">
                         <download-excel :data="items" :fields="headersExcel" type="xlsx" worksheet="all-data"
                             name="vehicle-fuel.xlsx">Excel</download-excel>

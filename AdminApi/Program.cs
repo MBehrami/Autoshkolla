@@ -36,21 +36,25 @@ builder.Services.AddScoped(typeof(ISqlRepository<>), typeof(SqlRepository<>));
 
 builder.Services.AddScoped<IFileService, FileService>();
 
+string[] allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://46.225.108.159",
+    "https://46.225.108.159",
+    "http://www.dmsautoshkollalinda.com",
+    "https://www.dmsautoshkollalinda.com",
+    "http://dmsautoshkollalinda.com",
+    "https://dmsautoshkollalinda.com",
+    "http://etestimi.autoshkollalinda.online",
+    "https://etestimi.autoshkollalinda.online"
+];
+
 builder.Services.AddCors(options=>
 {
     options.AddPolicy(name:AllowSpecificOrigins,builder=>
         {
-            builder.WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://46.225.108.159",
-                "https://46.225.108.159",
-                "http://www.dmsautoshkollalinda.com",
-                "https://www.dmsautoshkollalinda.com",
-                "http://dmsautoshkollalinda.com",
-                "https://dmsautoshkollalinda.com"
-            )
+            builder.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
         });
@@ -902,6 +906,97 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception) { /* SiteSettings setup - logged by EF */ }
 
+    // ── AdditionalLessons table ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.AdditionalLessons', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[AdditionalLessons] (
+                    [AdditionalLessonId] INT IDENTITY(1,1) NOT NULL,
+                    [FirstName]          NVARCHAR(100) NOT NULL,
+                    [LastName]           NVARCHAR(100) NOT NULL,
+                    [PersonalNumber]     NVARCHAR(20)  NULL,
+                    [ContactNumber]      NVARCHAR(50)  NOT NULL,
+                    [CategoryId]         INT           NOT NULL,
+                    [InstructorId]       INT           NULL,
+                    [VehicleType]        NVARCHAR(20)  NULL,
+                    [PaymentMethod]      NVARCHAR(20)  NULL,
+                    [PracticalHours]     INT           NULL,
+                    [ServicePayment]     DECIMAL(18,2) NOT NULL DEFAULT 0,
+                    [AdditionalNotes]    NVARCHAR(MAX) NULL,
+                    [AddedBy]            INT           NOT NULL,
+                    [DateAdded]          DATETIME2     NOT NULL DEFAULT GETUTCDATE(),
+                    [LastUpdatedBy]      INT           NULL,
+                    [LastUpdatedDate]    DATETIME2     NULL,
+                    CONSTRAINT [PK_AdditionalLessons] PRIMARY KEY ([AdditionalLessonId])
+                );
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception) { /* AdditionalLessons setup */ }
+
+    // ── AdditionalLessonInstallments table ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF OBJECT_ID(N'dbo.AdditionalLessonInstallments', N'U') IS NULL
+            BEGIN
+                CREATE TABLE [dbo].[AdditionalLessonInstallments] (
+                    [InstallmentId]        INT IDENTITY(1,1) NOT NULL,
+                    [AdditionalLessonId]   INT           NOT NULL,
+                    [InstallmentNumber]    INT           NOT NULL,
+                    [Amount]               INT           NOT NULL,
+                    [InstallmentDate]      NVARCHAR(20)  NULL,
+                    [AddedBy]              INT           NOT NULL,
+                    [DateAdded]            DATETIME2     NOT NULL DEFAULT GETUTCDATE(),
+                    CONSTRAINT [PK_AdditionalLessonInstallments] PRIMARY KEY ([InstallmentId])
+                );
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception) { /* AdditionalLessonInstallments setup */ }
+
+    // ── Add AdditionalLessonId column to PracticalLessons & make CandidateId nullable ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF COL_LENGTH('dbo.PracticalLessons', 'AdditionalLessonId') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[PracticalLessons] ADD [AdditionalLessonId] INT NULL;
+            END
+            IF EXISTS (
+                SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'PracticalLessons' AND COLUMN_NAME = 'CandidateId'
+                AND IS_NULLABLE = 'NO'
+            )
+            BEGIN
+                ALTER TABLE [dbo].[PracticalLessons] ALTER COLUMN [CandidateId] INT NULL;
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception) { /* PracticalLessons migration */ }
+
+    // ── Add AdditionalLessonId column to ScheduleEvents & make CandidateId nullable ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF COL_LENGTH('dbo.ScheduleEvents', 'AdditionalLessonId') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[ScheduleEvents] ADD [AdditionalLessonId] INT NULL;
+            END
+            IF EXISTS (
+                SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'ScheduleEvents' AND COLUMN_NAME = 'CandidateId'
+                AND IS_NULLABLE = 'NO'
+            )
+            BEGIN
+                ALTER TABLE [dbo].[ScheduleEvents] ALTER COLUMN [CandidateId] INT NULL;
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception) { /* ScheduleEvents migration */ }
+
     // ── Fix SiteSettings copyright + title for existing rows ──
     try
     {
@@ -949,22 +1044,51 @@ using (var scope = app.Services.CreateScope())
 
 // ── Middleware pipeline (order matters!) ──
 
-// 1) Routing must come first
+// 0) Handle CORS preflight (OPTIONS) as early as possible so IIS modules,
+//    auth middleware, or routing can never block it.
+var corsOriginSet = new HashSet<string>(allowedOrigins, StringComparer.OrdinalIgnoreCase);
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        var origin = context.Request.Headers.Origin.ToString();
+        if (corsOriginSet.Contains(origin))
+        {
+            context.Response.StatusCode = StatusCodes.Status204NoContent;
+            context.Response.Headers.Append("Access-Control-Allow-Origin", origin);
+            context.Response.Headers.Append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, Authorization");
+            context.Response.Headers.Append("Access-Control-Max-Age", "86400");
+            return;
+        }
+    }
+    await next();
+});
+
+// 1) Routing
 app.UseRouting();
 
-// 2) CORS — between UseRouting and UseAuthorization
+// 2) CORS — adds Access-Control-Allow-Origin to non-preflight responses
 app.UseCors(AllowSpecificOrigins);
 
 // 3) Static files
 app.UseStaticFiles();
+
+var resourcesPath = Path.Combine(app.Environment.ContentRootPath, "Resources");
+if (!Directory.Exists(resourcesPath))
+    Directory.CreateDirectory(resourcesPath);
 app.UseStaticFiles(new StaticFileOptions()
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
+    FileProvider = new PhysicalFileProvider(resourcesPath),
     RequestPath = new PathString("/Resources")
 });
+
+var filesPath = Path.Combine(app.Environment.ContentRootPath, "files");
+if (!Directory.Exists(filesPath))
+    Directory.CreateDirectory(filesPath);
 app.UseStaticFiles(new StaticFileOptions()
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"files")),
+    FileProvider = new PhysicalFileProvider(filesPath),
     RequestPath = new PathString("/files")
 });
 

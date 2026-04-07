@@ -239,7 +239,9 @@
                                 min="0.01" step="0.01"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6">
-                            <v-select v-model="formEntryType" :items="['Hyrje', 'Dalje']" label="Lloji"
+                            <v-select v-model="formEntryType"
+                                :items="[{ title: 'Hyrje', value: 'Income' }, { title: 'Dalje', value: 'Expense' }]"
+                                item-title="title" item-value="value" label="Lloji"
                                 variant="outlined" density="compact" prepend-inner-icon="mdi-tag"></v-select>
                         </v-col>
                         <v-col cols="12">
@@ -411,10 +413,10 @@ function toggleDayStatus() {
     store.toggleDayStatus(selectedDateStr.value)
         .then((res) => {
             dayStatus.value = res?.data?.dayStatus || 'Open';
-            settingStore.alertMessage({ type: 'success', message: res?.data?.responseMsg || 'Status updated.' });
+            settingStore.toggleSnackbar({ status: true, msg: res?.data?.responseMsg || 'Statusi u perditesua.' });
         })
         .catch((err) => {
-            settingStore.alertMessage({ type: 'error', message: err?.response?.data?.responseMsg || 'Failed to toggle status.' });
+            settingStore.toggleSnackbar({ status: true, msg: err?.response?.data?.responseMsg || 'Gabim gjate ndryshimit te statusit.' });
         });
 }
 
@@ -479,7 +481,7 @@ function saveEntry() {
             saving.value = false;
             if (res?.data?.status === 'success') {
                 createDialog.value = false;
-                settingStore.alertMessage({ type: 'success', message: res.data.responseMsg || 'Entry created.' });
+                settingStore.toggleSnackbar({ status: true, msg: res.data.responseMsg || 'Hyrja u krijua.' });
                 loadEntries();
             } else {
                 formError.value = res?.data?.responseMsg || 'Failed to create entry.';
@@ -514,15 +516,15 @@ function doReverse() {
             reversing.value = false;
             if (res?.data?.status === 'success') {
                 reverseDialog.value = false;
-                settingStore.alertMessage({ type: 'success', message: res.data.responseMsg || 'Reversal created.' });
+                settingStore.toggleSnackbar({ status: true, msg: res.data.responseMsg || 'Rikthimi u krijua.' });
                 loadEntries();
             } else {
-                settingStore.alertMessage({ type: 'error', message: res?.data?.responseMsg || 'Reversal failed.' });
+                settingStore.toggleSnackbar({ status: true, msg: res?.data?.responseMsg || 'Rikthimi deshtoi.' });
             }
         })
         .catch((err) => {
             reversing.value = false;
-            settingStore.alertMessage({ type: 'error', message: err?.response?.data?.responseMsg || 'Reversal failed.' });
+            settingStore.toggleSnackbar({ status: true, msg: err?.response?.data?.responseMsg || 'Rikthimi deshtoi.' });
         });
 }
 
