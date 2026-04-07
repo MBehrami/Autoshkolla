@@ -64,11 +64,13 @@ namespace AdminApi.Controllers
                     query = query.Where(e => e.EntryType == entryType.Trim());
                 }
 
-                // Search by name
+                // Search by name or description
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     string s = search.Trim().ToLower();
-                    query = query.Where(e => e.FullName.ToLower().Contains(s));
+                    query = query.Where(e =>
+                        e.FullName.ToLower().Contains(s) ||
+                        (e.Description != null && e.Description.ToLower().Contains(s)));
                 }
 
                 var entries = await query

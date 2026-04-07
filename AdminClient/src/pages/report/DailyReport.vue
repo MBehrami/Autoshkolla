@@ -83,7 +83,7 @@
                     </v-col>
                     <!-- Search -->
                     <v-col cols="12" sm="3">
-                        <v-text-field v-model="searchText" label="Kërko sipas emrit" prepend-inner-icon="mdi-magnify"
+                        <v-text-field v-model="searchText" label="Kërko (Emri, Përshkrimi)" prepend-inner-icon="mdi-magnify"
                             variant="outlined" density="compact" hide-details clearable
                             @keyup.enter="loadEntries"></v-text-field>
                     </v-col>

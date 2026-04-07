@@ -273,12 +273,13 @@ const buildMenu = (apiItems) => {
         if (!has('/dashboard')) {
             items = [{ id: 1, title: 'Dashboard', icon: 'mdi-view-dashboard', route: '/dashboard', order: 0, childItems: [] }, ...items]
         }
-        if (!has('/candidates') || !has('/driving-sessions')) {
-            items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates')
+        if (!has('/candidates') || !has('/driving-sessions') || !has('/additional-lessons')) {
+            items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates' && (m.route || '').toLowerCase() !== '/additional-lessons')
             items.push({
                 id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8,
                 childItems: [
                     { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                    { id: 143, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons' },
                     { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
                 ]
             })
@@ -298,9 +299,6 @@ const buildMenu = (apiItems) => {
                     { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
                 ]
             })
-        }
-        if (!has('/additional-lessons')) {
-            items.push({ id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] })
         }
         if (!has('/daily-report')) {
             items.push({
@@ -339,12 +337,13 @@ const buildMenu = (apiItems) => {
         })
         items = items.filter(m => m.route || (m.childItems && m.childItems.length > 0))
 
-        if (!has('/candidates') || !has('/driving-sessions')) {
-            items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates')
+        if (!has('/candidates') || !has('/driving-sessions') || !has('/additional-lessons')) {
+            items = items.filter(m => (m.route || '').toLowerCase() !== '/candidates' && (m.route || '').toLowerCase() !== '/additional-lessons')
             items.push({
                 id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8,
                 childItems: [
                     { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                    { id: 143, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons' },
                     { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
                 ]
             })
@@ -364,9 +363,6 @@ const buildMenu = (apiItems) => {
                     { id: 23, title: 'Serviset e Automjeteve', icon: 'mdi-wrench', route: '/vehicle-services' }
                 ]
             })
-        }
-        if (!has('/additional-lessons')) {
-            items.push({ id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] })
         }
         if (!has('/daily-report')) {
             items.push({
@@ -410,9 +406,9 @@ const getFallbackMenu = () => {
             { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] },
             { id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8, childItems: [
                 { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                { id: 143, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons' },
                 { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
             ]},
-            { id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] },
             { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
             { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
                 { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },
@@ -437,9 +433,9 @@ const getFallbackMenu = () => {
             { id: 16, title: 'Oraret', icon: 'mdi-calendar-clock', route: '/schedules', order: 7, childItems: [] },
             { id: 14, title: 'Kandidatet', icon: 'mdi-account-group', route: '', order: 8, childItems: [
                 { id: 141, title: 'Lista e Kandidateve', icon: 'mdi-account-multiple', route: '/candidates' },
+                { id: 143, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons' },
                 { id: 142, title: 'Vozitjet', icon: 'mdi-car-clock', route: '/driving-sessions' }
             ]},
-            { id: 17, title: 'Orë Shtesë', icon: 'mdi-book-plus-multiple', route: '/additional-lessons', order: 9, childItems: [] },
             { id: 15, title: 'Instructors', icon: 'mdi-account-tie', route: '/instructors', order: 9, childItems: [] },
             { id: 20, title: 'Automjetet', icon: 'mdi-car', route: '', order: 10, childItems: [
                 { id: 21, title: 'Lista e Automjeteve', icon: 'mdi-car-side', route: '/vehicles' },

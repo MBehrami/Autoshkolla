@@ -997,6 +997,18 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception) { /* ScheduleEvents migration */ }
 
+    // ── Add LinkedCandidateId column to AdditionalLessons ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF COL_LENGTH('dbo.AdditionalLessons', 'LinkedCandidateId') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[AdditionalLessons] ADD [LinkedCandidateId] INT NULL;
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception) { /* LinkedCandidateId migration */ }
+
     // ── Fix SiteSettings copyright + title for existing rows ──
     try
     {

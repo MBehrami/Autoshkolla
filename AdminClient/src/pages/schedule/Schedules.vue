@@ -597,7 +597,7 @@ async function saveEvent() {
                 }));
                 candidateOptions.value = freshList;
                 const targetName = `${firstName} ${lastName}`;
-                const match = freshList.find(c => c.fullName === targetName);
+                const match = freshList.find(c => c.fullName.startsWith(targetName));
                 if (!match) {
                     formError.value = 'Kandidati u regjistrua por nuk u gjet në listë. Provoni përsëri.';
                     saving.value = false;

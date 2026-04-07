@@ -14,7 +14,7 @@
                     <div class="d-flex align-center ga-3 flex-wrap w-100">
                         <v-text-field
                             v-model="searchText"
-                            label="Kërko (Emri, Telefoni)"
+                            label="Kërko (Emri, Telefoni, Nr. Personal)"
                             variant="outlined"
                             density="compact"
                             hide-details
@@ -305,7 +305,7 @@ const normalizeExamCategory = (category) => ({
 
 const formatCandidateOption = (candidate) => {
     if (!candidate) return '';
-    return candidate.phoneNumber ? `${candidate.fullName} (${candidate.phoneNumber})` : candidate.fullName;
+    return candidate.fullName || '';
 };
 
 const getExamCategoryLabel = (item) => {

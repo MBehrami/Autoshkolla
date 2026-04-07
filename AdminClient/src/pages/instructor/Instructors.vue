@@ -36,7 +36,7 @@
                 <div class="filter-inputs">
                     <v-text-field
                         v-model="searchText"
-                        label="Kërko (Emri, Mbiemri)"
+                        label="Kërko (Emri, Mbiemri, Nr. Personal)"
                         prepend-inner-icon="mdi-magnify"
                         clearable
                         class="filter-field filter-field--search"
@@ -95,6 +95,7 @@ const { loading } = storeToRefs(instructorStore)
 
 const headers = ref([
     { title: 'Emri i plotë', key: 'fullName' },
+    { title: 'Nr. Personal', key: 'personalNumber' },
     { title: 'Numri i telefonit', key: 'phoneNumber' },
     { title: 'Lloji i kontratës', key: 'scheduleType' },
     { title: 'Numri i licensës', key: 'licenseNumber' },
@@ -105,6 +106,7 @@ const headers = ref([
 
 const headersExcel = {
     'Emri i plotë': 'fullName',
+    'Nr. Personal': 'personalNumber',
     'Numri i telefonit': 'phoneNumber',
     'Tipi i orarit': 'scheduleType',
     'Numri i licensës': 'licenseNumber',
@@ -129,6 +131,7 @@ function normalizeInstructor(row) {
         id: row.userId ?? row.UserId,
         userId: row.userId ?? row.UserId,
         fullName,
+        personalNumber: row.personalNumber ?? row.PersonalNumber ?? '',
         phoneNumber: row.phoneNumber ?? row.PhoneNumber ?? '',
         scheduleType: row.scheduleType ?? row.ScheduleType ?? '',
         licenseNumber: row.licenseNumber ?? row.LicenseNumber ?? '',

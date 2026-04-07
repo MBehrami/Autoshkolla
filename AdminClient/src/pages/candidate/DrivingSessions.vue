@@ -194,7 +194,7 @@
                         <v-spacer></v-spacer>
                         <v-text-field
                             v-model="waitingSearch"
-                            placeholder="Kërko sipas emrit..."
+                            placeholder="Kërko (Emri, Mbiemri)..."
                             prepend-inner-icon="mdi-magnify"
                             variant="outlined"
                             density="compact"

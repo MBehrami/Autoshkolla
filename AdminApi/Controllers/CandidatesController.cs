@@ -143,8 +143,17 @@ namespace AdminApi.Controllers
                 // If you have a different way to identify instructors, adjust this query
                 var list = await (from u in _context.Users
                                  join r in _context.UserRole on u.UserRoleId equals r.UserRoleId
+                                 join ip in _context.InstructorProfiles on u.UserId equals ip.UserId into ipGroup
+                                 from ip in ipGroup.DefaultIfEmpty()
                                  where u.IsActive == true && r.RoleName == "Instructor"
-                                 select new { u.UserId, FullName = u.FullName })
+                                 select new
+                                 {
+                                     u.UserId,
+                                     FullName = u.FullName
+                                         + (ip != null && ip.PersonalNumber != null && ip.PersonalNumber != ""
+                                             ? " (" + ip.PersonalNumber + ")" : ""),
+                                     PersonalNumber = ip != null ? ip.PersonalNumber : null
+                                 })
                                  .ToListAsync();
 
                 return Ok(new { data = list });
@@ -326,13 +335,12 @@ namespace AdminApi.Controllers
                 if (role == "Instructor")
                     query = query.Where(c => c.InstructorId == currentUserId);
 
-                // Apply search filter (FirstName, LastName, PersonalNumber)
+                // Apply search filter (FirstName, LastName, full name, PersonalNumber)
                 if (!string.IsNullOrEmpty(search))
                 {
                     var searchLower = search.ToLower();
                     var personalNumberSearch = search;
                     
-                    // Get candidate IDs that match PersonalNumber
                     var personalNumberMatches = await _context.Candidates
                         .Where(c => c.PersonalNumber != null && c.PersonalNumber.Contains(personalNumberSearch))
                         .Select(c => c.CandidateId)
@@ -341,6 +349,7 @@ namespace AdminApi.Controllers
                     query = query.Where(c => 
                         (c.FirstName != null && c.FirstName.ToLower().Contains(searchLower)) ||
                         (c.LastName != null && c.LastName.ToLower().Contains(searchLower)) ||
+                        (c.FirstName + " " + c.LastName).ToLower().Contains(searchLower) ||
                         personalNumberMatches.Contains(c.CandidateId));
                 }
 
@@ -411,7 +420,9 @@ namespace AdminApi.Controllers
                         var s = search.ToLower();
                         alQuery = alQuery.Where(x =>
                             (x.al.FirstName != null && x.al.FirstName.ToLower().Contains(s)) ||
-                            (x.al.LastName != null && x.al.LastName.ToLower().Contains(s)));
+                            (x.al.LastName != null && x.al.LastName.ToLower().Contains(s)) ||
+                            (x.al.FirstName + " " + x.al.LastName).ToLower().Contains(s) ||
+                            (x.al.PersonalNumber != null && x.al.PersonalNumber.Contains(search)));
                     }
 
                     if (categoryId.HasValue && categoryId.Value > 0)
@@ -676,13 +687,71 @@ namespace AdminApi.Controllers
                     }
                 }
 
+                // ── Additional Lessons linked to this candidate (by LinkedCandidateId or matching personal number) ──
+                var candidatePersonalNumber = candidate.PersonalNumber;
+                var additionalLessons = await (from al in _context.AdditionalLessons
+                                               join cat in _context.Categories on al.CategoryId equals cat.CategoryId into catGroup
+                                               from cat in catGroup.DefaultIfEmpty()
+                                               join u in _context.Users on al.InstructorId equals u.UserId into instrGroup
+                                               from instr in instrGroup.DefaultIfEmpty()
+                                               where al.LinkedCandidateId == id
+                                                  || (candidatePersonalNumber != null
+                                                      && candidatePersonalNumber != ""
+                                                      && al.PersonalNumber == candidatePersonalNumber)
+                                               orderby al.DateAdded descending
+                                               select new
+                                               {
+                                                   al.AdditionalLessonId,
+                                                   al.FirstName,
+                                                   al.LastName,
+                                                   categoryName = cat != null ? cat.CategoryName : null,
+                                                   instructorName = instr != null ? instr.FullName : null,
+                                                   al.PracticalHours,
+                                                   al.ServicePayment,
+                                                   al.AdditionalNotes,
+                                                   al.DateAdded
+                                               }).ToListAsync();
+
+                var alIds = additionalLessons.Select(x => x.AdditionalLessonId).ToList();
+                var alInstallmentSums = alIds.Count > 0
+                    ? await _context.AdditionalLessonInstallments
+                        .Where(i => alIds.Contains(i.AdditionalLessonId))
+                        .GroupBy(i => i.AdditionalLessonId)
+                        .Select(g => new { AdditionalLessonId = g.Key, Total = g.Sum(i => i.Amount) })
+                        .ToDictionaryAsync(x => x.AdditionalLessonId, x => x.Total)
+                    : new Dictionary<int, int>();
+
+                var alLessonCounts = alIds.Count > 0
+                    ? await _context.PracticalLessons
+                        .Where(l => l.AdditionalLessonId != null && alIds.Contains(l.AdditionalLessonId.Value))
+                        .GroupBy(l => l.AdditionalLessonId)
+                        .Select(g => new { AdditionalLessonId = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(x => x.AdditionalLessonId ?? 0, x => x.Count)
+                    : new Dictionary<int, int>();
+
+                var additionalLessonsResult = additionalLessons.Select(al => new
+                {
+                    al.AdditionalLessonId,
+                    al.FirstName,
+                    al.LastName,
+                    al.categoryName,
+                    al.instructorName,
+                    al.PracticalHours,
+                    al.ServicePayment,
+                    totalPaidAmount = alInstallmentSums.GetValueOrDefault(al.AdditionalLessonId, 0),
+                    completedLessons = alLessonCounts.GetValueOrDefault(al.AdditionalLessonId, 0),
+                    al.AdditionalNotes,
+                    al.DateAdded
+                }).ToList();
+
                 return Ok(new
                 {
                     candidate = candidate,
                     installments = installments,
                     practicalLessons = practicalLessons,
                     drivingSessions = drivingSessions,
-                    payments = payments
+                    payments = payments,
+                    additionalLessons = additionalLessonsResult
                 });
             }
             catch (Exception ex)

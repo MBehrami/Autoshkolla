@@ -4,6 +4,7 @@ namespace AdminApi.ViewModels.Candidate
 {
     public class AdditionalLessonRequest
     {
+        public int? LinkedCandidateId { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? PersonalNumber { get; set; }

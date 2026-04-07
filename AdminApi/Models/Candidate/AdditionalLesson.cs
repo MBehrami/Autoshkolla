@@ -9,6 +9,8 @@ namespace AdminApi.Models.Candidate
         [Key]
         public int AdditionalLessonId { get; set; }
 
+        public int? LinkedCandidateId { get; set; }
+
         [Required]
         [StringLength(100)]
         public string FirstName { get; set; } = string.Empty;

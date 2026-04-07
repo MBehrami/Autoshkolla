@@ -389,8 +389,17 @@ namespace AdminApi.Controllers
         {
             var list = await (from u in _context.Users
                              join r in _context.UserRole on u.UserRoleId equals r.UserRoleId
+                             join ip in _context.InstructorProfiles on u.UserId equals ip.UserId into ipGroup
+                             from ip in ipGroup.DefaultIfEmpty()
                              where u.IsActive == true
-                             select new { u.UserId, u.FullName, RoleName = r.RoleName })
+                             select new
+                             {
+                                 u.UserId,
+                                 FullName = u.FullName
+                                     + (ip != null && ip.PersonalNumber != null && ip.PersonalNumber != ""
+                                         ? " (" + ip.PersonalNumber + ")" : ""),
+                                 RoleName = r.RoleName
+                             })
                             .OrderBy(u => u.FullName)
                             .ToListAsync();
             return Ok(new { data = list });

@@ -55,6 +55,14 @@
                         class="filter-field filter-field--category"
                         @update:model-value="handleFilter"
                     ></v-select>
+                    <v-select
+                        v-model="selectedYear"
+                        :items="years"
+                        label="Viti"
+                        clearable
+                        class="filter-field filter-field--year"
+                        @update:model-value="handleFilter"
+                    ></v-select>
                 </div>
             </div>
 
@@ -154,8 +162,10 @@ const headersPdf = ['First Name', 'Last Name', 'Personal Number', 'Contact', 'Ca
 
 const items = ref([])
 const categories = ref([])
+const years = ref([])
 const searchText = ref('')
 const selectedCategory = ref(null)
+const selectedYear = ref(new Date().getFullYear())
 const dialog = ref(false)
 const editedIndex = ref(-1)
 const editedItem = ref(null)
@@ -209,7 +219,7 @@ function normalizeItem(row) {
 }
 
 const loadItems = () => {
-    store.getList(searchText.value, selectedCategory.value)
+    store.getList(searchText.value, selectedCategory.value, selectedYear.value)
         .then((response) => {
             const body = response?.data
             if (body && (body.status === 'error' || body.responseMsg)) {
@@ -228,6 +238,15 @@ const loadItems = () => {
         .catch((error) => {
             settingStore.toggleSnackbar({ status: true, msg: error?.response?.data?.responseMsg || 'Error loading data' })
         })
+}
+
+const loadYears = () => {
+    store.getAvailableYears()
+        .then((response) => {
+            const raw = response?.data?.data
+            years.value = Array.isArray(raw) ? raw : []
+        })
+        .catch(() => { years.value = [] })
 }
 
 const loadCategories = () => {
@@ -261,12 +280,14 @@ const handleSaved = () => {
     editedItemId.value = null
     searchText.value = ''
     selectedCategory.value = null
+    selectedYear.value = new Date().getFullYear()
     loadItems()
 }
 
 onMounted(() => {
     loadItems()
     loadCategories()
+    loadYears()
 })
 
 watch(dialog, (newVal) => {
@@ -294,6 +315,10 @@ watch(dialog, (newVal) => {
     min-width: 160px;
 }
 
+.filter-field--year {
+    min-width: 110px;
+}
+
 .candidates-table {
     border: none !important;
     box-shadow: none !important;
@@ -310,7 +335,8 @@ watch(dialog, (newVal) => {
     }
 
     .filter-field--search,
-    .filter-field--category {
+    .filter-field--category,
+    .filter-field--year {
         min-width: 0;
         flex: 1;
     }
@@ -322,7 +348,8 @@ watch(dialog, (newVal) => {
     }
 
     .filter-field--search,
-    .filter-field--category {
+    .filter-field--category,
+    .filter-field--year {
         width: 100%;
     }
 

@@ -6,6 +6,7 @@ namespace AdminApi.ViewModels.Instructor
         public int UserId { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? PersonalNumber { get; set; }
         /// <summary>Display: FirstName + " " + LastName (no ParentName in list).</summary>
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }

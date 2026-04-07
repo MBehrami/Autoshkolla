@@ -51,6 +51,7 @@ namespace AdminApi.Controllers
                                 AccountLastName = a.LastName,
                                 CandidateFirstName = c != null ? c.FirstName : null,
                                 CandidateLastName = c != null ? c.LastName : null,
+                                CandidatePersonalNumber = c != null ? c.PersonalNumber : null,
                                 a.PhoneNumber,
                                 a.Email,
                                 a.ValidTo,
@@ -63,6 +64,7 @@ namespace AdminApi.Controllers
                     var s = search.Trim().ToLower();
                     query = query.Where(x =>
                         (((x.CandidateFirstName ?? x.AccountFirstName ?? "") + " " + (x.CandidateLastName ?? x.AccountLastName ?? "")).ToLower().Contains(s)) ||
+                        (x.CandidatePersonalNumber != null && x.CandidatePersonalNumber.Contains(search.Trim())) ||
                         x.PhoneNumber.ToLower().Contains(s) ||
                         (x.Email ?? "").ToLower().Contains(s));
                 }
@@ -445,6 +447,9 @@ namespace AdminApi.Controllers
                     var s = search.Trim().ToLower();
                     query = query.Where(c =>
                         ((c.FirstName ?? "") + " " + (c.LastName ?? "")).ToLower().Contains(s) ||
+                        (c.FirstName != null && c.FirstName.ToLower().Contains(s)) ||
+                        (c.LastName != null && c.LastName.ToLower().Contains(s)) ||
+                        (c.PersonalNumber != null && c.PersonalNumber.Contains(search.Trim())) ||
                         (c.PhoneNumber ?? "").ToLower().Contains(s));
                 }
 
@@ -456,7 +461,8 @@ namespace AdminApi.Controllers
                         c.CandidateId,
                         c.FirstName,
                         c.LastName,
-                        phoneNumber = c.PhoneNumber
+                        phoneNumber = c.PhoneNumber,
+                        c.PersonalNumber
                     })
                     .ToListAsync();
 
@@ -465,8 +471,10 @@ namespace AdminApi.Controllers
                     c.CandidateId,
                     c.FirstName,
                     c.LastName,
-                    fullName = string.Join(" ", new[] { c.FirstName, c.LastName }.Where(v => !string.IsNullOrWhiteSpace(v))),
-                    c.phoneNumber
+                    fullName = string.Join(" ", new[] { c.FirstName, c.LastName }.Where(v => !string.IsNullOrWhiteSpace(v)))
+                        + (!string.IsNullOrWhiteSpace(c.PersonalNumber) ? $" ({c.PersonalNumber})" : ""),
+                    c.phoneNumber,
+                    c.PersonalNumber
                 });
 
                 return Ok(new { data = list });

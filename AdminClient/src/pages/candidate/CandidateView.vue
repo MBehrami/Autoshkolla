@@ -122,6 +122,42 @@
                         </v-card-text>
                     </v-card>
 
+                    <!-- Additional Lessons linked to this candidate (Admin) -->
+                    <v-card v-if="!isInstructor && additionalLessons.length > 0" class="mb-4">
+                        <v-card-text class="pa-5">
+                            <div class="section-title d-flex flex-wrap align-center ga-2">
+                                <span>Orë Shtesë</span>
+                                <v-chip size="x-small" variant="tonal" color="deep-orange">{{ additionalLessons.length }}</v-chip>
+                            </div>
+                            <v-table density="comfortable" class="detail-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Orët praktike</th>
+                                        <th>Pagesa</th>
+                                        <th>Paguar</th>
+                                        <th>Mësimet</th>
+                                        <th>Instruktori</th>
+                                        <th>Shënime</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="al in additionalLessons" :key="al.additionalLessonId">
+                                        <td>{{ formatAlDate(al.dateAdded) }}</td>
+                                        <td>{{ al.practicalHours ?? '–' }}</td>
+                                        <td class="font-weight-medium">{{ al.servicePayment }} &euro;</td>
+                                        <td>
+                                            <span style="color:#10b981" class="font-weight-medium">{{ al.totalPaidAmount ?? 0 }} &euro;</span>
+                                        </td>
+                                        <td>{{ al.completedLessons ?? 0 }}</td>
+                                        <td>{{ al.instructorName || '–' }}</td>
+                                        <td>{{ al.additionalNotes || '–' }}</td>
+                                    </tr>
+                                </tbody>
+                            </v-table>
+                        </v-card-text>
+                    </v-card>
+
                     <!-- Driving Sessions (Admin) -->
                     <v-card v-if="!isInstructor" class="mb-4">
                         <v-card-text class="pa-5">
@@ -303,6 +339,7 @@ const installments = ref([])
 const practicalLessons = ref([])
 const drivingSessions = ref([])
 const payments = ref([])
+const additionalLessons = ref([])
 const downloadingPdf = ref(false)
 const downloadingContract = ref(false)
 const downloadingCertificate = ref(false)
@@ -363,6 +400,13 @@ function paymentTypeColor(type) {
     return 'secondary'
 }
 
+function formatAlDate(dateVal) {
+    if (!dateVal) return '–'
+    const d = new Date(dateVal)
+    if (isNaN(d.getTime())) return String(dateVal)
+    return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`
+}
+
 const loadCandidateDetails = () => {
     candidateStore.getCandidateDetails(candidateId.value)
         .then((response) => {
@@ -371,6 +415,7 @@ const loadCandidateDetails = () => {
             practicalLessons.value = response.data.practicalLessons || []
             drivingSessions.value = response.data.drivingSessions || []
             payments.value = response.data.payments || []
+            additionalLessons.value = response.data.additionalLessons || []
         })
         .catch(() => {
             settingStore.toggleSnackbar({ status: true, msg: 'Error loading candidate details' })

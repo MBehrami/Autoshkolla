@@ -7,6 +7,40 @@
         <v-divider></v-divider>
         <v-card-text class="additional-form-body">
             <v-form v-model="valid" ref="formRef" @submit.prevent="save">
+
+                <!-- Candidate lookup toggle -->
+                <v-row dense class="mb-2">
+                    <v-col cols="12">
+                        <v-switch v-model="isExistingCandidate" color="primary" density="compact"
+                            label="A është kandidat i regjistruar?" hide-details class="mt-0"></v-switch>
+                    </v-col>
+                </v-row>
+
+                <!-- Candidate autocomplete (shown when toggle is on) -->
+                <v-row v-if="isExistingCandidate" dense class="mb-2">
+                    <v-col cols="12">
+                        <v-autocomplete v-model="selectedCandidate" :items="candidateSearchResults"
+                            :loading="candidateSearchLoading" item-value="candidateId"
+                            :item-title="candidateDisplayName" label="Kërko kandidatin (emri ose numri personal)"
+                            variant="outlined" clearable return-object no-filter
+                            @update:search="onCandidateSearch" @update:model-value="onCandidateSelected">
+                            <template v-slot:item="{ item, props: itemProps }">
+                                <v-list-item v-bind="itemProps">
+                                    <template v-slot:subtitle>
+                                        {{ item.raw.personalNumber || 'Pa numër personal' }} &mdash;
+                                        {{ item.raw.categoryName || '' }}
+                                    </template>
+                                </v-list-item>
+                            </template>
+                            <template v-slot:no-data>
+                                <v-list-item>
+                                    <v-list-item-title>Nuk u gjet asnjë kandidat</v-list-item-title>
+                                </v-list-item>
+                            </template>
+                        </v-autocomplete>
+                    </v-col>
+                </v-row>
+
                 <!-- Personal info -->
                 <h3 class="form-section-title">Të dhënat personale</h3>
                 <v-row dense>
@@ -147,7 +181,7 @@
             <v-spacer></v-spacer>
             <v-btn text="Anulo" color="primary" class="text-capitalize" @click="closeDialog"></v-btn>
             <v-btn :disabled="!valid || !!installmentError" :loading="store.loading"
-                text="Regjistro" color="grey-darken-4" class="text-capitalize" @click="save"></v-btn>
+                :text="isEdit ? 'Ruaj' : 'Regjistro'" color="grey-darken-4" class="text-capitalize" @click="save"></v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -178,6 +212,14 @@ const categorySelect = ref(null)
 const instructorSelect = ref(null)
 const installmentError = ref('')
 const installmentsDisabled = ref([false, false, false])
+
+// Candidate lookup
+const isExistingCandidate = ref(false)
+const selectedCandidate = ref(null)
+const candidateSearchResults = ref([])
+const candidateSearchLoading = ref(false)
+const linkedCandidateId = ref(null)
+let candidateSearchTimeout = null
 
 const inst1DateMenu = ref(false)
 const inst1DateModel = ref(null)
@@ -214,6 +256,66 @@ const installments = ref([
     { installmentNumber: 2, amount: 0, installmentDate: '' },
     { installmentNumber: 3, amount: 0, installmentDate: '' }
 ])
+
+const candidateDisplayName = (item) => {
+    if (!item) return ''
+    const fn = item.firstName ?? item.FirstName ?? ''
+    const ln = item.lastName ?? item.LastName ?? ''
+    const pn = item.personalNumber ?? item.PersonalNumber ?? ''
+    return `${fn} ${ln}${pn ? ' (' + pn + ')' : ''}`
+}
+
+const onCandidateSearch = (searchText) => {
+    if (candidateSearchTimeout) clearTimeout(candidateSearchTimeout)
+    if (!searchText || searchText.length < 2) {
+        candidateSearchResults.value = []
+        return
+    }
+    candidateSearchTimeout = setTimeout(() => {
+        candidateSearchLoading.value = true
+        store.searchCandidatesForLink(searchText)
+            .then((response) => {
+                const data = response?.data
+                const arr = Array.isArray(data) ? data : (data?.data ?? [])
+                candidateSearchResults.value = arr.map(c => ({
+                    candidateId: c.candidateId ?? c.CandidateId,
+                    firstName: c.firstName ?? c.FirstName ?? '',
+                    lastName: c.lastName ?? c.LastName ?? '',
+                    personalNumber: c.personalNumber ?? c.PersonalNumber ?? '',
+                    phoneNumber: c.phoneNumber ?? c.PhoneNumber ?? '',
+                    categoryId: c.categoryId ?? c.CategoryId,
+                    categoryName: c.categoryName ?? c.CategoryName ?? '',
+                    instructorId: c.instructorId ?? c.InstructorId ?? null,
+                    instructorName: c.instructorName ?? c.InstructorName ?? '',
+                    vehicleType: c.vehicleType ?? c.VehicleType ?? null,
+                }))
+            })
+            .catch(() => { candidateSearchResults.value = [] })
+            .finally(() => { candidateSearchLoading.value = false })
+    }, 400)
+}
+
+const onCandidateSelected = (candidate) => {
+    if (!candidate) {
+        linkedCandidateId.value = null
+        return
+    }
+    linkedCandidateId.value = candidate.candidateId
+    form.value.firstName = candidate.firstName || ''
+    form.value.lastName = candidate.lastName || ''
+    form.value.personalNumber = candidate.personalNumber || ''
+    form.value.contactNumber = candidate.phoneNumber || ''
+    form.value.vehicleType = candidate.vehicleType || null
+
+    if (candidate.categoryId && categories.value.length) {
+        const cat = categories.value.find(c => c.categoryId === candidate.categoryId)
+        if (cat) categorySelect.value = cat
+    }
+    if (candidate.instructorId && instructors.value.length) {
+        const instr = instructors.value.find(i => i.userId === candidate.instructorId)
+        if (instr) instructorSelect.value = instr
+    }
+}
 
 const formatDate = (value) => {
     if (!value) return ''
@@ -275,7 +377,7 @@ const validateInstallments = () => {
         return false
     }
 
-    if (installments.value[0].amount === form.value.servicePayment) {
+    if (installments.value[0].amount === form.value.servicePayment && form.value.servicePayment > 0) {
         installmentsDisabled.value[1] = true
         installmentsDisabled.value[2] = true
         installments.value[1].amount = 0
@@ -297,6 +399,10 @@ const resetForm = () => {
     form.value = defaultForm()
     categorySelect.value = null
     instructorSelect.value = null
+    isExistingCandidate.value = false
+    selectedCandidate.value = null
+    candidateSearchResults.value = []
+    linkedCandidateId.value = null
     installments.value = [
         { installmentNumber: 1, amount: 0, installmentDate: '' },
         { installmentNumber: 2, amount: 0, installmentDate: '' },
@@ -328,6 +434,10 @@ const populateForm = (data) => {
         servicePayment: al.servicePayment ?? al.ServicePayment ?? 0,
         additionalNotes: al.additionalNotes ?? al.AdditionalNotes ?? '',
     }
+
+    const lcId = al.linkedCandidateId ?? al.LinkedCandidateId ?? null
+    linkedCandidateId.value = lcId
+    isExistingCandidate.value = !!lcId
 
     const catId = form.value.categoryId
     if (catId && categories.value.length) {
@@ -373,16 +483,29 @@ watch(() => form.value.servicePayment, () => {
     validateInstallments()
 })
 
-watch(() => props.modelValue, (visible) => {
-    if (visible && props.isEdit && props.itemId) {
-        store.getById(props.itemId)
-            .then((response) => {
-                const data = response?.data
-                if (data && !data.responseMsg) {
-                    populateForm(data)
-                }
-            })
-            .catch(() => {})
+watch(isExistingCandidate, (val) => {
+    if (!val) {
+        linkedCandidateId.value = null
+        selectedCandidate.value = null
+        candidateSearchResults.value = []
+    }
+})
+
+// Fixed edit watcher: use nextTick to ensure all props are settled
+watch(() => props.modelValue, async (visible) => {
+    if (visible && props.isEdit) {
+        await nextTick()
+        const editId = props.itemId
+        if (editId) {
+            store.getById(editId)
+                .then((response) => {
+                    const data = response?.data
+                    if (data && !data.responseMsg) {
+                        populateForm(data)
+                    }
+                })
+                .catch(() => {})
+        }
     } else if (!visible) {
         resetForm()
     }
@@ -393,6 +516,7 @@ const save = () => {
 
     const payload = {
         ...form.value,
+        linkedCandidateId: linkedCandidateId.value || null,
         servicePayment: Number(form.value.servicePayment) || 0,
         practicalHours: form.value.practicalHours ? Number(form.value.practicalHours) : null,
         installments: installments.value

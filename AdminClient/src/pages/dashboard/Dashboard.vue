@@ -77,16 +77,19 @@
                         </div>
                         <div class="quick-links">
                             <v-btn variant="tonal" color="primary" class="text-none quick-link-btn" prepend-icon="mdi-account-plus" to="/candidates">
-                                Kandidatët
+                                {{ isInstructor ? 'Kandidatët e Mi' : 'Kandidatët' }}
                             </v-btn>
                             <v-btn variant="tonal" color="success" class="text-none quick-link-btn" prepend-icon="mdi-calendar-clock" to="/schedules">
                                 Oraret
                             </v-btn>
-                            <v-btn variant="tonal" color="warning" class="text-none quick-link-btn" prepend-icon="mdi-car-clock" to="/driving-sessions">
+                            <v-btn v-if="!isInstructor" variant="tonal" color="warning" class="text-none quick-link-btn" prepend-icon="mdi-car-clock" to="/driving-sessions">
                                 Vozitjet
                             </v-btn>
-                            <v-btn variant="tonal" color="info" class="text-none quick-link-btn" prepend-icon="mdi-file-document-outline" to="/daily-report">
+                            <v-btn v-if="!isInstructor" variant="tonal" color="info" class="text-none quick-link-btn" prepend-icon="mdi-file-document-outline" to="/daily-report">
                                 Raporti
+                            </v-btn>
+                            <v-btn v-if="isInstructor" variant="tonal" color="warning" class="text-none quick-link-btn" prepend-icon="mdi-gas-station" to="/vehicle-fuel">
+                                Derivatet
                             </v-btn>
                         </div>
                     </v-card-text>
@@ -141,6 +144,10 @@ const profileRole = profileInfo?.obj?.roleName || ''
 const isAdmin = computed(() => {
     const role = profileRole
     return role === 'Admin' || role === 'SuperAdmin'
+})
+
+const isInstructor = computed(() => {
+    return profileRole === 'Instructor'
 })
 
 const todayDate = new Date().toLocaleDateString('sq-AL', {

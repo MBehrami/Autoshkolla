@@ -35,7 +35,72 @@ namespace AdminApi.Controllers
 
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
-        public async Task<ActionResult> GetList(string? search = null, int? categoryId = null)
+        public async Task<ActionResult> SearchCandidatesForLink(string? search = null)
+        {
+            try
+            {
+                var query = from c in _context.Candidates
+                            join cat in _context.Categories on c.CategoryId equals cat.CategoryId into catGroup
+                            from cat in catGroup.DefaultIfEmpty()
+                            join u in _context.Users on c.InstructorId equals u.UserId into instrGroup
+                            from instructor in instrGroup.DefaultIfEmpty()
+                            select new
+                            {
+                                c.CandidateId,
+                                c.FirstName,
+                                c.LastName,
+                                c.PersonalNumber,
+                                c.PhoneNumber,
+                                c.CategoryId,
+                                CategoryName = cat != null ? cat.CategoryName : null,
+                                c.InstructorId,
+                                InstructorName = instructor != null ? instructor.FullName : null,
+                                c.VehicleType
+                            };
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var s = search.ToLower();
+                    query = query.Where(c =>
+                        (c.FirstName != null && c.FirstName.ToLower().Contains(s)) ||
+                        (c.LastName != null && c.LastName.ToLower().Contains(s)) ||
+                        (c.FirstName + " " + c.LastName).ToLower().Contains(s) ||
+                        (c.PersonalNumber != null && c.PersonalNumber.Contains(search)));
+                }
+
+                var list = await query.OrderBy(c => c.FirstName).ThenBy(c => c.LastName).Take(50).ToListAsync();
+                return Ok(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SearchCandidatesForLink failed");
+                return Ok(new List<object>());
+            }
+        }
+
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpGet]
+        public async Task<ActionResult> GetAvailableYears()
+        {
+            try
+            {
+                var years = await _context.AdditionalLessons
+                    .Select(al => al.DateAdded.Year)
+                    .Distinct()
+                    .OrderByDescending(y => y)
+                    .ToListAsync();
+                return Ok(new { data = years });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetAvailableYears failed");
+                return Ok(new { data = new List<int>() });
+            }
+        }
+
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpGet]
+        public async Task<ActionResult> GetList(string? search = null, int? categoryId = null, int? year = null)
         {
             try
             {
@@ -47,6 +112,7 @@ namespace AdminApi.Controllers
                             select new AdditionalLessonInfo
                             {
                                 AdditionalLessonId = al.AdditionalLessonId,
+                                LinkedCandidateId = al.LinkedCandidateId,
                                 FirstName = al.FirstName,
                                 LastName = al.LastName,
                                 PersonalNumber = al.PersonalNumber,
@@ -69,12 +135,16 @@ namespace AdminApi.Controllers
                     query = query.Where(a =>
                         (a.FirstName != null && a.FirstName.ToLower().Contains(s)) ||
                         (a.LastName != null && a.LastName.ToLower().Contains(s)) ||
+                        (a.FirstName + " " + a.LastName).ToLower().Contains(s) ||
                         (a.PersonalNumber != null && a.PersonalNumber.Contains(search)) ||
                         (a.ContactNumber != null && a.ContactNumber.Contains(search)));
                 }
 
                 if (categoryId.HasValue && categoryId.Value > 0)
                     query = query.Where(a => a.CategoryId == categoryId.Value);
+
+                if (year.HasValue && year.Value > 0)
+                    query = query.Where(a => a.DateAdded.Year == year.Value);
 
                 var list = await query.OrderByDescending(a => a.DateAdded).ToListAsync();
 
@@ -115,6 +185,7 @@ namespace AdminApi.Controllers
                                  select new
                                  {
                                      al.AdditionalLessonId,
+                                     al.LinkedCandidateId,
                                      al.FirstName,
                                      al.LastName,
                                      al.PersonalNumber,
@@ -169,6 +240,7 @@ namespace AdminApi.Controllers
 
                 var entity = new AdditionalLesson
                 {
+                    LinkedCandidateId = request.LinkedCandidateId,
                     FirstName = request.FirstName ?? "",
                     LastName = request.LastName ?? "",
                     PersonalNumber = request.PersonalNumber,
@@ -250,6 +322,7 @@ namespace AdminApi.Controllers
                     return Accepted(new Confirmation { Status = "error", ResponseMsg = "Shuma e kesteve nuk duhet te tejkaloje shumen totale te sherbimit." });
                 }
 
+                existing.LinkedCandidateId = request.LinkedCandidateId;
                 existing.FirstName = request.FirstName ?? "";
                 existing.LastName = request.LastName ?? "";
                 existing.PersonalNumber = request.PersonalNumber;
@@ -266,9 +339,12 @@ namespace AdminApi.Controllers
 
                 await _repo.Update(existing);
 
+                // Collect existing installment IDs to track which are truly new
                 var existingInstallments = await _context.AdditionalLessonInstallments
                     .Where(i => i.AdditionalLessonId == id)
                     .ToListAsync();
+                var oldInstallmentIds = existingInstallments.Select(i => i.InstallmentId).ToHashSet();
+
                 foreach (var inst in existingInstallments)
                 {
                     await _installmentRepo.Delete(inst.InstallmentId);
@@ -288,6 +364,37 @@ namespace AdminApi.Controllers
                             DateAdded = DateTime.Now
                         };
                         await _installmentRepo.Insert(inst);
+
+                        // Check if a daily report entry already exists for this same source
+                        var existingEntry = await _context.DailyReportEntries
+                            .AnyAsync(e => e.SourceType == "AdditionalLessonInstallment"
+                                        && oldInstallmentIds.Contains(e.SourceId ?? 0)
+                                        && e.Amount == installment.Amount);
+
+                        if (!existingEntry)
+                        {
+                            try
+                            {
+                                string reportDate = !string.IsNullOrWhiteSpace(installment.InstallmentDate)
+                                    ? installment.InstallmentDate.Trim()
+                                    : DateTime.Now.ToString("dd.MM.yyyy");
+                                await DailyReportsController.CreateAutoEntry(
+                                    _context,
+                                    reportDate,
+                                    "Income",
+                                    existing.FirstName + " " + existing.LastName,
+                                    installment.Amount,
+                                    $"Orë shtesë - kësti #{installment.InstallmentNumber} - {existing.PaymentMethod ?? "Cash"}",
+                                    "AdditionalLessonInstallment",
+                                    inst.InstallmentId,
+                                    existing.AddedBy
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Auto daily-report entry failed for installment on update");
+                            }
+                        }
                     }
                 }
 

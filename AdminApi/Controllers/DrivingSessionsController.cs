@@ -223,7 +223,13 @@ namespace AdminApi.Controllers
 
                 var list = await query
                     .OrderBy(c => c.FirstName).ThenBy(c => c.LastName)
-                    .Select(c => new { c.CandidateId, FullName = c.FirstName + " " + c.LastName })
+                    .Select(c => new
+                    {
+                        c.CandidateId,
+                        FullName = c.FirstName + " " + c.LastName
+                            + (c.PersonalNumber != null && c.PersonalNumber != "" ? " (" + c.PersonalNumber + ")" : ""),
+                        c.PersonalNumber
+                    })
                     .ToListAsync();
 
                 return Ok(new { data = list });

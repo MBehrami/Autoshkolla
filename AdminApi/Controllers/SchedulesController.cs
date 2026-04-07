@@ -217,20 +217,36 @@ namespace AdminApi.Controllers
                 var role = User.FindFirst("role")?.Value ?? "";
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
 
-                // Instructors only see themselves in the list
                 if (role == "Instructor")
                 {
-                    var self = await _context.Users
-                        .Where(u => u.UserId == currentUserId)
-                        .Select(u => new { u.UserId, u.FullName })
-                        .FirstOrDefaultAsync();
+                    var self = await (from u in _context.Users
+                                     join ip in _context.InstructorProfiles on u.UserId equals ip.UserId into ipg
+                                     from ip in ipg.DefaultIfEmpty()
+                                     where u.UserId == currentUserId
+                                     select new
+                                     {
+                                         u.UserId,
+                                         FullName = u.FullName
+                                             + (ip != null && ip.PersonalNumber != null && ip.PersonalNumber != ""
+                                                 ? " (" + ip.PersonalNumber + ")" : ""),
+                                         PersonalNumber = ip != null ? ip.PersonalNumber : null
+                                     }).FirstOrDefaultAsync();
                     return Ok(new { data = self != null ? new[] { self } : Array.Empty<object>() });
                 }
 
                 var list = await (from u in _context.Users
                                  join r in _context.UserRole on u.UserRoleId equals r.UserRoleId
+                                 join ip in _context.InstructorProfiles on u.UserId equals ip.UserId into ipGroup
+                                 from ip in ipGroup.DefaultIfEmpty()
                                  where u.IsActive == true && r.RoleName == "Instructor"
-                                 select new { u.UserId, u.FullName })
+                                 select new
+                                 {
+                                     u.UserId,
+                                     FullName = u.FullName
+                                         + (ip != null && ip.PersonalNumber != null && ip.PersonalNumber != ""
+                                             ? " (" + ip.PersonalNumber + ")" : ""),
+                                     PersonalNumber = ip != null ? ip.PersonalNumber : null
+                                 })
                                  .OrderBy(u => u.FullName)
                                  .ToListAsync();
                 return Ok(new { data = list });
@@ -259,7 +275,13 @@ namespace AdminApi.Controllers
 
                 var list = await query
                     .OrderBy(c => c.FirstName).ThenBy(c => c.LastName)
-                    .Select(c => new { c.CandidateId, FullName = c.FirstName + " " + c.LastName })
+                    .Select(c => new
+                    {
+                        c.CandidateId,
+                        FullName = c.FirstName + " " + c.LastName
+                            + (c.PersonalNumber != null && c.PersonalNumber != "" ? " (" + c.PersonalNumber + ")" : ""),
+                        c.PersonalNumber
+                    })
                     .ToListAsync();
                 return Ok(new { data = list });
             }

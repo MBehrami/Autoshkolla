@@ -107,6 +107,7 @@ namespace AdminApi.Controllers
                                u.UserId,
                                FirstName = p != null ? p.FirstName : null,
                                LastName = p != null ? p.LastName : null,
+                               PersonalNumber = p != null ? p.PersonalNumber : null,
                                u.Mobile,
                                ScheduleType = p != null ? p.ScheduleType : null,
                                LicenseNumber = p != null ? p.LicenseNumber : null,
@@ -120,6 +121,8 @@ namespace AdminApi.Controllers
                     query = query.Where(x =>
                         (x.FirstName != null && x.FirstName.ToLower().Contains(s)) ||
                         (x.LastName != null && x.LastName.ToLower().Contains(s)) ||
+                        (x.FirstName + " " + x.LastName).ToLower().Contains(s) ||
+                        (x.PersonalNumber != null && x.PersonalNumber.Contains(search.Trim())) ||
                         (x.Mobile != null && x.Mobile.Contains(search)));
                 }
 
@@ -132,6 +135,7 @@ namespace AdminApi.Controllers
                         UserId = x.UserId,
                         FirstName = x.FirstName,
                         LastName = x.LastName,
+                        PersonalNumber = x.PersonalNumber,
                         FullName = string.IsNullOrEmpty(fullName) ? null : fullName,
                         PhoneNumber = x.Mobile,
                         ScheduleType = x.ScheduleType,
