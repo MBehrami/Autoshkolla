@@ -30,6 +30,11 @@
             Get Single Candidate by ID with details. Instructor may only access candidates assigned to them.
             </summary>
         </member>
+        <member name="M:AdminApi.Controllers.CandidatesController.GetAdditionalLessonDetails(System.Int32)">
+            <summary>
+            Get Additional Lesson candidate details for the instructor edit view.
+            </summary>
+        </member>
         <member name="M:AdminApi.Controllers.CandidatesController.UpdateCandidate(System.Int32,AdminApi.ViewModels.Candidate.CandidateCreateRequest)">
             <summary>
             Update Candidate

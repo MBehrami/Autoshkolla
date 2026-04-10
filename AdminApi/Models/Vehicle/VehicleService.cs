@@ -3,10 +3,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AdminApi.Models.Vehicle
 {
-    /// <summary>
-    /// Placeholder model for future Vehicle Services (Serviset e Automjeteve).
-    /// Fields and business logic to be defined.
-    /// </summary>
     public class VehicleService
     {
         [Key]
@@ -15,13 +11,20 @@ namespace AdminApi.Models.Vehicle
         [Required]
         public int VehicleId { get; set; }
 
+        [StringLength(200)]
+        public string? ServiceCompany { get; set; }
+
         [StringLength(20)]
         public string? ServiceDate { get; set; } // dd.MM.yyyy
 
-        [StringLength(500)]
+        public decimal? Cost { get; set; }
+
+        [StringLength(1000)]
         public string? Description { get; set; }
 
-        public decimal? Cost { get; set; }
+        public int? StaffUserId { get; set; }
+
+        public int? DailyReportEntryId { get; set; }
 
         [Required]
         public int AddedBy { get; set; }

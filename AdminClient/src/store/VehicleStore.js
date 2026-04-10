@@ -136,12 +136,49 @@ export const useVehicleStore = defineStore("vehicleStore", {
     },
 
     // ── Vehicle Services ──
-    getVehicleServiceList(search) {
+    getVehicleServiceList(search, vehicleId, dateFrom, dateTo) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         let url = import.meta.env.VITE_API_URL + `/api/Vehicles/GetVehicleServiceList?`;
         if (search) url += `search=${encodeURIComponent(search)}&`;
+        if (vehicleId) url += `vehicleId=${vehicleId}&`;
+        if (dateFrom) url += `dateFrom=${encodeURIComponent(dateFrom)}&`;
+        if (dateTo) url += `dateTo=${encodeURIComponent(dateTo)}&`;
         API.get(url)
+          .then((response) => {
+            this.loading = false;
+            resolve(response);
+          })
+          .catch((error) => {
+            this.loading = false;
+            reject(error);
+          });
+      });
+    },
+    createVehicleService(payload) {
+      return new Promise((resolve, reject) => {
+        this.loading = true;
+        API.post(
+          import.meta.env.VITE_API_URL + "/api/Vehicles/CreateVehicleService",
+          camelToPascal(payload)
+        )
+          .then((response) => {
+            this.loading = false;
+            resolve(response);
+          })
+          .catch((error) => {
+            this.loading = false;
+            reject(error);
+          });
+      });
+    },
+    updateVehicleService(id, payload) {
+      return new Promise((resolve, reject) => {
+        this.loading = true;
+        API.put(
+          import.meta.env.VITE_API_URL + `/api/Vehicles/UpdateVehicleService/${id}`,
+          camelToPascal(payload)
+        )
           .then((response) => {
             this.loading = false;
             resolve(response);

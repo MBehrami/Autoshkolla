@@ -675,14 +675,26 @@ using (var scope = app.Services.CreateScope())
                 CREATE TABLE [dbo].[VehicleServices] (
                     [VehicleServiceId] INT IDENTITY(1,1) NOT NULL,
                     [VehicleId] INT NOT NULL,
+                    [ServiceCompany] NVARCHAR(200) NULL,
                     [ServiceDate] NVARCHAR(20) NULL,
-                    [Description] NVARCHAR(500) NULL,
                     [Cost] DECIMAL(18,2) NULL,
+                    [Description] NVARCHAR(1000) NULL,
+                    [StaffUserId] INT NULL,
+                    [DailyReportEntryId] INT NULL,
                     [AddedBy] INT NOT NULL,
                     [DateAdded] DATETIME2 NOT NULL,
                     CONSTRAINT [PK_VehicleServices] PRIMARY KEY ([VehicleServiceId]),
                     CONSTRAINT [FK_VehicleServices_Vehicles] FOREIGN KEY ([VehicleId]) REFERENCES [dbo].[Vehicles]([VehicleId])
                 );
+            END
+            ELSE
+            BEGIN
+                IF COL_LENGTH('dbo.VehicleServices', 'ServiceCompany') IS NULL
+                    ALTER TABLE [dbo].[VehicleServices] ADD [ServiceCompany] NVARCHAR(200) NULL;
+                IF COL_LENGTH('dbo.VehicleServices', 'StaffUserId') IS NULL
+                    ALTER TABLE [dbo].[VehicleServices] ADD [StaffUserId] INT NULL;
+                IF COL_LENGTH('dbo.VehicleServices', 'DailyReportEntryId') IS NULL
+                    ALTER TABLE [dbo].[VehicleServices] ADD [DailyReportEntryId] INT NULL;
             END
         ").GetAwaiter().GetResult();
     }

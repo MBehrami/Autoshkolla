@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AdminApi.Models;
 using AdminApi.Models.Helper;
+using AdminApi.Models.Report;
 using AdminApi.Models.Vehicle;
 using AdminApi.ViewModels.Vehicle;
 using Microsoft.AspNetCore.Authorization;
@@ -94,7 +96,7 @@ namespace AdminApi.Controllers
             }
         }
 
-        /// <summary>Get vehicle details by id.</summary>
+        /// <summary>Get vehicle details by id, including service history.</summary>
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult> GetVehicleDetails(int id)
@@ -104,10 +106,42 @@ namespace AdminApi.Controllers
                 var vehicle = await _context.Vehicles.FindAsync(id);
                 if (vehicle == null)
                     return NotFound(new Confirmation { Status = "error", ResponseMsg = "Automjeti nuk u gjet" });
-                return Ok(vehicle);
+
+                var services = await (from s in _context.VehicleServices.Where(s => s.VehicleId == id)
+                                      join u in _context.Users on s.StaffUserId equals u.UserId into uu
+                                      from u in uu.DefaultIfEmpty()
+                                      orderby s.DateAdded descending
+                                      select new
+                                      {
+                                          s.VehicleServiceId,
+                                          s.ServiceCompany,
+                                          s.ServiceDate,
+                                          s.Cost,
+                                          s.Description,
+                                          s.StaffUserId,
+                                          StaffName = u != null ? u.FullName : null,
+                                          s.DateAdded
+                                      }).ToListAsync();
+
+                return Ok(new
+                {
+                    vehicle.VehicleId,
+                    vehicle.PlateNumber,
+                    vehicle.ChassisNumber,
+                    vehicle.Color,
+                    vehicle.Type,
+                    vehicle.Brand,
+                    vehicle.RegistrationDate,
+                    vehicle.ExpiryDate,
+                    vehicle.CertificateNumber,
+                    vehicle.IsActive,
+                    vehicle.DateAdded,
+                    services
+                });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetVehicleDetails failed");
                 return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
             }
         }
@@ -406,28 +440,63 @@ namespace AdminApi.Controllers
         }
 
         // ─────────────────────────────────────────────────────────────
-        // VEHICLE SERVICES (placeholder)
+        // VEHICLE SERVICES
         // ─────────────────────────────────────────────────────────────
 
-        /// <summary>Get all vehicle service entries.</summary>
+        /// <summary>Get all vehicle service entries with related vehicle and staff info.</summary>
         [Authorize(Roles = "SuperAdmin,Admin")]
         [HttpGet]
-        public async Task<ActionResult> GetVehicleServiceList(string? search)
+        public async Task<ActionResult> GetVehicleServiceList(string? search, int? vehicleId, string? dateFrom, string? dateTo)
         {
             try
             {
-                var query = from s in _context.VehicleServices
+                var baseQuery = _context.VehicleServices.AsQueryable();
+
+                if (vehicleId.HasValue && vehicleId.Value > 0)
+                    baseQuery = baseQuery.Where(s => s.VehicleId == vehicleId.Value);
+
+                if (!string.IsNullOrWhiteSpace(dateFrom) || !string.IsNullOrWhiteSpace(dateTo))
+                {
+                    var allDates = await baseQuery.Select(s => new { s.VehicleServiceId, s.ServiceDate }).ToListAsync();
+                    var filteredIds = new HashSet<int>();
+                    DateTime? fromDt = null, toDt = null;
+                    if (!string.IsNullOrWhiteSpace(dateFrom) &&
+                        DateTime.TryParseExact(dateFrom.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var fd))
+                        fromDt = fd;
+                    if (!string.IsNullOrWhiteSpace(dateTo) &&
+                        DateTime.TryParseExact(dateTo.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var td))
+                        toDt = td;
+
+                    foreach (var row in allDates)
+                    {
+                        if (DateTime.TryParseExact(row.ServiceDate, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                        {
+                            if (fromDt.HasValue && dt < fromDt.Value) continue;
+                            if (toDt.HasValue && dt > toDt.Value) continue;
+                            filteredIds.Add(row.VehicleServiceId);
+                        }
+                    }
+                    baseQuery = baseQuery.Where(s => filteredIds.Contains(s.VehicleServiceId));
+                }
+
+                var query = from s in baseQuery
                             join v in _context.Vehicles on s.VehicleId equals v.VehicleId into vv
                             from v in vv.DefaultIfEmpty()
+                            join u in _context.Users on s.StaffUserId equals u.UserId into uu
+                            from u in uu.DefaultIfEmpty()
                             select new
                             {
                                 s.VehicleServiceId,
                                 s.VehicleId,
                                 VehiclePlate = v != null ? v.PlateNumber : null,
                                 VehicleBrand = v != null ? v.Brand : null,
+                                s.ServiceCompany,
                                 s.ServiceDate,
                                 s.Description,
                                 s.Cost,
+                                s.StaffUserId,
+                                StaffName = u != null ? u.FullName : null,
+                                s.DailyReportEntryId,
                                 s.DateAdded
                             };
 
@@ -436,7 +505,9 @@ namespace AdminApi.Controllers
                     var s2 = search.Trim().ToLower();
                     query = query.Where(x =>
                         (x.VehiclePlate != null && x.VehiclePlate.ToLower().Contains(s2)) ||
-                        (x.Description != null && x.Description.ToLower().Contains(s2)));
+                        (x.ServiceCompany != null && x.ServiceCompany.ToLower().Contains(s2)) ||
+                        (x.Description != null && x.Description.ToLower().Contains(s2)) ||
+                        (x.StaffName != null && x.StaffName.ToLower().Contains(s2)));
                 }
 
                 var list = await query.OrderByDescending(x => x.DateAdded).ToListAsync();
@@ -446,6 +517,165 @@ namespace AdminApi.Controllers
             {
                 _logger.LogError(ex, "GetVehicleServiceList failed");
                 return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
+            }
+        }
+
+        /// <summary>
+        /// Create a new vehicle service entry and auto-record an expense in the Daily Report.
+        /// </summary>
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpPost]
+        public async Task<ActionResult> CreateVehicleService(AddVehicleServiceRequest request)
+        {
+            try
+            {
+                if (request.VehicleId <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti eshte i detyrueshem." });
+                if (string.IsNullOrWhiteSpace(request.ServiceCompany))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kompania e servisit eshte e detyrueshme." });
+                if (string.IsNullOrWhiteSpace(request.ServiceDate))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data e servisit eshte e detyrueshme." });
+
+                string serviceDate = request.ServiceDate.Trim();
+                if (!Regex.IsMatch(serviceDate, @"^\d{2}\.\d{2}\.\d{4}$") ||
+                    !DateTime.TryParseExact(serviceDate, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem (dd.MM.yyyy)." });
+
+                if (request.Cost <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Shuma duhet te jete me e madhe se 0." });
+                if (string.IsNullOrWhiteSpace(request.Description))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Pershkrimi eshte i detyrueshem." });
+                if (request.StaffUserId <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Stafi qe ka derguar automjetin eshte i detyrueshem." });
+
+                var vehicle = await _context.Vehicles.FindAsync(request.VehicleId);
+                if (vehicle == null)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti i zgjedhur nuk u gjet." });
+
+                var staffUser = await _context.Users.FindAsync(request.StaffUserId);
+                if (staffUser == null)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Stafi i zgjedhur nuk u gjet." });
+
+                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+
+                var serviceEntry = new VehicleService
+                {
+                    VehicleId = request.VehicleId,
+                    ServiceCompany = request.ServiceCompany.Trim(),
+                    ServiceDate = serviceDate,
+                    Cost = request.Cost,
+                    Description = request.Description.Trim(),
+                    StaffUserId = request.StaffUserId,
+                    AddedBy = currentUserId,
+                    DateAdded = DateTime.UtcNow
+                };
+
+                _context.VehicleServices.Add(serviceEntry);
+                await _context.SaveChangesAsync();
+
+                // Auto-record expense in the Daily Report
+                string vehicleLabel = $"{vehicle.PlateNumber}{(string.IsNullOrWhiteSpace(vehicle.Brand) ? "" : " – " + vehicle.Brand)}";
+                string expenseDescription = $"Servis: {request.ServiceCompany.Trim()} | {vehicleLabel} | {request.Description.Trim()}";
+
+                await DailyReportsController.CreateAutoEntry(
+                    _context,
+                    entryDate: serviceDate,
+                    entryType: "Expense",
+                    fullName: vehicleLabel,
+                    amount: request.Cost,
+                    description: expenseDescription,
+                    sourceType: "VehicleService",
+                    sourceId: serviceEntry.VehicleServiceId,
+                    addedBy: currentUserId
+                );
+
+                // Link the daily report entry back to the service record
+                var linkedEntry = await _context.DailyReportEntries
+                    .FirstOrDefaultAsync(e => e.SourceType == "VehicleService" && e.SourceId == serviceEntry.VehicleServiceId);
+                if (linkedEntry != null)
+                {
+                    serviceEntry.DailyReportEntryId = linkedEntry.DailyReportEntryId;
+                    await _context.SaveChangesAsync();
+                }
+
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Servisi u regjistrua me sukses dhe shpenzimi u shtua ne raportin ditor." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CreateVehicleService failed");
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e servisit deshtoi." });
+            }
+        }
+
+        /// <summary>
+        /// Update an existing vehicle service entry and sync the expense in the Daily Report.
+        /// </summary>
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateVehicleService(int id, AddVehicleServiceRequest request)
+        {
+            try
+            {
+                var serviceEntry = await _context.VehicleServices.FindAsync(id);
+                if (serviceEntry == null)
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Servisi nuk u gjet." });
+
+                if (request.VehicleId <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti eshte i detyrueshem." });
+                if (string.IsNullOrWhiteSpace(request.ServiceCompany))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kompania e servisit eshte e detyrueshme." });
+                if (string.IsNullOrWhiteSpace(request.ServiceDate))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data e servisit eshte e detyrueshme." });
+
+                string serviceDate = request.ServiceDate.Trim();
+                if (!Regex.IsMatch(serviceDate, @"^\d{2}\.\d{2}\.\d{4}$") ||
+                    !DateTime.TryParseExact(serviceDate, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem (dd.MM.yyyy)." });
+
+                if (request.Cost <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Shuma duhet te jete me e madhe se 0." });
+                if (string.IsNullOrWhiteSpace(request.Description))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Pershkrimi eshte i detyrueshem." });
+                if (request.StaffUserId <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Stafi qe ka derguar automjetin eshte i detyrueshem." });
+
+                var vehicle = await _context.Vehicles.FindAsync(request.VehicleId);
+                if (vehicle == null)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti i zgjedhur nuk u gjet." });
+
+                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+
+                serviceEntry.VehicleId = request.VehicleId;
+                serviceEntry.ServiceCompany = request.ServiceCompany.Trim();
+                serviceEntry.ServiceDate = serviceDate;
+                serviceEntry.Cost = request.Cost;
+                serviceEntry.Description = request.Description.Trim();
+                serviceEntry.StaffUserId = request.StaffUserId;
+
+                await _context.SaveChangesAsync();
+
+                // Update the linked Daily Report expense entry
+                string vehicleLabel = $"{vehicle.PlateNumber}{(string.IsNullOrWhiteSpace(vehicle.Brand) ? "" : " – " + vehicle.Brand)}";
+                string expenseDescription = $"Servis: {request.ServiceCompany.Trim()} | {vehicleLabel} | {request.Description.Trim()}";
+
+                await DailyReportsController.UpsertAutoEntry(
+                    _context,
+                    entryDate: serviceDate,
+                    entryType: "Expense",
+                    fullName: vehicleLabel,
+                    amount: request.Cost,
+                    description: expenseDescription,
+                    sourceType: "VehicleService",
+                    sourceId: serviceEntry.VehicleServiceId,
+                    addedBy: currentUserId
+                );
+
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Servisi u perditesua me sukses." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UpdateVehicleService failed");
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Perditesimi i servisit deshtoi." });
             }
         }
     }

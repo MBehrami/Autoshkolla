@@ -717,22 +717,17 @@ body {
   }
 }
 
-/* ═══ Table Action Buttons — visible hover states ═══ */
+/* ═══ Table Action Buttons — size & shape ═══ */
 .v-data-table .action-btn {
   width: 32px !important;
   height: 32px !important;
   min-width: 32px !important;
   border-radius: 8px !important;
   transition: all 0.15s ease !important;
-  background: transparent !important;
-}
-
-.v-data-table .action-btn:hover {
-  background: rgba(37, 99, 235, 0.08) !important;
 }
 
 .v-data-table .action-btn .v-icon {
-  opacity: 0.75;
+  opacity: 0.7;
   transition: opacity 0.15s ease;
 }
 
@@ -740,26 +735,64 @@ body {
   opacity: 1;
 }
 
-/* Prevent row hover from altering button/chip/icon colors */
-.v-data-table tbody tr:hover .v-btn .v-icon {
-  color: currentColor !important;
-  opacity: 1 !important;
+/*
+ * ═══ FIX: Prevent action-button text/icon from turning white ═══
+ *
+ * Vuetify's v-btn hover can shift the text to on-{color} (white)
+ * when using variant="text" with a color prop. We override the
+ * overlay to a neutral tint and pin each colour explicitly so the
+ * icon always remains its designated theme colour — on button hover,
+ * on row hover, and on combined row+button hover.
+ */
+
+/* Neutral overlay instead of currentColor (prevents tinted flash) */
+.v-data-table .v-btn--variant-text > .v-btn__overlay,
+.v-data-table .v-btn--icon > .v-btn__overlay {
+  background-color: #000 !important;
+  opacity: 0 !important;
+  transition: opacity 0.15s ease !important;
 }
 
+.v-data-table .v-btn--variant-text:hover > .v-btn__overlay,
+.v-data-table .v-btn--icon:hover > .v-btn__overlay {
+  opacity: 0.06 !important;
+}
+
+.v-data-table .v-btn--variant-text:focus-visible > .v-btn__overlay,
+.v-data-table .v-btn--icon:focus-visible > .v-btn__overlay {
+  opacity: 0.1 !important;
+}
+
+/* Pin each theme colour on button hover */
+.v-btn--variant-text.text-primary:hover       { color: rgb(var(--v-theme-primary)) !important; }
+.v-btn--variant-text.text-secondary:hover     { color: rgb(var(--v-theme-secondary)) !important; }
+.v-btn--variant-text.text-info:hover          { color: rgb(var(--v-theme-info)) !important; }
+.v-btn--variant-text.text-warning:hover       { color: rgb(var(--v-theme-warning)) !important; }
+.v-btn--variant-text.text-success:hover       { color: rgb(var(--v-theme-success)) !important; }
+.v-btn--variant-text.text-error:hover         { color: rgb(var(--v-theme-error)) !important; }
+
+/* Pin each theme colour during data-table row hover */
+.v-data-table tbody tr:hover .v-btn--variant-text.text-primary   { color: rgb(var(--v-theme-primary)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-secondary { color: rgb(var(--v-theme-secondary)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-info      { color: rgb(var(--v-theme-info)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-warning   { color: rgb(var(--v-theme-warning)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-success   { color: rgb(var(--v-theme-success)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-error     { color: rgb(var(--v-theme-error)) !important; }
+
+/* Combined: row hover + button hover */
+.v-data-table tbody tr:hover .v-btn--variant-text.text-primary:hover   { color: rgb(var(--v-theme-primary)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-secondary:hover { color: rgb(var(--v-theme-secondary)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-info:hover      { color: rgb(var(--v-theme-info)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-warning:hover   { color: rgb(var(--v-theme-warning)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-success:hover   { color: rgb(var(--v-theme-success)) !important; }
+.v-data-table tbody tr:hover .v-btn--variant-text.text-error:hover     { color: rgb(var(--v-theme-error)) !important; }
+
+/* Prevent chips from being washed out on row hover */
 .v-data-table tbody tr:hover .v-chip {
   opacity: 1 !important;
 }
 
-.v-data-table tbody tr:hover .v-btn--variant-tonal,
-.v-data-table tbody tr:hover .v-btn--variant-text {
-  opacity: 1 !important;
-}
-
-/* Global: visible hover feedback */
-.v-btn--variant-text:hover {
-  background: rgba(0,0,0,0.04) !important;
-}
-
+/* ═══ Global button hover — subtle feedback, never white text ═══ */
 .v-btn--variant-elevated:hover,
 .v-btn--variant-flat:hover {
   filter: brightness(1.06);

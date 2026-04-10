@@ -66,11 +66,15 @@
                         size="small"
                         variant="elevated"
                     >
-                        {{ item.isActive ? 'Active' : 'Inactive' }}
+                        {{ item.isActive ? 'Aktiv' : 'Joaktiv' }}
                     </v-chip>
                 </template>
                 <template v-slot:item.actions="{ item }">
                     <div class="d-flex align-center ga-1">
+                        <v-btn icon variant="text" color="info" class="action-btn" @click.stop="viewItem(item)">
+                            <v-icon size="18">mdi-eye-outline</v-icon>
+                            <v-tooltip activator="parent" location="top">Shiko detajet</v-tooltip>
+                        </v-btn>
                         <v-btn icon variant="text" color="secondary" class="action-btn" @click.stop="editItem(item)">
                             <v-icon size="18">mdi-pencil-outline</v-icon>
                             <v-tooltip activator="parent" location="top">Ndrysho</v-tooltip>
@@ -78,12 +82,21 @@
                         <v-btn icon variant="text" :color="item.isActive ? 'warning' : 'success'" class="action-btn"
                             :loading="togglingId === item.vehicleId" @click.stop="toggleStatus(item)">
                             <v-icon size="18">{{ item.isActive ? 'mdi-close-circle-outline' : 'mdi-check-circle-outline' }}</v-icon>
-                            <v-tooltip activator="parent" location="top">{{ item.isActive ? 'Deactivate' : 'Activate' }}</v-tooltip>
+                            <v-tooltip activator="parent" location="top">{{ item.isActive ? 'Çaktivizo' : 'Aktivizo' }}</v-tooltip>
                         </v-btn>
                     </div>
                 </template>
             </v-data-table>
         </v-card>
+
+        <!-- Vehicle Details Dialog -->
+        <v-dialog v-model="viewDialog" max-width="950" scrollable>
+            <VehicleDetails
+                v-if="viewDialog"
+                :vehicle-id="viewingVehicleId"
+                @close="viewDialog = false"
+            />
+        </v-dialog>
     </div>
 </template>
 
@@ -96,6 +109,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DownloadExcel from 'vue-json-excel3';
 import VehicleForm from '@/components/vehicle/VehicleForm.vue';
+import VehicleDetails from '@/components/vehicle/VehicleDetails.vue';
 
 const vehicleStore = useVehicleStore();
 const settingStore = useSettingStore();
@@ -128,9 +142,9 @@ const headersExcel = {
 const headersPdf = ['Plate Number', 'Chassis Nr.', 'Color', 'Type', 'Brand', 'Reg. Date', 'Expiry Date', 'Cert. Nr.', 'Status'];
 
 const statusOptions = [
-    { label: 'Active', value: 'active' },
-    { label: 'Inactive', value: 'inactive' },
-    { label: 'All', value: 'all' },
+    { label: 'Aktiv', value: 'active' },
+    { label: 'Joaktiv', value: 'inactive' },
+    { label: 'Te Gjitha', value: 'all' },
 ];
 
 const items = ref([]);
@@ -141,6 +155,9 @@ const editedIndex = ref(-1);
 const editedVehicle = ref(null);
 const editedVehicleId = ref(null);
 const togglingId = ref(null);
+
+const viewDialog = ref(false);
+const viewingVehicleId = ref(null);
 
 let searchTimeout = null;
 const handleSearch = () => {
@@ -163,7 +180,7 @@ function normalizeVehicle(row) {
         expiryDate: row.expiryDate ?? row.ExpiryDate ?? '',
         certificateNumber: row.certificateNumber ?? row.CertificateNumber ?? '',
         isActive: active,
-        statusLabel: active ? 'Active' : 'Inactive',
+        statusLabel: active ? 'Aktiv' : 'Joaktiv',
     };
 }
 
@@ -176,8 +193,13 @@ const loadVehicles = () => {
         })
         .catch(() => {
             items.value = [];
-            settingStore.toggleSnackbar({ status: true, msg: 'Error loading vehicles' });
+            settingStore.toggleSnackbar({ status: true, msg: 'Gabim gjate ngarkimit te automjeteve' });
         });
+};
+
+const viewItem = (item) => {
+    viewingVehicleId.value = item.vehicleId;
+    viewDialog.value = true;
 };
 
 const editItem = (item) => {
@@ -200,10 +222,10 @@ const toggleStatus = async (item) => {
     try {
         const response = await vehicleStore.toggleVehicleStatus(item.vehicleId);
         const body = response?.data;
-        settingStore.toggleSnackbar({ status: true, msg: body?.responseMsg || body?.ResponseMsg || 'Status updated' });
+        settingStore.toggleSnackbar({ status: true, msg: body?.responseMsg || body?.ResponseMsg || 'Statusi u ndryshua' });
         loadVehicles();
     } catch (err) {
-        settingStore.toggleSnackbar({ status: true, msg: err?.response?.data?.responseMsg || 'Error toggling status' });
+        settingStore.toggleSnackbar({ status: true, msg: err?.response?.data?.responseMsg || 'Gabim gjate ndryshimit te statusit' });
     } finally {
         togglingId.value = null;
     }
@@ -211,7 +233,7 @@ const toggleStatus = async (item) => {
 
 const exportPdf = () => {
     const doc = new jsPDF({ orientation: 'landscape' });
-    doc.text('Vehicles (Automjetet)', 14, 10);
+    doc.text('Automjetet', 14, 10);
     const bodyRows = items.value.map((r) => [
         r.plateNumber, r.chassisNumber, r.color, r.type, r.brand, r.registrationDate, r.expiryDate, r.certificateNumber, r.statusLabel
     ]);
