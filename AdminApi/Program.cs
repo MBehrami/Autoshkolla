@@ -989,6 +989,38 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception) { /* PracticalLessons migration */ }
 
+    // ── Add Status, CancellationReason, CancelledDate columns to PracticalLessons ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF COL_LENGTH('dbo.PracticalLessons', 'Status') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[PracticalLessons] ADD [Status] NVARCHAR(20) NULL;
+            END
+            IF COL_LENGTH('dbo.PracticalLessons', 'CancellationReason') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[PracticalLessons] ADD [CancellationReason] NVARCHAR(500) NULL;
+            END
+            IF COL_LENGTH('dbo.PracticalLessons', 'CancelledDate') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[PracticalLessons] ADD [CancelledDate] DATETIME2 NULL;
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception) { /* PracticalLessons cancellation columns */ }
+
+    // ── Add Status column to ScheduleEvents ──
+    try
+    {
+        db.Database.ExecuteSqlRawAsync(@"
+            IF COL_LENGTH('dbo.ScheduleEvents', 'Status') IS NULL
+            BEGIN
+                ALTER TABLE [dbo].[ScheduleEvents] ADD [Status] NVARCHAR(20) NULL;
+            END
+        ").GetAwaiter().GetResult();
+    }
+    catch (Exception) { /* ScheduleEvents Status column */ }
+
     // ── Add AdditionalLessonId column to ScheduleEvents & make CandidateId nullable ──
     try
     {

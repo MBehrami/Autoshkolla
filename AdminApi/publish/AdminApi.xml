@@ -302,7 +302,7 @@
             <summary>Get vehicles. Admin can filter by status (all/active/inactive) and search text.</summary>
         </member>
         <member name="M:AdminApi.Controllers.VehiclesController.GetVehicleDetails(System.Int32)">
-            <summary>Get vehicle details by id.</summary>
+            <summary>Get vehicle details by id, including service history.</summary>
         </member>
         <member name="M:AdminApi.Controllers.VehiclesController.CreateVehicle(AdminApi.ViewModels.Vehicle.AddVehicleRequest)">
             <summary>Create a new vehicle.</summary>
@@ -331,8 +331,18 @@
         <member name="M:AdminApi.Controllers.VehiclesController.GetStaffDropdown">
             <summary>Get all users (Admin + Instructor) for Staff dropdown. Admin only.</summary>
         </member>
-        <member name="M:AdminApi.Controllers.VehiclesController.GetVehicleServiceList(System.String)">
-            <summary>Get all vehicle service entries.</summary>
+        <member name="M:AdminApi.Controllers.VehiclesController.GetVehicleServiceList(System.String,System.Nullable{System.Int32},System.String,System.String)">
+            <summary>Get all vehicle service entries with related vehicle and staff info.</summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.CreateVehicleService(AdminApi.ViewModels.Vehicle.AddVehicleServiceRequest)">
+            <summary>
+            Create a new vehicle service entry and auto-record an expense in the Daily Report.
+            </summary>
+        </member>
+        <member name="M:AdminApi.Controllers.VehiclesController.UpdateVehicleService(System.Int32,AdminApi.ViewModels.Vehicle.AddVehicleServiceRequest)">
+            <summary>
+            Update an existing vehicle service entry and sync the expense in the Daily Report.
+            </summary>
         </member>
         <member name="T:AdminApi.Migrations.initial">
             <inheritdoc />
@@ -499,12 +509,6 @@
         </member>
         <member name="P:AdminApi.Models.User.InstructorProfile.LicenseValidityDate">
             <summary>Format dd.MM.yyyy</summary>
-        </member>
-        <member name="T:AdminApi.Models.Vehicle.VehicleService">
-            <summary>
-            Placeholder model for future Vehicle Services (Serviset e Automjeteve).
-            Fields and business logic to be defined.
-            </summary>
         </member>
         <member name="M:AdminApi.Services.IFileService.SaveFileAsync(Microsoft.AspNetCore.Http.IFormFile,System.Collections.Generic.IEnumerable{System.String},System.Int64)">
             <summary>

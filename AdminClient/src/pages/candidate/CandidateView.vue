@@ -105,22 +105,64 @@
                                         <th>Mbarimi</th>
                                         <th>Instruktori</th>
                                         <th>Vetura</th>
+                                        <th>Statusi</th>
+                                        <th>Veprimet</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(lesson, index) in sortedLessons" :key="lesson.practicalLessonId || index">
+                                    <tr v-for="(lesson, index) in sortedLessons" :key="lesson.practicalLessonId || index"
+                                        :class="{ 'cancelled-row': lesson.status === 'Cancelled' }">
                                         <td>{{ index + 1 }}</td>
                                         <td>{{ lesson.lessonDate || lesson.date }}</td>
                                         <td>{{ lesson.time }}</td>
                                         <td>{{ lesson.endTime || calcEndTime(lesson.time) }}</td>
                                         <td>{{ lesson.instructorName }}</td>
                                         <td>{{ lesson.vehicle || '–' }}</td>
+                                        <td>
+                                            <v-chip v-if="lesson.status === 'Cancelled'" color="error" size="x-small" variant="tonal">
+                                                Anuluar
+                                                <v-tooltip activator="parent" location="top" v-if="lesson.cancellationReason">{{ lesson.cancellationReason }}</v-tooltip>
+                                            </v-chip>
+                                            <v-chip v-else color="success" size="x-small" variant="tonal">Aktive</v-chip>
+                                        </td>
+                                        <td>
+                                            <v-btn v-if="lesson.status !== 'Cancelled' && !isLessonInPast(lesson)" icon variant="text" color="error" size="x-small"
+                                                @click="openCancelDialog(lesson)">
+                                                <v-icon size="16">mdi-cancel</v-icon>
+                                                <v-tooltip activator="parent" location="top">Anulo orën</v-tooltip>
+                                            </v-btn>
+                                            <v-icon v-else-if="lesson.status !== 'Cancelled'" size="16" color="grey" class="ml-1">mdi-lock-outline</v-icon>
+                                            <span v-else class="text-medium-emphasis text-caption">–</span>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </v-table>
                             <v-alert v-else type="info" density="compact" variant="tonal">Nuk ka orë praktike</v-alert>
                         </v-card-text>
                     </v-card>
+
+                    <!-- Cancel Lesson Dialog -->
+                    <v-dialog v-model="cancelDialog" max-width="450">
+                        <v-card rounded="lg">
+                            <v-card-title class="pa-4">Anulo orën praktike</v-card-title>
+                            <v-divider></v-divider>
+                            <v-card-text class="pa-4">
+                                <v-alert type="warning" density="compact" variant="tonal" class="mb-3">
+                                    Ora do të anulohet dhe do t'i kthehet kandidatit.
+                                </v-alert>
+                                <v-textarea v-model="cancelReason" label="Arsyeja e anulimit *" variant="outlined"
+                                    density="compact" rows="3" auto-grow></v-textarea>
+                                <v-alert v-if="cancelError" type="error" density="compact" class="mt-2" closable
+                                    @click:close="cancelError = ''">{{ cancelError }}</v-alert>
+                            </v-card-text>
+                            <v-card-actions class="pa-4">
+                                <v-spacer></v-spacer>
+                                <v-btn variant="text" @click="cancelDialog = false">Mbyll</v-btn>
+                                <v-btn color="error" variant="elevated" :loading="cancelling" :disabled="!cancelReason"
+                                    @click="confirmCancel">Anulo orën</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
 
                     <!-- Additional Lessons linked to this candidate (Admin) -->
                     <v-card v-if="!isInstructor && additionalLessons.length > 0" class="mb-4">
@@ -344,6 +386,41 @@ const downloadingPdf = ref(false)
 const downloadingContract = ref(false)
 const downloadingCertificate = ref(false)
 
+// Cancel lesson
+const cancelDialog = ref(false)
+const cancelReason = ref('')
+const cancelError = ref('')
+const cancelling = ref(false)
+const cancellingLessonId = ref(null)
+
+function openCancelDialog(lesson) {
+    cancellingLessonId.value = lesson.practicalLessonId
+    cancelReason.value = ''
+    cancelError.value = ''
+    cancelDialog.value = true
+}
+
+async function confirmCancel() {
+    if (!cancelReason.value || !cancellingLessonId.value) return
+    cancelling.value = true
+    cancelError.value = ''
+    try {
+        const res = await candidateStore.cancelPracticalLesson(cancellingLessonId.value, { reason: cancelReason.value })
+        const body = res?.data
+        if (body && body.status === 'error') {
+            cancelError.value = body.responseMsg || 'Gabim gjatë anulimit'
+            return
+        }
+        settingStore.toggleSnackbar({ status: true, msg: 'Ora u anulua me sukses' })
+        cancelDialog.value = false
+        loadCandidateDetails()
+    } catch (err) {
+        cancelError.value = err?.response?.data?.responseMsg || 'Gabim gjatë anulimit'
+    } finally {
+        cancelling.value = false
+    }
+}
+
 const isInstructor = computed(() => {
     try {
         const profile = JSON.parse(localStorage.getItem('profile') || '{}')
@@ -380,6 +457,17 @@ function calcEndTime(startTime) {
     if (parts.length !== 2) return ''
     const totalMin = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10) + 45
     return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`
+}
+
+function isLessonInPast(lesson) {
+    const dateStr = lesson.lessonDate || lesson.date
+    if (!dateStr) return false
+    const parts = dateStr.split('.')
+    if (parts.length !== 3) return false
+    const lessonDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]))
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return lessonDate < today
 }
 
 function statusColor(status) {
@@ -533,6 +621,12 @@ onMounted(() => {
 .detail-table :deep(td) {
     font-size: 0.8125rem !important;
     color: var(--slate-700) !important;
+}
+
+.cancelled-row {
+    opacity: 0.6;
+    text-decoration: line-through;
+    background: rgba(239, 68, 68, 0.04);
 }
 
 @media (max-width: 600px) {

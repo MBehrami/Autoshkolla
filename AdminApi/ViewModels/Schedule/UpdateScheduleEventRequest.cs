@@ -7,6 +7,7 @@ namespace AdminApi.ViewModels.Schedule
         public string? EndTime { get; set; }
         public int InstructorUserId { get; set; }
         public int CandidateId { get; set; }
+        public int? AdditionalLessonId { get; set; }
         public int VehicleId { get; set; }
         public string? Notes { get; set; }
     }

@@ -68,7 +68,7 @@
                         <div class="time-cell" @click="handleCellClick(currentDate, hour)">
                             <div class="time-cell-events">
                                 <div v-for="ev in getEventsForHour(currentDate, hour)" :key="ev.id + ev.eventType"
-                                    class="cal-event" :style="getEventColor(ev)"
+                                    :class="['cal-event', { cancelled: ev.status === 'Cancelled' }]" :style="getEventColor(ev)"
                                     @click.stop="openEventDetail(ev)">
                                     <div class="cal-event-time">{{ ev.startTime }}–{{ ev.endTime }}</div>
                                     <div class="cal-event-title text-truncate">{{ eventTitle(ev) }}</div>
@@ -100,7 +100,7 @@
                             @click="handleCellClick(d, hour)">
                             <div class="time-cell-events">
                                 <div v-for="ev in getEventsForHour(d, hour)" :key="ev.id + ev.eventType"
-                                    class="cal-event" :style="getEventColor(ev)"
+                                    :class="['cal-event', { cancelled: ev.status === 'Cancelled' }]" :style="getEventColor(ev)"
                                     @click.stop="openEventDetail(ev)">
                                     <div class="cal-event-time">{{ ev.startTime }}</div>
                                     <div class="cal-event-title text-truncate">{{ eventTitle(ev) }}</div>
@@ -147,6 +147,10 @@
                             <div class="text-body-2 text-medium-emphasis mt-2">Instruktori</div>
                             <div class="font-weight-medium">{{ detailEvent.instructorName || '—' }}</div>
                         </v-col>
+                        <v-col cols="12" v-if="detailEvent.status === 'Cancelled'">
+                            <div class="text-body-2 text-medium-emphasis mt-2">Statusi</div>
+                            <v-chip color="error" size="small" variant="flat">Anuluar</v-chip>
+                        </v-col>
                         <v-col cols="12" v-if="detailEvent.notes && !isDsBlockedForInstructor(detailEvent)">
                             <div class="text-body-2 text-medium-emphasis mt-2">Shënime</div>
                             <div class="font-weight-medium">{{ detailEvent.notes }}</div>
@@ -181,12 +185,13 @@
                             <v-col cols="6" md="3">
                                 <v-select v-model="form.startTime" :items="timeSlots" label="Fillimi" variant="outlined"
                                     density="compact" :rules="[v => !!v || 'Required']"
-                                    prepend-inner-icon="mdi-clock-start"></v-select>
+                                    prepend-inner-icon="mdi-clock-start"
+                                    @update:model-value="autoCalcEndTime"></v-select>
                             </v-col>
                             <v-col cols="6" md="3">
-                                <v-select v-model="form.endTime" :items="timeSlots" label="Përfundimi" variant="outlined"
-                                    density="compact" :rules="[v => !!v || 'Required']"
-                                    prepend-inner-icon="mdi-clock-end"></v-select>
+                                <v-text-field :model-value="form.endTime" label="Përfundimi" variant="outlined"
+                                    density="compact" readonly disabled
+                                    prepend-inner-icon="mdi-clock-end"></v-text-field>
                             </v-col>
                             <v-col cols="12" md="6" v-if="isAdmin">
                                 <v-select v-model="form.instructorUserId" :items="instructorOptions"
@@ -205,11 +210,12 @@
                                 ></v-switch>
                             </v-col>
                             <v-col v-if="!manualCandidate" cols="12" md="6">
-                                <v-autocomplete v-model="form.candidateId" :items="candidateOptions"
-                                    item-title="fullName" item-value="candidateId" label="Kandidati *" variant="outlined"
+                                <v-autocomplete v-model="selectedCandidateKey" :items="candidateOptions"
+                                    item-title="fullName" item-value="uniqueKey" label="Kandidati *" variant="outlined"
                                     density="compact" :rules="[v => !!v || 'Zgjidhni kandidatin']"
                                     prepend-inner-icon="mdi-account-search"
-                                    no-data-text="Nuk u gjet – aktivizo shkruaj manualisht"></v-autocomplete>
+                                    no-data-text="Nuk u gjet – aktivizo shkruaj manualisht"
+                                    @update:model-value="handleCandidateSelect"></v-autocomplete>
                             </v-col>
                             <template v-if="manualCandidate">
                                 <v-col cols="12" md="3">
@@ -313,6 +319,9 @@ function assignInstructorColors() {
 }
 
 function getEventColor(ev) {
+    if (ev.status === 'Cancelled') {
+        return { background: '#FFEBEE', borderLeft: '3px solid #D32F2F', color: '#C62828' };
+    }
     if (ev.eventType === 'driving-session') {
         return { background: DS_COLOR.bg, borderLeft: `3px solid ${DS_COLOR.border}`, color: DS_COLOR.text };
     }
@@ -439,11 +448,13 @@ function normalizeEvent(r) {
         instructorUserId: r.instructorUserId ?? r.InstructorUserId ?? 0,
         instructorName: r.instructorName ?? r.InstructorName ?? '',
         candidateId: r.candidateId ?? r.CandidateId ?? 0,
+        additionalLessonId: r.additionalLessonId ?? r.AdditionalLessonId ?? null,
         candidateName: r.candidateName ?? r.CandidateName ?? '',
         vehicleId: r.vehicleId ?? r.VehicleId ?? 0,
         vehiclePlate: r.vehiclePlate ?? r.VehiclePlate ?? '',
         vehicleBrand: r.vehicleBrand ?? r.VehicleBrand ?? '',
         notes: r.notes ?? r.Notes ?? '',
+        status: r.status ?? r.Status ?? null,
         eventType: r.eventType ?? r.EventType ?? 'schedule',
         addedBy: r.addedBy ?? r.AddedBy ?? 0,
     };
@@ -466,7 +477,9 @@ function eventTitle(ev) {
     if (isDsBlockedForInstructor(ev)) {
         return ev.vehiclePlate + (ev.vehicleBrand ? ' – ' + ev.vehicleBrand : '');
     }
-    return ev.candidateName;
+    const name = ev.candidateName;
+    if (ev.status === 'Cancelled') return name + ' - Anuluar';
+    return name;
 }
 
 // ─── Dropdowns ───
@@ -479,7 +492,18 @@ function loadDropdowns() {
         instructorOptions.value = (r?.data?.data ?? []).map(u => ({ userId: u.userId ?? u.UserId, fullName: u.fullName ?? u.FullName ?? '' }));
     }).catch(() => {});
     store.getCandidatesDropdown().then(r => {
-        candidateOptions.value = (r?.data?.data ?? []).map(c => ({ candidateId: c.candidateId ?? c.CandidateId, fullName: c.fullName ?? c.FullName ?? '' }));
+        candidateOptions.value = (r?.data?.data ?? []).map(c => {
+            const isAL = c.isAdditionalLesson ?? c.IsAdditionalLesson ?? false;
+            const cId = c.candidateId ?? c.CandidateId ?? 0;
+            const alId = c.additionalLessonId ?? c.AdditionalLessonId ?? null;
+            return {
+                candidateId: cId,
+                additionalLessonId: alId,
+                fullName: c.fullName ?? c.FullName ?? '',
+                isAdditionalLesson: isAL,
+                uniqueKey: isAL ? `al-${alId}` : `c-${cId}`
+            };
+        });
     }).catch(() => {});
     store.getVehiclesDropdown().then(r => {
         vehicleOptions.value = (r?.data?.data ?? []).map(v => ({ vehicleId: v.vehicleId ?? v.VehicleId, label: `${v.plateNumber ?? v.PlateNumber}${v.brand ? ' – ' + v.brand : ''}` }));
@@ -491,7 +515,7 @@ const detailDialog = ref(false);
 const detailEvent = ref(null);
 
 function openEventDetail(ev) { detailEvent.value = ev; detailDialog.value = true; }
-function canEditEvent(ev) { if (!ev || ev.eventType === 'driving-session') return false; if (isAdmin.value) return true; return ev.addedBy === currentUserId.value; }
+function canEditEvent(ev) { if (!ev || ev.eventType === 'driving-session' || ev.status === 'Cancelled') return false; if (isAdmin.value) return true; return ev.addedBy === currentUserId.value; }
 function canDeleteEvent(ev) { return canEditEvent(ev); }
 function openEditFromDetail() { detailDialog.value = false; openEditDialog(detailEvent.value); }
 function confirmDeleteFromDetail() { detailDialog.value = false; deleteTarget.value = detailEvent.value; deleteDialog.value = true; }
@@ -506,7 +530,30 @@ const fDateMenu = ref(false);
 const fDateModel = ref(null);
 
 const manualCandidate = ref(false);
-const form = ref({ eventDate: '', startTime: null, endTime: null, instructorUserId: null, candidateId: null, manualFirstName: '', manualLastName: '', vehicleId: null, notes: '' });
+const selectedCandidateKey = ref(null);
+const form = ref({ eventDate: '', startTime: null, endTime: null, instructorUserId: null, candidateId: null, additionalLessonId: null, manualFirstName: '', manualLastName: '', vehicleId: null, notes: '' });
+
+function autoCalcEndTime(startTime) {
+    if (!startTime) { form.value.endTime = null; return; }
+    const parts = startTime.split(':');
+    if (parts.length !== 2) { form.value.endTime = null; return; }
+    const totalMin = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10) + 45;
+    form.value.endTime = `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+}
+
+function handleCandidateSelect(key) {
+    const item = candidateOptions.value.find(c => c.uniqueKey === key);
+    if (item && item.isAdditionalLesson) {
+        form.value.candidateId = null;
+        form.value.additionalLessonId = item.additionalLessonId;
+    } else if (item) {
+        form.value.candidateId = item.candidateId;
+        form.value.additionalLessonId = null;
+    } else {
+        form.value.candidateId = null;
+        form.value.additionalLessonId = null;
+    }
+}
 
 function handleFormDate(v) {
     if (v instanceof Date) form.value.eventDate = fmtDate(v);
@@ -524,12 +571,20 @@ function openCreateDialog(prefill) {
     editingId.value = null;
     formError.value = '';
     manualCandidate.value = false;
+    selectedCandidateKey.value = null;
+    const startTime = prefill?.hour ? `${String(prefill.hour).padStart(2, '0')}:00` : null;
+    let endTime = null;
+    if (startTime) {
+        const totalMin = prefill.hour * 60 + 45;
+        endTime = `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+    }
     form.value = {
         eventDate: prefill?.date ? fmtDate(prefill.date) : fmtDate(currentDate.value),
-        startTime: prefill?.hour ? `${String(prefill.hour).padStart(2, '0')}:00` : null,
-        endTime: prefill?.hour ? `${String(prefill.hour).padStart(2, '0')}:45` : null,
+        startTime,
+        endTime,
         instructorUserId: isAdmin.value ? null : currentUserId.value,
         candidateId: null,
+        additionalLessonId: null,
         manualFirstName: '',
         manualLastName: '',
         vehicleId: null,
@@ -544,12 +599,15 @@ function openEditDialog(ev) {
     editingId.value = ev.id;
     formError.value = '';
     manualCandidate.value = false;
+    const isAL = ev.additionalLessonId && ev.additionalLessonId > 0;
+    selectedCandidateKey.value = isAL ? `al-${ev.additionalLessonId}` : (ev.candidateId ? `c-${ev.candidateId}` : null);
     form.value = {
         eventDate: ev.eventDate,
         startTime: ev.startTime,
         endTime: ev.endTime,
         instructorUserId: ev.instructorUserId,
-        candidateId: ev.candidateId,
+        candidateId: isAL ? null : ev.candidateId,
+        additionalLessonId: isAL ? ev.additionalLessonId : null,
         manualFirstName: '',
         manualLastName: '',
         vehicleId: ev.vehicleId,
@@ -616,7 +674,8 @@ async function saveEvent() {
             startTime: form.value.startTime,
             endTime: form.value.endTime,
             instructorUserId: isAdmin.value ? form.value.instructorUserId : 0,
-            candidateId: candidateId,
+            candidateId: form.value.additionalLessonId ? 0 : candidateId,
+            additionalLessonId: form.value.additionalLessonId || null,
             vehicleId: form.value.vehicleId,
             notes: form.value.notes || null,
         };
@@ -632,19 +691,6 @@ async function saveEvent() {
         if (body?.status === 'error') {
             formError.value = body.responseMsg || 'Gabim';
             return;
-        }
-
-        // Sync practical lesson when creating a new event
-        if (!editingId.value && candidateId > 0) {
-            const vehicleLabel = vehicleOptions.value.find(v => v.vehicleId === form.value.vehicleId)?.label || '';
-            try {
-                await candidateStore.addPracticalLesson({
-                    candidateId: candidateId,
-                    lessonDate: form.value.eventDate,
-                    time: form.value.startTime,
-                    vehicle: vehicleLabel,
-                });
-            } catch (_) { /* non-blocking */ }
         }
 
         settingStore.toggleSnackbar({ status: true, msg: editingId.value ? 'Orari u përditësua!' : 'Orari u regjistrua me sukses!' });
@@ -831,6 +877,11 @@ onMounted(() => {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     transform: translateY(-1px);
     z-index: 2;
+}
+
+.cal-event.cancelled {
+    opacity: 0.75;
+    text-decoration: line-through;
 }
 
 .cal-event-time { font-weight: 600; font-size: 10px; }

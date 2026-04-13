@@ -367,21 +367,21 @@ namespace AdminApi.Controllers
 
                 var list = await query.OrderByDescending(c => c.DateAdded).ToListAsync();
 
-                // Collect lesson counts for all returned candidates in one query
+                // Collect lesson counts for all returned candidates (exclude cancelled)
                 var candidateIds = list.Select(c => c.CandidateId).ToList();
                 var lessonCounts = await _context.PracticalLessons
-                    .Where(l => l.CandidateId != null && candidateIds.Contains(l.CandidateId.Value))
+                    .Where(l => l.CandidateId != null && candidateIds.Contains(l.CandidateId.Value) && l.Status != "Cancelled")
                     .GroupBy(l => l.CandidateId)
                     .Select(g => new { CandidateId = g.Key, Count = g.Count() })
                     .ToListAsync();
                 var countDict = lessonCounts.ToDictionary(x => x.CandidateId ?? 0, x => x.Count);
 
-                // For Instructor: also count only this instructor's lessons
+                // For Instructor: also count only this instructor's lessons (exclude cancelled)
                 Dictionary<int, int> instructorCountDict = new();
                 if (role == "Instructor")
                 {
                     var instructorCounts = await _context.PracticalLessons
-                        .Where(l => l.CandidateId != null && candidateIds.Contains(l.CandidateId.Value) && l.InstructorUserId == currentUserId)
+                        .Where(l => l.CandidateId != null && candidateIds.Contains(l.CandidateId.Value) && l.InstructorUserId == currentUserId && l.Status != "Cancelled")
                         .GroupBy(l => l.CandidateId)
                         .Select(g => new { CandidateId = g.Key, Count = g.Count() })
                         .ToListAsync();
@@ -432,7 +432,7 @@ namespace AdminApi.Controllers
 
                     var alIds = additionalList.Select(x => x.al.AdditionalLessonId).ToList();
                     var alLessonCounts = await _context.PracticalLessons
-                        .Where(l => l.AdditionalLessonId != null && alIds.Contains(l.AdditionalLessonId.Value) && l.InstructorUserId == currentUserId)
+                        .Where(l => l.AdditionalLessonId != null && alIds.Contains(l.AdditionalLessonId.Value) && l.InstructorUserId == currentUserId && l.Status != "Cancelled")
                         .GroupBy(l => l.AdditionalLessonId)
                         .Select(g => new { AdditionalLessonId = g.Key, Count = g.Count() })
                         .ToListAsync();
@@ -542,7 +542,10 @@ namespace AdminApi.Controllers
                                                        lessonDate = l.LessonDate,
                                                        time = l.Time,
                                                        endTime = l.EndTime,
-                                                       vehicle = l.Vehicle
+                                                       vehicle = l.Vehicle,
+                                                       status = l.Status,
+                                                       cancellationReason = l.CancellationReason,
+                                                       cancelledDate = l.CancelledDate
                                                    }).ToListAsync();
 
                     return Ok(new
@@ -595,7 +598,10 @@ namespace AdminApi.Controllers
                                                   lessonDate = l.LessonDate,
                                                   time = l.Time,
                                                   endTime = l.EndTime,
-                                                  vehicle = l.Vehicle
+                                                  vehicle = l.Vehicle,
+                                                  status = l.Status,
+                                                  cancellationReason = l.CancellationReason,
+                                                  cancelledDate = l.CancelledDate
                                               }).ToListAsync();
 
                 // ── Driving Sessions for this candidate ──
@@ -816,7 +822,10 @@ namespace AdminApi.Controllers
                                                   lessonDate = l.LessonDate,
                                                   time = l.Time,
                                                   endTime = l.EndTime,
-                                                  vehicle = l.Vehicle
+                                                  vehicle = l.Vehicle,
+                                                  status = l.Status,
+                                                  cancellationReason = l.CancellationReason,
+                                                  cancelledDate = l.CancelledDate
                                               }).ToListAsync();
 
                 return Ok(new
@@ -1008,7 +1017,10 @@ namespace AdminApi.Controllers
                                      lessonDate = l.LessonDate,
                                      time = l.Time,
                                      endTime = l.EndTime,
-                                     vehicle = l.Vehicle
+                                     vehicle = l.Vehicle,
+                                     status = l.Status,
+                                     cancellationReason = l.CancellationReason,
+                                     cancelledDate = l.CancelledDate
                                  }).ToListAsync();
                 return Ok(new { data = list });
             }
@@ -1073,9 +1085,10 @@ namespace AdminApi.Controllers
                 var endTs = startTs.Add(TimeSpan.FromMinutes(45));
                 var endTime = $"{endTs.Hours:D2}:{endTs.Minutes:D2}";
 
-                // Overlap check: same instructor on same date must not have overlapping time
+                // Overlap check: same instructor on same date must not have overlapping time (skip cancelled)
                 var sameDayLessons = await _context.PracticalLessons
                     .Where(l => l.LessonDate == request.LessonDate &&
+                                l.Status != "Cancelled" &&
                                 (l.InstructorUserId == currentUserId ||
                                  (!string.IsNullOrEmpty(request.Vehicle) && l.Vehicle == request.Vehicle)))
                     .ToListAsync();
@@ -1169,6 +1182,81 @@ namespace AdminApi.Controllers
             {
                 _logger.LogError(ex, "AddPracticalLesson failed");
                 return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ruajtja e ores deshtoi." });
+            }
+        }
+
+        ///<summary>
+        ///Cancel a practical lesson. Returns the hour back to the candidate's remaining hours.
+        ///</summary>
+        [Authorize(Roles = "SuperAdmin,Admin,Instructor")]
+        [HttpPost("{lessonId}")]
+        public async Task<ActionResult> CancelPracticalLesson(int lessonId, [FromBody] CancelPracticalLessonRequest request)
+        {
+            try
+            {
+                var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
+                var role = User.FindFirst("role")?.Value ?? "";
+
+                var lesson = await _context.PracticalLessons.FindAsync(lessonId);
+                if (lesson == null)
+                    return NotFound(new Confirmation { Status = "error", ResponseMsg = "Ora nuk u gjet." });
+
+                if (lesson.Status == "Cancelled")
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kjo ore eshte tashme e anuluar." });
+
+                if (role == "Instructor" && lesson.InstructorUserId != currentUserId)
+                    return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Nuk jeni te autorizuar te anuloni kete ore." });
+
+                // Only allow cancellation for today or future dates
+                if (DateTime.TryParseExact(lesson.LessonDate, "dd.MM.yyyy",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var lessonDt))
+                {
+                    if (lessonDt.Date < DateTime.Today)
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Nuk mund te anuloni ore qe jane ne te kaluaren." });
+                }
+
+                if (string.IsNullOrWhiteSpace(request?.Reason))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Arsyeja e anulimit eshte e detyrueshme." });
+
+                lesson.Status = "Cancelled";
+                lesson.CancellationReason = request.Reason.Trim();
+                lesson.CancelledDate = DateTime.UtcNow;
+
+                _context.PracticalLessons.Update(lesson);
+
+                // Mark the corresponding ScheduleEvent as Cancelled (keep it for evidence)
+                Models.Schedule.ScheduleEvent? scheduleEvent = null;
+                if (lesson.CandidateId.HasValue)
+                {
+                    scheduleEvent = await _context.ScheduleEvents.FirstOrDefaultAsync(e =>
+                        e.EventDate == lesson.LessonDate &&
+                        e.StartTime == lesson.Time &&
+                        e.CandidateId == lesson.CandidateId &&
+                        e.Status != "Cancelled");
+                }
+                else if (lesson.AdditionalLessonId.HasValue)
+                {
+                    scheduleEvent = await _context.ScheduleEvents.FirstOrDefaultAsync(e =>
+                        e.EventDate == lesson.LessonDate &&
+                        e.StartTime == lesson.Time &&
+                        e.AdditionalLessonId == lesson.AdditionalLessonId &&
+                        e.Status != "Cancelled");
+                }
+                if (scheduleEvent != null)
+                {
+                    scheduleEvent.Status = "Cancelled";
+                    _context.ScheduleEvents.Update(scheduleEvent);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new Confirmation { Status = "success", ResponseMsg = "Ora u anulua me sukses." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CancelPracticalLesson failed");
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit." });
             }
         }
 

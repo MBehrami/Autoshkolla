@@ -162,6 +162,17 @@ export const useCandidateStore = defineStore("candidateStore", {
           });
       });
     },
+    cancelPracticalLesson(lessonId, payload) {
+      return new Promise((resolve, reject) => {
+        this.loading = true;
+        API.post(
+          import.meta.env.VITE_API_URL + `/api/Candidates/CancelPracticalLesson/${lessonId}`,
+          camelToPascal(payload)
+        )
+          .then((response) => { this.loading = false; resolve(response); })
+          .catch((error) => { this.loading = false; reject(error); });
+      });
+    },
     getLessonVehicles() {
       return new Promise((resolve, reject) => {
         API.get(import.meta.env.VITE_API_URL + "/api/Candidates/GetLessonVehicles")

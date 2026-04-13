@@ -149,9 +149,9 @@ const headersInstructor = [
     { title: 'Numri i telefonit', key: 'phoneNumber' },
     { title: 'Kategoria', key: 'categoryName' },
     { title: 'Lloji i vetures', key: 'vehicleType' },
-    { title: 'Orët praktike', key: 'practicalLessonCount' },
-    { title: 'Orët të kryera', key: 'completedHours' },
-    { title: 'Orët të mbetura', key: 'remainingHours' },
+    { title: 'Orët totale', key: 'practicalHours' },
+    { title: 'Orët e kryera', key: 'completedHours' },
+    { title: 'Orët e mbetura', key: 'remainingHours' },
     { title: 'Veprimet', key: 'actions', sortable: false }
 ]
 
@@ -172,20 +172,20 @@ const headersExcelAdmin = {
 
 const headersExcelInstructor = {
     'Nr. Rendor': 'serialNumber',
-    'First Name': 'firstName',
+    'Emri': 'firstName',
     'Mbiemri': 'lastName',
     'Numri i telefonit': 'phoneNumber',
     'Kategoria': 'categoryName',
     'Lloji i vetures': 'vehicleType',
-    'Orët praktike': 'practicalLessonCount',
-    'Orët të kryera': 'completedHours',
-    'Orët të mbetura': 'remainingHours',
+    'Orët totale': 'practicalHours',
+    'Orët e kryera': 'completedHours',
+    'Orët e mbetura': 'remainingHours',
 }
 
 const headersExcel = computed(() => isInstructor.value ? headersExcelInstructor : headersExcelAdmin)
 
 const headersPdfAdmin = ['Serial Number', 'First Name', 'Last Name', 'Personal Number', 'Phone', 'Category', 'Instructor', 'Vehicle Type', 'Practical Hours', 'Total Amount']
-const headersPdfInstructor = ['Serial Number', 'First Name', 'Last Name', 'Phone', 'Category', 'Vehicle Type', 'Practical Lessons', 'Completed Hours', 'Remaining Hours']
+const headersPdfInstructor = ['Serial Number', 'First Name', 'Last Name', 'Phone', 'Category', 'Vehicle Type', 'Total Hours', 'Completed Hours', 'Remaining Hours']
 
 const items = ref([])
 const categories = ref([])
@@ -224,7 +224,7 @@ const exportPdf = () => {
     const pdfHeaders = isInstructor.value ? headersPdfInstructor : headersPdfAdmin
     const bodyRows = items.value.map((row) => {
         if (isInstructor.value) {
-            return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.vehicleType, row.practicalLessonCount, row.completedHours, row.remainingHours]
+            return [row.serialNumber, row.firstName, row.lastName, row.phoneNumber, row.categoryName, row.vehicleType, row.practicalHours, row.completedHours, row.remainingHours]
         }
         return [row.serialNumber, row.firstName, row.lastName, row.personalNumber, row.phoneNumber, row.categoryName, row.instructorName, row.vehicleType, row.practicalHoursDisplay, row.servicePaymentDisplay]
     })

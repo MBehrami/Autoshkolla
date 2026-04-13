@@ -38,6 +38,9 @@ namespace AdminApi.Models.Schedule
         [StringLength(500)]
         public string? Notes { get; set; }
 
+        [StringLength(20)]
+        public string? Status { get; set; }
+
         [Required]
         public int AddedBy { get; set; }
 

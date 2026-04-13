@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AdminApi.Models;
+using AdminApi.Models.Candidate;
 using AdminApi.Models.Helper;
 using AdminApi.Models.Schedule;
 using AdminApi.ViewModels.Schedule;
@@ -77,6 +78,7 @@ namespace AdminApi.Controllers
                                                 VehiclePlate = v.PlateNumber,
                                                 VehicleBrand = v.Brand,
                                                 e.Notes,
+                                                e.Status,
                                                 e.AddedBy,
                                                 e.DateAdded,
                                                 EventType = "schedule"
@@ -169,6 +171,7 @@ namespace AdminApi.Controllers
                         vehiclePlate = s.VehiclePlate,
                         vehicleBrand = s.VehicleBrand,
                         notes = isInstructor ? "" : (s.Status ?? ""),
+                        status = (string?)null,
                         eventType = "driving-session"
                     };
                 }).ToList();
@@ -188,6 +191,7 @@ namespace AdminApi.Controllers
                     vehiclePlate = e.VehiclePlate,
                     vehicleBrand = e.VehicleBrand,
                     notes = e.Notes ?? "",
+                    status = e.Status,
                     eventType = e.EventType
                 }).ToList();
 
@@ -273,17 +277,40 @@ namespace AdminApi.Controllers
                 if (role == "Instructor")
                     query = query.Where(c => c.InstructorId == currentUserId);
 
-                var list = await query
+                var candidates = await query
                     .OrderBy(c => c.FirstName).ThenBy(c => c.LastName)
                     .Select(c => new
                     {
                         c.CandidateId,
+                        AdditionalLessonId = (int?)null,
                         FullName = c.FirstName + " " + c.LastName
                             + (c.PersonalNumber != null && c.PersonalNumber != "" ? " (" + c.PersonalNumber + ")" : ""),
-                        c.PersonalNumber
+                        c.PersonalNumber,
+                        IsAdditionalLesson = false
                     })
                     .ToListAsync();
-                return Ok(new { data = list });
+
+                // Also include Additional Lesson candidates
+                var alQuery = _context.AdditionalLessons.AsQueryable();
+                if (role == "Instructor")
+                    alQuery = alQuery.Where(al => al.InstructorId == currentUserId);
+
+                var additionalCandidates = await alQuery
+                    .OrderBy(al => al.FirstName).ThenBy(al => al.LastName)
+                    .Select(al => new
+                    {
+                        CandidateId = 0,
+                        AdditionalLessonId = (int?)al.AdditionalLessonId,
+                        FullName = al.FirstName + " " + al.LastName
+                            + (al.PersonalNumber != null && al.PersonalNumber != "" ? " (" + al.PersonalNumber + ")" : "")
+                            + " [Orë Shtesë]",
+                        al.PersonalNumber,
+                        IsAdditionalLesson = true
+                    })
+                    .ToListAsync();
+
+                var combined = candidates.Concat(additionalCandidates).ToList();
+                return Ok(new { data = combined });
             }
             catch (Exception ex)
             {
@@ -318,14 +345,14 @@ namespace AdminApi.Controllers
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
                 var role = User.FindFirst("role")?.Value ?? "";
 
+                bool isAdditionalLesson = req.AdditionalLessonId.HasValue && req.AdditionalLessonId.Value > 0;
+
                 // ── Validation ──
                 if (string.IsNullOrWhiteSpace(req.EventDate))
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data eshte e detyrueshme." });
                 if (string.IsNullOrWhiteSpace(req.StartTime))
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e fillimit eshte e detyrueshme." });
-                if (string.IsNullOrWhiteSpace(req.EndTime))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e mbarimit eshte e detyrueshme." });
-                if (req.CandidateId <= 0)
+                if (!isAdditionalLesson && req.CandidateId <= 0)
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati eshte i detyrueshem." });
                 if (req.VehicleId <= 0)
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti eshte i detyrueshem." });
@@ -336,28 +363,50 @@ namespace AdminApi.Controllers
                     !DateTime.TryParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem (dd.MM.yyyy)." });
 
-                // Time format
+                // Time format – auto-calculate end time (start + 45 min)
                 string startT = req.StartTime.Trim();
-                string endT = req.EndTime.Trim();
-                if (!TimeSpan.TryParse(startT, out var startTs) || !TimeSpan.TryParse(endT, out var endTs))
+                if (!TimeSpan.TryParse(startT, out var startTs))
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i ores eshte i pavlefshem (HH:mm)." });
-                if (endTs <= startTs)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e mbarimit duhet te jete pas ores se fillimit." });
+                var endTs = startTs.Add(TimeSpan.FromMinutes(45));
+                string endT = $"{endTs.Hours:D2}:{endTs.Minutes:D2}";
 
                 // Instructor: auto-assign self
                 int instructorId = role == "Instructor" ? currentUserId : req.InstructorUserId;
                 if (instructorId <= 0)
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Instruktori eshte i detyrueshem." });
 
-                // Candidate exists
-                var candidate = await _context.Candidates.FindAsync(req.CandidateId);
-                if (candidate == null)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet." });
+                // Validate candidate / additional lesson exists
+                string candidateName = "";
+                if (isAdditionalLesson)
+                {
+                    var al = await _context.AdditionalLessons.FindAsync(req.AdditionalLessonId!.Value);
+                    if (al == null)
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati (orë shtesë) nuk u gjet." });
+                    candidateName = al.FirstName + " " + al.LastName;
+                }
+                else
+                {
+                    var candidate = await _context.Candidates.FindAsync(req.CandidateId);
+                    if (candidate == null)
+                        return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati nuk u gjet." });
+                    candidateName = candidate.FirstName + " " + candidate.LastName;
+                }
 
                 // Vehicle exists and active
                 var vehicle = await _context.Vehicles.FindAsync(req.VehicleId);
                 if (vehicle == null || !vehicle.IsActive)
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti nuk u gjet ose eshte joaktiv." });
+
+                // ── Duplicate check: same candidate, same date, same start time (skip cancelled) ──
+                var duplicateExists = await _context.ScheduleEvents.AnyAsync(e =>
+                    e.EventDate == date &&
+                    e.StartTime == startT &&
+                    e.Status != "Cancelled" &&
+                    (isAdditionalLesson
+                        ? (e.AdditionalLessonId == req.AdditionalLessonId)
+                        : (e.CandidateId == req.CandidateId && e.CandidateId != null)));
+                if (duplicateExists)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ky kandidat tashme ka nje orar te regjistruar ne kete date dhe ore." });
 
                 // ── Conflict check ──
                 var conflictMsg = await CheckConflicts(date, startT, endT, instructorId, req.VehicleId, excludeId: null);
@@ -370,7 +419,8 @@ namespace AdminApi.Controllers
                     StartTime = startT,
                     EndTime = endT,
                     InstructorUserId = instructorId,
-                    CandidateId = req.CandidateId,
+                    CandidateId = isAdditionalLesson ? null : req.CandidateId,
+                    AdditionalLessonId = isAdditionalLesson ? req.AdditionalLessonId : null,
                     VehicleId = req.VehicleId,
                     Notes = string.IsNullOrWhiteSpace(req.Notes) ? null : req.Notes.Trim(),
                     AddedBy = currentUserId,
@@ -378,6 +428,31 @@ namespace AdminApi.Controllers
                 };
 
                 await _scheduleRepo.Insert(ev);
+
+                // Also create a PracticalLesson (if an active one doesn't already exist) so hours are tracked
+                var lessonExists = await _context.PracticalLessons.AnyAsync(l =>
+                    l.LessonDate == date && l.Time == startT &&
+                    l.Status != "Cancelled" &&
+                    (isAdditionalLesson
+                        ? l.AdditionalLessonId == req.AdditionalLessonId
+                        : l.CandidateId == req.CandidateId));
+                if (!lessonExists)
+                {
+                    var vehiclePlateStr = vehicle.PlateNumber + (string.IsNullOrEmpty(vehicle.Brand) ? "" : " – " + vehicle.Brand);
+                    var lesson = new PracticalLesson
+                    {
+                        CandidateId = isAdditionalLesson ? null : req.CandidateId,
+                        AdditionalLessonId = isAdditionalLesson ? req.AdditionalLessonId : null,
+                        InstructorUserId = instructorId,
+                        LessonDate = date,
+                        Time = startT,
+                        EndTime = endT,
+                        Vehicle = vehiclePlateStr,
+                        DateAdded = DateTime.UtcNow
+                    };
+                    _context.PracticalLessons.Add(lesson);
+                    await _context.SaveChangesAsync();
+                }
 
                 // Fetch instructor name for response
                 var instructor = await _context.Users.FindAsync(instructorId);
@@ -394,8 +469,8 @@ namespace AdminApi.Controllers
                         endTime = ev.EndTime,
                         instructorUserId = ev.InstructorUserId,
                         instructorName = instructor?.FullName ?? "",
-                        candidateId = ev.CandidateId,
-                        candidateName = candidate.FirstName + " " + candidate.LastName,
+                        candidateId = ev.CandidateId ?? 0,
+                        candidateName = candidateName,
                         vehicleId = ev.VehicleId,
                         vehiclePlate = vehicle.PlateNumber,
                         vehicleBrand = vehicle.Brand,
@@ -423,54 +498,69 @@ namespace AdminApi.Controllers
                 var currentUserId = int.Parse(User.FindFirst("sub")?.Value ?? "0");
                 var role = User.FindFirst("role")?.Value ?? "";
 
+                bool isAdditionalLesson = req.AdditionalLessonId.HasValue && req.AdditionalLessonId.Value > 0;
+
                 var ev = await _context.ScheduleEvents.FindAsync(id);
                 if (ev == null)
                     return NotFound(new Confirmation { Status = "error", ResponseMsg = "Ngjarja nuk u gjet." });
 
-                // Instructor can only edit their own events
                 if (role == "Instructor" && ev.AddedBy != currentUserId)
                     return StatusCode(403, new Confirmation { Status = "error", ResponseMsg = "Mund te ndryshoni vetem ngjarjet qe i keni krijuar ju." });
 
-                // Validation
-                if (string.IsNullOrWhiteSpace(req.EventDate) || string.IsNullOrWhiteSpace(req.StartTime) || string.IsNullOrWhiteSpace(req.EndTime))
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data dhe oret jane te detyrueshme." });
+                if (string.IsNullOrWhiteSpace(req.EventDate) || string.IsNullOrWhiteSpace(req.StartTime))
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Data dhe ora e fillimit jane te detyrueshme." });
 
                 string date = req.EventDate.Trim();
                 string startT = req.StartTime.Trim();
-                string endT = req.EndTime.Trim();
 
                 if (!Regex.IsMatch(date, @"^\d{2}\.\d{2}\.\d{4}$") ||
                     !DateTime.TryParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i dates eshte i pavlefshem." });
-                if (!TimeSpan.TryParse(startT, out var startTs) || !TimeSpan.TryParse(endT, out var endTs))
+                if (!TimeSpan.TryParse(startT, out var startTs))
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Formati i ores eshte i pavlefshem." });
-                if (endTs <= startTs)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Ora e mbarimit duhet te jete pas ores se fillimit." });
+
+                var endTs = startTs.Add(TimeSpan.FromMinutes(45));
+                string endT = $"{endTs.Hours:D2}:{endTs.Minutes:D2}";
 
                 int instructorId = role == "Instructor" ? currentUserId : req.InstructorUserId;
                 if (instructorId <= 0)
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Instruktori eshte i detyrueshem." });
 
-                if (req.CandidateId <= 0 || req.VehicleId <= 0)
-                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati dhe automjeti jane te detyrueshem." });
+                if (!isAdditionalLesson && req.CandidateId <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Kandidati eshte i detyrueshem." });
+                if (req.VehicleId <= 0)
+                    return BadRequest(new Confirmation { Status = "error", ResponseMsg = "Automjeti eshte i detyrueshem." });
 
                 // Conflict check (exclude self)
                 var conflictMsg = await CheckConflicts(date, startT, endT, instructorId, req.VehicleId, excludeId: id);
                 if (conflictMsg != null)
                     return BadRequest(new Confirmation { Status = "error", ResponseMsg = conflictMsg });
 
+                // Resolve candidate name
+                string candidateName = "";
+                if (isAdditionalLesson)
+                {
+                    var al = await _context.AdditionalLessons.FindAsync(req.AdditionalLessonId!.Value);
+                    if (al != null) candidateName = al.FirstName + " " + al.LastName;
+                }
+                else
+                {
+                    var cand = await _context.Candidates.FindAsync(req.CandidateId);
+                    if (cand != null) candidateName = cand.FirstName + " " + cand.LastName;
+                }
+
                 ev.EventDate = date;
                 ev.StartTime = startT;
                 ev.EndTime = endT;
                 ev.InstructorUserId = instructorId;
-                ev.CandidateId = req.CandidateId;
+                ev.CandidateId = isAdditionalLesson ? null : req.CandidateId;
+                ev.AdditionalLessonId = isAdditionalLesson ? req.AdditionalLessonId : null;
                 ev.VehicleId = req.VehicleId;
                 ev.Notes = string.IsNullOrWhiteSpace(req.Notes) ? null : req.Notes.Trim();
 
                 _context.ScheduleEvents.Update(ev);
                 await _context.SaveChangesAsync();
 
-                var candidate = await _context.Candidates.FindAsync(ev.CandidateId);
                 var vehicle = await _context.Vehicles.FindAsync(ev.VehicleId);
                 var instructor = await _context.Users.FindAsync(ev.InstructorUserId);
 
@@ -486,8 +576,8 @@ namespace AdminApi.Controllers
                         endTime = ev.EndTime,
                         instructorUserId = ev.InstructorUserId,
                         instructorName = instructor?.FullName ?? "",
-                        candidateId = ev.CandidateId,
-                        candidateName = (candidate?.FirstName ?? "") + " " + (candidate?.LastName ?? ""),
+                        candidateId = ev.CandidateId ?? 0,
+                        candidateName = candidateName,
                         vehicleId = ev.VehicleId,
                         vehiclePlate = vehicle?.PlateNumber ?? "",
                         vehicleBrand = vehicle?.Brand ?? "",
@@ -541,9 +631,11 @@ namespace AdminApi.Controllers
             if (!TimeSpan.TryParse(startTime, out var newStart) || !TimeSpan.TryParse(endTime, out var newEnd))
                 return null;
 
-            // Get all schedule events on the same date
+            // Get all active schedule events on the same date (skip cancelled)
             var existing = await _context.ScheduleEvents
-                .Where(e => e.EventDate == date && (excludeId == null || e.ScheduleEventId != excludeId.Value))
+                .Where(e => e.EventDate == date
+                    && (excludeId == null || e.ScheduleEventId != excludeId.Value)
+                    && e.Status != "Cancelled")
                 .ToListAsync();
 
             foreach (var e in existing)
