@@ -275,8 +275,25 @@
                             <v-select v-model="candidateForm.paymentMethod" :items="['Bank', 'Cash']"
                                 label="Metoda e pagesës" variant="outlined" density="comfortable" clearable
                                 hide-details="auto"></v-select>
+
+                            <v-divider class="my-3"></v-divider>
+                            <div class="d-flex justify-space-between text-body-2 mb-1">
+                                <span style="color: var(--slate-500);">Paguar (këstet)</span>
+                                <strong style="color: var(--slate-800);">{{ installmentsPaid }}</strong>
+                            </div>
+                            <div class="d-flex justify-space-between text-body-2">
+                                <span style="color: var(--slate-500);">Mbetur për t'u paguar</span>
+                                <strong :style="{ color: remainingAmount < 0 ? '#dc2626' : 'var(--slate-800)' }">
+                                    {{ remainingAmount }}
+                                </strong>
+                            </div>
                         </v-card-text>
                     </v-card>
+
+                    <v-alert v-if="saveError" type="error" density="compact" variant="tonal" class="mb-4" closable
+                        @click:close="saveError = ''">
+                        {{ saveError }}
+                    </v-alert>
 
                     <!-- Save Actions (sticky on scroll) -->
                     <v-card class="mb-4 save-card">
@@ -300,6 +317,7 @@
 <script setup>
 import { useCandidateStore } from '@/store/CandidateStore';
 import { useSettingStore } from '@/store/SettingStore';
+import { extractApiMessage, extractBodyMessage, isBusinessError } from '@/helper/ApiError';
 import { storeToRefs } from 'pinia';
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -320,6 +338,7 @@ const instructors = ref([])
 const categorySelect = ref(null)
 const instructorSelect = ref(null)
 const installmentError = ref('')
+const saveError = ref('')
 const installmentsDisabled = ref([false, false, false])
 
 const dateOfBirthMenu = ref(false)
@@ -500,23 +519,38 @@ const clearDrivingPaymentDate = () => {
     drivingPaymentDateModel.value = null
 }
 
+// Tolerance for floating point comparisons between amounts.
+const PAYMENT_EPSILON = 0.001
+
+const totalServiceAmount = computed(() => Number(candidateForm.value.totalServiceAmount) || 0)
+const installmentsPaid = computed(() => installments.value.reduce((sum, inst) => sum + (Number(inst.amount) || 0), 0))
+const remainingAmount = computed(() => totalServiceAmount.value - installmentsPaid.value)
+
+// Recalculates installment state on every change.
+//
+// Business rule: the sum of the installments may never exceed the total service
+// amount. A later installment is disabled ONLY when the previous installments
+// already cover the full amount AND the field itself is empty — a field that
+// holds a value always stays editable, so prices/payments can be corrected at
+// any time and are never permanently locked after registration.
 const validateInstallments = () => {
     installmentError.value = ''
-    const total = installments.value.reduce((sum, inst) => sum + (inst.amount || 0), 0)
-    if (total > candidateForm.value.totalServiceAmount) {
-        installmentError.value = 'Sum of installments must not exceed Total service amount.'
-        return false
+    const total = totalServiceAmount.value
+    const amounts = installments.value.map(inst => Number(inst.amount) || 0)
+    const sum = amounts.reduce((a, b) => a + b, 0)
+
+    if (sum - total > PAYMENT_EPSILON) {
+        installmentError.value = 'Shuma e kësteve nuk duhet të tejkalojë pagesën totale të shërbimit.'
     }
-    if (installments.value[0].amount === candidateForm.value.totalServiceAmount) {
-        installmentsDisabled.value[1] = true
-        installmentsDisabled.value[2] = true
-        installments.value[1].amount = 0
-        installments.value[2].amount = 0
-    } else {
-        installmentsDisabled.value[1] = false
-        installmentsDisabled.value[2] = false
+
+    let running = 0
+    for (let i = 0; i < installments.value.length; i++) {
+        const prevCoverAll = total > 0 && running >= total - PAYMENT_EPSILON
+        installmentsDisabled.value[i] = i > 0 && prevCoverAll && amounts[i] === 0
+        running += amounts[i]
     }
-    return true
+
+    return !installmentError.value
 }
 
 const loadCategories = () => {
@@ -621,7 +655,20 @@ const loadCandidate = () => {
 }
 
 const saveCandidate = async () => {
-    if (!validateInstallments()) return
+    saveError.value = ''
+
+    // Field-level validation (required fields, formats)
+    const result = await formRef.value?.validate()
+    if (result && result.valid === false) {
+        saveError.value = 'Disa fusha të detyrueshme mungojnë ose nuk janë të vlefshme. Kontrolloni formularin.'
+        return
+    }
+
+    // Business-rule validation (installments vs. total)
+    if (!validateInstallments()) {
+        saveError.value = installmentError.value
+        return
+    }
 
     const formData = {
         ...candidateForm.value,
@@ -629,20 +676,31 @@ const saveCandidate = async () => {
         instructorId: instructorSelect.value?.userId || candidateForm.value.instructorId,
         availableSchedule: candidateForm.value.availableSchedule || undefined,
         installments: installments.value
-            .filter(inst => inst.amount > 0)
+            .filter(inst => (Number(inst.amount) || 0) > 0)
             .map(inst => ({
                 installmentNumber: inst.installmentNumber,
-                amount: inst.amount,
+                amount: Number(inst.amount) || 0,
                 installmentDate: inst.installmentDate
             }))
     }
 
     try {
-        await candidateStore.updateCandidate(numericId.value, formData)
+        // The form shows errors inline, so opt out of the global error snackbar.
+        const res = await candidateStore.updateCandidate(numericId.value, formData, { suppressGlobalError: true })
+
+        // Backend uses the 202-with-Status="error" convention for business errors;
+        // a 2xx response does NOT necessarily mean success — check the body.
+        if (isBusinessError(res?.data)) {
+            saveError.value = extractBodyMessage(res.data) || 'Kandidati nuk mund të përditësohej.'
+            settingStore.toggleSnackbar({ status: true, msg: saveError.value })
+            return
+        }
+
         settingStore.toggleSnackbar({ status: true, msg: 'Kandidati u ndryshua me sukses!' })
         router.push(`/candidates/${numericId.value}`)
     } catch (error) {
-        settingStore.toggleSnackbar({ status: true, msg: error.response?.data?.responseMsg || 'Error saving candidate' })
+        saveError.value = extractApiMessage(error, 'Kandidati nuk mund të ruhej. Kontrolloni formularin dhe provoni përsëri.')
+        settingStore.toggleSnackbar({ status: true, msg: saveError.value })
     }
 }
 

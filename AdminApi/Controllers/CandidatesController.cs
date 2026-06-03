@@ -180,6 +180,17 @@ namespace AdminApi.Controllers
                     return Accepted(new Confirmation { Status = "error", ResponseMsg = "Shuma e kesteve nuk duhet te tejkaloje shumen totale te sherbimit." });
                 }
 
+                // Prevent duplicate personal numbers
+                if (!string.IsNullOrWhiteSpace(request.PersonalNumber))
+                {
+                    var pn = request.PersonalNumber.Trim();
+                    bool exists = await _context.Candidates.AnyAsync(c => c.PersonalNumber == pn);
+                    if (exists)
+                    {
+                        return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ekziston tashme nje kandidat me kete numer personal." });
+                    }
+                }
+
                 // Create candidate
                 var candidate = new Candidate
                 {
@@ -287,7 +298,8 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
+                _logger.LogError(ex, "CreateCandidate failed");
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim ne server gjate ruajtjes se kandidatit. Provoni perseri." });
             }
         }
 
@@ -880,6 +892,17 @@ namespace AdminApi.Controllers
                     return Accepted(new Confirmation { Status = "error", ResponseMsg = "Shuma e kesteve nuk duhet te tejkaloje shumen totale te sherbimit." });
                 }
 
+                // Prevent duplicate personal numbers (ignore this candidate's own record)
+                if (!string.IsNullOrWhiteSpace(request.PersonalNumber))
+                {
+                    var pn = request.PersonalNumber.Trim();
+                    bool exists = await _context.Candidates.AnyAsync(c => c.PersonalNumber == pn && c.CandidateId != candidateId);
+                    if (exists)
+                    {
+                        return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ekziston tashme nje kandidat tjeter me kete numer personal." });
+                    }
+                }
+
                 // Track old values for daily report diff
                 int? oldDocAmount = existingCandidate.DocWithdrawalAmount;
                 int? oldDrivingAmount = existingCandidate.DrivingPaymentAmount;
@@ -980,7 +1003,8 @@ namespace AdminApi.Controllers
             }
             catch (Exception ex)
             {
-                return Accepted(new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim gjate perpunimit te kerkeses." });
+                _logger.LogError(ex, "UpdateCandidate failed for candidateId {CandidateId}", candidateId);
+                return StatusCode(500, new Confirmation { Status = "error", ResponseMsg = "Ndodhi nje gabim ne server gjate perditesimit te kandidatit. Provoni perseri." });
             }
         }
 

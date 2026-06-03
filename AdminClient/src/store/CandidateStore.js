@@ -83,12 +83,13 @@ export const useCandidateStore = defineStore("candidateStore", {
           });
       });
     },
-    createCandidate(objCandidate) {
+    createCandidate(objCandidate, config = {}) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         API.post(
           import.meta.env.VITE_API_URL + "/api/Candidates/CreateCandidate",
-          camelToPascal(objCandidate)
+          camelToPascal(objCandidate),
+          config
         )
           .then((response) => {
             this.loading = false;
@@ -100,12 +101,13 @@ export const useCandidateStore = defineStore("candidateStore", {
           });
       });
     },
-    updateCandidate(candidateId, objCandidate) {
+    updateCandidate(candidateId, objCandidate, config = {}) {
       return new Promise((resolve, reject) => {
         this.loading = true;
         API.patch(
           import.meta.env.VITE_API_URL + `/api/Candidates/UpdateCandidate/${candidateId}`,
-          camelToPascal(objCandidate)
+          camelToPascal(objCandidate),
+          config
         )
           .then((response) => {
             this.loading = false;

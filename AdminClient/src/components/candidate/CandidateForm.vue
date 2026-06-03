@@ -396,6 +396,7 @@
 <script setup>
 import { useCandidateStore } from '@/store/CandidateStore';
 import { useSettingStore } from '@/store/SettingStore';
+import { extractApiMessage, extractBodyMessage, isBusinessError } from '@/helper/ApiError';
 import { storeToRefs } from 'pinia';
 import { ref, watch, onMounted, computed, nextTick } from 'vue';
 import { useDate } from 'vuetify';
@@ -601,27 +602,28 @@ const rules = {
     }
 }
 
+const PAYMENT_EPSILON = 0.001
+
 const validateInstallments = () => {
     installmentError.value = ''
-    const total = installments.value.reduce((sum, inst) => sum + (inst.amount || 0), 0)
-    
-    if (total > candidateForm.value.totalServiceAmount) {
-        installmentError.value = 'Sum of installments must not exceed Total service amount.'
-        return false
+    const total = Number(candidateForm.value.totalServiceAmount) || 0
+    const amounts = installments.value.map(inst => Number(inst.amount) || 0)
+    const sum = amounts.reduce((a, b) => a + b, 0)
+
+    if (sum - total > PAYMENT_EPSILON) {
+        installmentError.value = 'Shuma e kësteve nuk duhet të tejkalojë pagesën totale të shërbimit.'
     }
-    
-    // If Installment1 == Total service amount, disable Installment2/3
-    if (installments.value[0].amount === candidateForm.value.totalServiceAmount) {
-        installmentsDisabled.value[1] = true
-        installmentsDisabled.value[2] = true
-        installments.value[1].amount = 0
-        installments.value[2].amount = 0
-    } else {
-        installmentsDisabled.value[1] = false
-        installmentsDisabled.value[2] = false
+
+    // Disable a later installment only when previous ones already cover the full
+    // amount AND it is empty; a field that holds a value stays editable.
+    let running = 0
+    for (let i = 0; i < installments.value.length; i++) {
+        const prevCoverAll = total > 0 && running >= total - PAYMENT_EPSILON
+        installmentsDisabled.value[i] = i > 0 && prevCoverAll && amounts[i] === 0
+        running += amounts[i]
     }
-    
-    return true
+
+    return !installmentError.value
 }
 
 const loadCategories = () => {
@@ -669,17 +671,25 @@ const saveCandidate = async () => {
     }
 
     try {
+        let res
         if (props.isEdit && (props.candidateId || props.candidate?.candidate?.candidateId)) {
             const id = props.candidateId || props.candidate?.candidate?.candidateId
-            await candidateStore.updateCandidate(id, formData)
+            res = await candidateStore.updateCandidate(id, formData, { suppressGlobalError: true })
         } else {
-            await candidateStore.createCandidate(formData)
+            res = await candidateStore.createCandidate(formData, { suppressGlobalError: true })
         }
-        settingStore.toggleSnackbar({ status: true, msg: 'Successfully Saved' })
+
+        // A 2xx response can still carry a handled business error (Status="error").
+        if (isBusinessError(res?.data)) {
+            settingStore.toggleSnackbar({ status: true, msg: extractBodyMessage(res.data) || 'Kandidati nuk mund të ruhej.' })
+            return
+        }
+
+        settingStore.toggleSnackbar({ status: true, msg: 'Kandidati u ruajt me sukses!' })
         emit('saved')
         closeDialog()
     } catch (error) {
-        settingStore.toggleSnackbar({ status: true, msg: error.response?.data?.responseMsg || 'Error saving candidate' })
+        settingStore.toggleSnackbar({ status: true, msg: extractApiMessage(error, 'Kandidati nuk mund të ruhej. Kontrolloni formularin dhe provoni përsëri.') })
     }
 }
 

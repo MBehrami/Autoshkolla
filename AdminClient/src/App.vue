@@ -18,6 +18,7 @@ import Navbar from './components/common/Navbar.vue';
 import Footer from './components/common/Footer.vue';
 import Message from './components/common/Message.vue';
 import API from './store/API';
+import { extractApiMessage } from './helper/ApiError';
 import { useUserStore } from './store/UserStore';
 import { useSettingStore } from './store/SettingStore';
 import { useRouter } from 'vue-router'
@@ -80,6 +81,24 @@ onErrorCaptured(() => {
 // Guard flag to prevent recursive interceptor loops when the API is unreachable
 let isLoggingError = false
 
+function clearSession() {
+  localStorage.removeItem('profile')
+  localStorage.removeItem('userId')
+  localStorage.removeItem('logCode')
+  localStorage.removeItem('visible')
+  userStore.visible = false
+}
+
+// Global API error handling.
+//
+// Golden rule: the user is logged out ONLY on a real 401 (expired/invalid
+// token). Every other error (validation, not-found, conflict, server, network)
+// keeps the user where they are and shows a clear, human-readable message so
+// the system never fails silently and never logs the user out unexpectedly.
+//
+// A request may opt out of the global snackbar by setting
+// `{ suppressGlobalError: true }` in its axios config — used by forms that
+// already display the error inline (so the message is not shown twice).
 API.interceptors.response.use(
   (response) => response,
   (err) => {
@@ -91,37 +110,31 @@ API.interceptors.response.use(
       return Promise.reject(err)
     }
 
-    // ── 401 Unauthorized — clear session, redirect to sign-in (no full-page reload) ──
+    const suppress = err?.config?.suppressGlobalError === true
+    const notify = (msg) => {
+      if (!suppress) settingStore.toggleSnackbar({ status: true, msg })
+    }
+
+    // ── 401 Unauthorized — the ONLY case that logs the user out ──
     if (status === 401) {
-      localStorage.removeItem('profile')
-      localStorage.removeItem('userId')
-      localStorage.removeItem('logCode')
-      localStorage.removeItem('visible')
-      userStore.visible = false
+      clearSession()
       if (router.currentRoute.value.name !== 'SignIn') {
+        settingStore.toggleSnackbar({
+          status: true,
+          msg: 'Sesioni juaj ka skaduar. Ju lutemi kyçuni përsëri.'
+        })
         router.replace({ name: 'SignIn' })
       }
       return Promise.reject(err)
     }
 
-    // ── Network error (status 0) — API/database unreachable ──
+    // ── Network error (status 0) — server unreachable. Do NOT log out. ──
     if (status === 0) {
-      settingStore.toggleSnackbar({
-        status: true,
-        msg: 'Server is unreachable. Please check your connection and try again.'
-      })
-      localStorage.removeItem('profile')
-      localStorage.removeItem('userId')
-      localStorage.removeItem('logCode')
-      localStorage.removeItem('visible')
-      userStore.visible = false
-      if (router.currentRoute.value.name !== 'SignIn') {
-        router.replace({ name: 'SignIn' })
-      }
+      notify('Lidhja me serverin dështoi. Kontrolloni internetin dhe provoni përsëri.')
       return Promise.reject(err)
     }
 
-    // ── 5xx server errors — try to log once, then redirect ──
+    // ── 5xx server errors — log technical details, show friendly message, stay on page ──
     if (status >= 500) {
       const objErrorLog = {
         status: status,
@@ -137,13 +150,14 @@ API.interceptors.response.use(
           .catch(() => { /* API may be down — silently ignore */ })
           .finally(() => { isLoggingError = false })
       }
-      settingStore.toggleSnackbar({
-        status: true,
-        msg: 'A server error occurred. Please try again later.'
-      })
-      router.push({ name: 'OtherError' })
+      notify(extractApiMessage(err, 'Ndodhi një gabim në server. Provoni përsëri më vonë.'))
+      return Promise.reject(err)
     }
 
+    // ── 400 / 404 / 409 (and other 4xx) — surface the server's message ──
+    // 403 (forbidden) is a permission problem, not an expired session, so we
+    // show a message instead of logging out.
+    notify(extractApiMessage(err))
     return Promise.reject(err)
   }
 )

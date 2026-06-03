@@ -191,3 +191,10 @@ healthchecksdb
 # Environment-specific ASP.NET config
 appsettings.Development.json
 **/appsettings.Development.json
+
+# Secrets-bearing config must NOT be committed. Use appsettings.Example.json as
+# a template and provide real values via environment variables or a server-local
+# appsettings.json. See SECURITY_REVIEW.md.
+appsettings.json
+**/appsettings.json
+!**/appsettings.Example.json

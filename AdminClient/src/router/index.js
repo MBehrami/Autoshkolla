@@ -6,6 +6,7 @@ import Dashboard from "@/pages/dashboard/Dashboard.vue";
 import AppSettings from "@/pages/settings/AppSettings.vue";
 import NotFound from "@/pages/error/NotFound.vue";
 import OtherError from "@/pages/error/OtherError.vue";
+import AccessDenied from "@/pages/error/AccessDenied.vue";
 import ErrorLog from "@/pages/logs/ErrorLog.vue";
 import BrowseLog from "@/pages/logs/BrowseLog.vue";
 import Users from "@/pages/user/Users.vue";
@@ -118,6 +119,7 @@ const routes = [
 
   // ─── General pages ───
   { path: "/errors", name: "OtherError", component: OtherError, meta: { public: true } },
+  { path: "/access-denied", name: "AccessDenied", component: AccessDenied },
   { path: "/candidates", name: "Candidates", component: Candidates },
   { path: "/candidates/:id", name: "CandidateView", component: CandidateView, props: true },
   { path: "/candidates/:id/edit", name: "CandidateEdit", component: CandidateEdit, props: true },
@@ -157,17 +159,17 @@ router.beforeEach((to, from, next) => {
     return next({ name: "SignIn" });
   }
 
-  // SuperAdmin-only routes
+  // SuperAdmin-only routes — show a clear "Access denied" page instead of a silent bounce
   if (to.meta?.superAdminOnly) {
     if (!isSuperAdmin) {
-      return next({ name: "Dashboard" });
+      return next({ name: "AccessDenied" });
     }
   }
 
   // Admin-only routes (Admin OR SuperAdmin)
   if (to.meta?.adminOnly) {
     if (!isSuperAdmin && !isAdmin) {
-      return next({ name: "Dashboard" });
+      return next({ name: "AccessDenied" });
     }
   }
 

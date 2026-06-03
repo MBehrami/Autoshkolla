@@ -31,8 +31,22 @@ namespace AdminApi.Models.Helper
 
         public static bool VerifyPassword(string password, string salt, string hashedPassword, int iterations = 10000, int hashSize = 32)
         {
+            if (string.IsNullOrEmpty(salt) || string.IsNullOrEmpty(hashedPassword))
+                return false;
+
             var hashToVerify = HashPassword(password, salt, iterations, hashSize);
-            return hashToVerify == hashedPassword;
+
+            // Constant-time comparison to avoid leaking information through timing.
+            try
+            {
+                var a = Convert.FromBase64String(hashToVerify);
+                var b = Convert.FromBase64String(hashedPassword);
+                return CryptographicOperations.FixedTimeEquals(a, b);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
         }
     }
 
